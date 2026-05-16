@@ -1,0 +1,2659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>FlowDo</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#111110"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="FlowDo"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #F5F4F0;
+    --surface:  #FFFFFF;
+    --ink:      #111110;
+    --ink-mid:  #5A5A55;
+    --ink-faint:#B0AFA8;
+    --ink-ghost:#D8D7D0;
+    --rule:     #E2E1DA;
+    --deep:     #EDECE8;
+    --red:      #C84B2F;
+    --red-soft: #F5EDE9;
+    --amber:    #B07D2A;
+    --amb-soft: #F5F0E6;
+    --green:    #2A6E4A;
+    --grn-soft: #E6F0EB;
+    --blue:     #2A5FA3;
+    --serif:    'Instrument Serif', serif;
+    --mono:     'DM Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    background: #CCC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+  }
+
+  /* ── PHONE SHELL ── */
+  #app {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.28);
+    flex-shrink: 0;
+  }
+
+  /* ── STATUS BAR ── */
+  #status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 24px 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    flex-shrink: 0;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    padding: 14px 20px 0;
+    flex-shrink: 0;
+  }
+  #header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 8px;
+  }
+  .page-sub {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .page-title {
+    font-family: var(--serif);
+    font-size: 31px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 3px;
+  }
+  #task-count {
+    text-align: right;
+  }
+  #task-count .count-num {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+  }
+  #task-count .count-num span { font-size: 14px; color: var(--ink-faint); }
+  #task-count .count-label {
+    font-size: 9px;
+    color: var(--ink-faint);
+    letter-spacing: 0.6px;
+    margin-top: 2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height: 1.5px;
+    background: var(--rule);
+    margin-bottom: 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 1px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── VIEW TOGGLE ── */
+  .view-toggle {
+    display: flex;
+    background: var(--deep);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 14px;
+  }
+  .view-toggle button {
+    flex: 1;
+    padding: 7px 0;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .view-toggle button.active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* ── WEEK STRIP ── */
+  #week-strip {
+    display: flex;
+    gap: 2px;
+    padding: 12px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #week-strip::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 9px 10px;
+    border-radius: 11px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    min-width: 38px;
+    transition: background 0.15s;
+  }
+  .day-btn.active { background: var(--ink); }
+  .day-letter {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .day-btn.active .day-letter { color: rgba(255,255,255,0.45); }
+  .day-num {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink-mid);
+  }
+  .day-btn.today .day-num { color: var(--ink); }
+  .day-btn.active .day-num { color: #fff; }
+  .day-dot {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  /* ── SCROLL CONTENT ── */
+  #content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  #content::-webkit-scrollbar { display: none; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── TASK LIST ── */
+  .task-list { padding: 0 20px; }
+  .section-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 16px 0 6px;
+  }
+
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.25s ease;
+    position: relative;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .task-row.done { opacity: 0.38; }
+  .task-row.dragging {
+    transition: none;
+    z-index: 2;
+  }
+  .task-row.drag-ready {
+    transform: scale(0.985);
+    opacity: 0.9;
+  }
+
+  .drag-hint {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--amber);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+    white-space: nowrap;
+  }
+  .drag-hint.left { right: -4px; }
+  .drag-hint.right { left: -4px; }
+
+  .day-shift-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 146px;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--ink);
+    color: #fff;
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
+    z-index: 30;
+    box-shadow: 0 10px 26px rgba(17,17,16,0.18);
+  }
+  .day-shift-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .tick-btn {
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .tick-btn.checked {
+    border-color: var(--check-color, var(--ink));
+    background: var(--check-color, var(--ink));
+  }
+  .tick-btn svg { display: none; }
+  .tick-btn.checked svg { display: block; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .task-row.done .task-title { text-decoration: line-through; }
+  .task-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .meta-proj {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    color: var(--ink-mid);
+    font-weight: 500;
+  }
+  .proj-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .meta-time, .meta-nodate, .meta-sub {
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  .meta-nodate { font-style: italic; font-size: 10px; }
+  .priority-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .priority-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+  /* ── RESCHEDULE ── */
+  .reschedule-panel {
+    background: var(--deep);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 4px;
+    border: 1px solid var(--rule);
+  }
+  .reschedule-panel .panel-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .reschedule-dates {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .reschedule-dates button {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.12s;
+  }
+  .reschedule-dates button:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .reschedule-dates button.cancel {
+    background: transparent;
+    color: var(--ink-faint);
+    border-color: var(--rule);
+  }
+
+  /* ── MONTH CALENDAR ── */
+  .month-view { padding: 0 20px; }
+  .month-day-headers {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .month-day-headers span {
+    flex: 1;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink-faint);
+  }
+  .month-week { display: flex; gap: 4px; margin-bottom: 4px; }
+  .month-cell {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: var(--deep);
+    border: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .month-cell.empty { background: transparent; border-color: transparent; }
+  .month-cell.today { background: var(--ink); border-color: var(--ink); }
+  .month-cell .cell-num {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--ink-mid);
+    line-height: 1;
+  }
+  .month-cell.today .cell-num { color: #fff; font-weight: 700; }
+  .cell-dots { display: flex; gap: 2px; }
+  .cell-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .month-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 12px;
+    justify-content: flex-end;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9.5px;
+    color: var(--ink-faint);
+  }
+  .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ── HABITS ── */
+  .habits-list { padding: 0 16px; }
+  .habits-summary {
+    padding: 0 20px 16px;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  .habit-card {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    border: 1px solid var(--rule);
+    cursor: pointer;
+  }
+  .habit-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .habit-check {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .habit-check.done {
+    border-color: var(--habit-color);
+    background: var(--habit-color);
+  }
+  .habit-check svg { display: none; }
+  .habit-check.done svg { display: block; }
+  .habit-info { flex: 1; }
+  .habit-name {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .habit-cue {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .habit-streak { text-align: right; flex-shrink: 0; }
+  .streak-num {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--habit-color);
+    line-height: 1;
+  }
+  .streak-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 1px;
+  }
+
+  /* week grid */
+  .week-grid { display: flex; gap: 5px; }
+  .week-cell-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .week-cell {
+    width: 100%;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--deep);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .week-cell[data-habit-day] { cursor: pointer; }
+  .month-cell:not(.empty) { cursor: pointer; }
+  .month-cell:not(.empty):hover { opacity: 0.8; }
+  .week-cell.done { background: var(--habit-color); }
+  .week-cell.today-cell { border-color: var(--ink-ghost); }
+  .week-cell.future { opacity: 0.3; }
+  .week-cell-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--ink-faint);
+  }
+  .week-cell-label.today-label { color: var(--ink-mid); }
+  .week-cell-dash { width: 6px; height: 1.5px; background: var(--ink-ghost); border-radius: 1px; }
+
+  /* heatmap */
+  .heatmap { width: 100%; }
+  .heatmap-header {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .heatmap-header-spacer { width: 38px; flex-shrink: 0; }
+  .heatmap-header span {
+    flex: 1;
+    text-align: center;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--ink-faint);
+  }
+  .heatmap-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+    align-items: center;
+  }
+  .heatmap-week-label {
+    width: 38px;
+    font-size: 8.5px;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+  .heatmap-cell {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: var(--deep);
+    border: 1px solid transparent;
+  }
+  .heatmap-cell.done {
+    background: var(--habit-color);
+    border-color: color-mix(in srgb, var(--habit-color) 40%, transparent);
+  }
+  .heatmap-cell.missed { opacity: 0.4; }
+  .heatmap-cell.future { opacity: 0.2; }
+
+  /* add habit btn */
+  .add-habit-btn {
+    width: 100%;
+    padding: 14px 0;
+    border-radius: 14px;
+    border: 1.5px dashed var(--ink-ghost);
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    font-family: var(--mono);
+    margin-bottom: 90px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .add-habit-btn:hover { border-color: var(--ink-mid); color: var(--ink-mid); }
+  .habit-card.dragging { transition: none; }
+  .habit-card.drag-ready { transform: scale(0.985); opacity: 0.9; }
+
+  /* mensal habit cards */
+  .habit-month-card {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    border: 1px solid var(--rule);
+  }
+  .habit-month-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .habit-month-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .habit-month-name {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .habit-month-streak {
+    margin-left: auto;
+    font-family: var(--serif);
+    font-size: 14px;
+  }
+
+  /* ── PROJECTS ── */
+  .projects-view { padding: 0 20px; }
+  .project-block {
+    padding-bottom: 26px;
+    margin-bottom: 26px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .project-block:last-child { border-bottom: none; }
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .project-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .project-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .project-name {
+    font-family: var(--serif);
+    font-size: 19px;
+    color: var(--ink);
+  }
+  .project-count { font-size: 11px; color: var(--ink-faint); }
+  .project-bar { height: 2px; background: var(--rule); border-radius: 1px; margin-bottom: 14px; }
+  .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; }
+  .project-task {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .project-task.done { opacity: 0.32; }
+  .project-task-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+  .project-task-title {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--ink-mid);
+  }
+  .project-task.done .project-task-title { text-decoration: line-through; }
+  .project-task-nodate {
+    margin-left: auto;
+    font-size: 9.5px;
+    color: var(--ink-faint);
+  }
+
+  /* ── PROFILE ── */
+  .profile-view { padding: 4px 20px 0; }
+  .profile-avatar {
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    background: var(--ink);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 22px;
+    color: #fff;
+  }
+  .profile-name {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .profile-email { font-size: 11px; color: var(--ink-faint); margin-bottom: 26px; }
+  .profile-items { border-top: 1px solid var(--rule); }
+  .profile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink-mid);
+  }
+  .profile-item.danger { color: var(--red); }
+  .profile-item svg { flex-shrink: 0; }
+
+  /* ── FAB ── */
+  #fab {
+    position: absolute;
+    right: 20px;
+    bottom: 82px;
+    width: 50px; height: 50px;
+    border-radius: 15px;
+    background: var(--ink);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 22px rgba(17,17,16,0.22);
+    transition: transform 0.15s;
+  }
+  #fab:active { transform: scale(0.95); }
+  #fab.hidden { display: none; }
+
+  /* ── BOTTOM NAV ── */
+  #bottom-nav {
+    display: flex;
+    gap: 7px;
+    background: #111110;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 14px 22px;
+    flex-shrink: 0;
+    box-shadow: 0 -14px 32px rgba(17,17,16,0.16);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    min-height: 48px;
+    padding: 6px 0 5px;
+    border-radius: 14px;
+    color: rgba(255,255,255,0.42);
+    transition: background 0.15s, color 0.15s, transform 0.15s;
+  }
+  .nav-btn:active { transform: scale(0.96); }
+  .nav-btn.active {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-icon svg {
+    width: 17px;
+    height: 17px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nav-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: currentColor;
+    letter-spacing: 0.3px;
+  }
+  .nav-indicator {
+    width: 4px; height: 4px;
+    border-radius: 1px;
+    background: #fff;
+    display: none;
+  }
+  .nav-btn.active .nav-indicator { display: block; }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(17,17,16,0.48);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 22px 20px 44px;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+  }
+  .modal-overlay.open .modal-sheet { transform: translateY(0); }
+  .modal-handle {
+    width: 30px; height: 3px;
+    background: var(--rule);
+    border-radius: 2px;
+    margin: 0 auto 22px;
+  }
+  .modal-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .modal-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1.5px solid var(--rule);
+    background: transparent;
+    padding: 10px 0;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 22px;
+  }
+  .modal-input::placeholder { color: var(--ink-ghost); }
+  .modal-textarea {
+    width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--deep);
+    padding: 11px 13px;
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 18px;
+    resize: none;
+    line-height: 1.5;
+  }
+  .modal-input-sm {
+    width: 100%;
+    border: none;
+    border-bottom: 1.5px solid var(--rule);
+    background: transparent;
+    padding: 10px 0;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 20px;
+  }
+  .modal-input-sm::placeholder { color: var(--ink-ghost); }
+  .btn-group { display: flex; gap: 7px; margin-bottom: 18px; }
+  .choice-btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 8px;
+    border: 1.5px solid var(--rule);
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.13s;
+  }
+  .color-swatches { display: flex; gap: 10px; margin-bottom: 26px; }
+  .color-swatch {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    border: 2.5px solid transparent;
+    cursor: pointer;
+    transition: border 0.13s;
+  }
+  .color-swatch.selected { border-color: var(--ink); }
+  .modal-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 18px;
+  }
+  .checkbox-box {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .checkbox-box.checked {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+  .checkbox-box svg { display: none; }
+  .checkbox-box.checked svg { display: block; }
+  .checkbox-label { font-family: var(--serif); font-size: 13px; color: var(--ink-mid); }
+  .date-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 18px;
+  }
+  .date-choice {
+    min-height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: border-color 0.13s, background 0.13s, color 0.13s;
+  }
+  .date-choice.active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+  .date-choice .date-day {
+    display: block;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .date-choice .date-num {
+    display: block;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1;
+  }
+  .date-choice.no-date {
+    grid-column: span 4;
+  }
+  .modal-submit {
+    width: 100%;
+    padding: 15px 0;
+    border-radius: 12px;
+    border: none;
+    background: var(--rule);
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--mono);
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .modal-submit.ready { background: var(--ink); color: #fff; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .modal-action {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: transparent;
+    color: var(--ink-mid);
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.8px;
+    cursor: pointer;
+  }
+  .modal-action.danger {
+    border-color: var(--red-soft);
+    background: var(--red-soft);
+    color: var(--red);
+  }
+  .repeat-choice-group {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 18px;
+  }
+
+  /* detail modal */
+  .detail-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+  .detail-tick {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .detail-tick.checked {
+    border-color: var(--check-color, var(--ink));
+    background: var(--check-color, var(--ink));
+  }
+  .detail-tick svg { display: none; }
+  .detail-tick.checked svg { display: block; }
+  .detail-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .tag-row { display: flex; gap: 7px; margin-bottom: 22px; flex-wrap: wrap; }
+  .tag {
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sub-tick {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .sub-tick.checked { border-color: var(--ink); background: var(--ink); }
+  .sub-tick svg { display: none; }
+  .sub-tick.checked svg { display: block; }
+  .sub-title {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--ink-mid);
+  }
+  .sub-tick.checked + .sub-title { text-decoration: line-through; color: var(--ink-faint); }
+
+  /* habit detail */
+  .habit-detail-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px; }
+  .habit-detail-check {
+    width: 28px; height: 28px;
+    border-radius: 9px;
+    border: 1.5px solid var(--ink-ghost);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .habit-detail-check.done { border-color: var(--habit-color); background: var(--habit-color); }
+  .habit-detail-check svg { display: none; }
+  .habit-detail-check.done svg { display: block; }
+  .habit-detail-title { font-family: var(--serif); font-size: 22px; color: var(--ink); line-height: 1.3; }
+  .habit-goal-block {
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    margin-left: 42px;
+  }
+  .habit-goal-label {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
+  }
+  .habit-goal-text {
+    font-family: var(--serif); font-size: 14px; color: var(--ink-mid);
+    line-height: 1.5; font-style: italic;
+  }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .stat-box {
+    flex: 1;
+    background: var(--deep);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .stat-num { font-family: var(--serif); font-size: 26px; color: var(--ink); }
+  .stat-num span { font-size: 15px; color: var(--ink-faint); }
+  .stat-label {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--ink-faint); margin-top: 2px;
+  }
+  .detail-week-grid { display: flex; gap: 6px; margin-bottom: 20px; }
+  .detail-week-cell-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .detail-week-cell {
+    width: 100%; aspect-ratio: 1;
+    border-radius: 8px;
+    background: var(--deep);
+    border: 1px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-week-cell.done { background: var(--habit-color); }
+  .detail-week-cell.today-cell { border-color: var(--ink-ghost); }
+  .detail-week-cell.future { opacity: 0.3; }
+  .detail-week-label { font-size: 9px; font-weight: 700; color: var(--ink-faint); }
+  .detail-week-label.today-label { color: var(--ink-mid); }
+  .modal-close-btn {
+    width: 100%; padding: 14px 0;
+    border-radius: 12px; border: none;
+    background: var(--ink); color: #fff;
+    font-size: 11px; font-weight: 700;
+    cursor: pointer; font-family: var(--mono); letter-spacing: 1px;
+  }
+
+  /* bottom spacer */
+  .bottom-space { height: 100px; }
+
+  @media (max-width: 420px) {
+    html, body { background: var(--bg); }
+    #app {
+      width: 100%;
+      height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <span id="clock">9:41</span>
+    <span style="font-size:11px">●●●● 100%</span>
+  </div>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div id="header-top">
+      <div>
+        <div class="page-sub" id="page-sub">Qui, 12 de maio</div>
+        <div class="page-title" id="page-title">Hoje</div>
+      </div>
+      <div id="task-count">
+        <div class="count-num"><span id="done-count">1</span><span>/<span id="total-count">4</span></span></div>
+        <div class="count-label">concluídas</div>
+      </div>
+    </div>
+
+    <div class="progress-bar" id="main-progress">
+      <div class="progress-fill" id="main-progress-fill" style="width:25%"></div>
+    </div>
+
+    <!-- WEEK STRIP -->
+    <div id="week-strip"></div>
+
+    <!-- VIEW TOGGLE -->
+    <div class="view-toggle" id="view-toggle">
+      <button class="active" data-view="semana">Semana</button>
+      <button data-view="mensal">Mensal</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- TODAY WEEK -->
+    <div class="screen active" id="screen-hoje-semana">
+      <div class="task-list" id="task-list-pending"></div>
+      <div class="task-list" id="task-list-done-wrap" style="display:none">
+        <div class="section-label">Concluídas</div>
+        <div id="task-list-done"></div>
+      </div>
+      <div class="task-list" id="task-list-undated-wrap" style="display:none">
+        <div class="section-label">Sem data</div>
+        <div id="task-list-undated"></div>
+      </div>
+      <div class="bottom-space"></div>
+    </div>
+
+    <!-- TODAY MONTH -->
+    <div class="screen" id="screen-hoje-mensal">
+      <div style="height:16px"></div>
+      <div class="month-view" id="month-view"></div>
+      <div class="bottom-space"></div>
+    </div>
+
+    <!-- HABITS WEEK -->
+    <div class="screen" id="screen-habitos-semana">
+      <div class="habits-summary" id="habits-summary"></div>
+      <div class="habits-list" id="habits-list-week"></div>
+    </div>
+
+    <!-- HABITS MONTH -->
+    <div class="screen" id="screen-habitos-mensal">
+      <div style="padding:16px 16px 0" id="habits-list-month"></div>
+      <div class="bottom-space"></div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="screen" id="screen-projetos">
+      <div style="height:16px"></div>
+      <div class="projects-view" id="projects-view"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-perfil">
+      <div style="height:16px"></div>
+      <div class="profile-view">
+        <div class="profile-avatar">A</div>
+        <div class="profile-name">Ana Rodrigues</div>
+        <div class="profile-email">ana@email.com</div>
+        <div class="profile-items" id="profile-items"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button id="fab">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M9 3v12M3 9h12" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <div class="day-shift-toast" id="day-shift-toast"></div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav"></div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modal-add-task">
+    <div class="modal-sheet" id="modal-add-task-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-label" id="task-modal-title">Nova tarefa</div>
+      <input class="modal-input" id="new-task-title" placeholder="Descreva a tarefa..."/>
+      <div class="modal-label">Prioridade</div>
+      <div class="btn-group" id="priority-group"></div>
+      <div class="modal-label">Projeto</div>
+      <div class="btn-group" id="project-group"></div>
+      <div class="modal-label">Data</div>
+      <div class="date-choice-grid" id="task-date-group"></div>
+      <div class="modal-label">Recorrência</div>
+      <div class="repeat-choice-group" id="repeat-group"></div>
+      <button class="modal-submit ready" id="submit-task">ADICIONAR</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-habit">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-label">Novo hábito</div>
+      <input class="modal-input" id="new-habit-name" placeholder="Nome do hábito..."/>
+      <div class="modal-label">Onde quero chegar</div>
+      <textarea class="modal-textarea" id="new-habit-goal" rows="2" placeholder="Quero ser alguém que aprende todos os dias..."></textarea>
+      <div class="modal-label">Gatilho</div>
+      <input class="modal-input-sm" id="new-habit-cue" placeholder="Após o café da manhã..."/>
+      <div class="modal-label">Cor</div>
+      <div class="color-swatches" id="color-swatches"></div>
+      <button class="modal-submit" id="submit-habit">CRIAR HÁBITO</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-task-detail">
+    <div class="modal-sheet" id="task-detail-sheet">
+      <div class="modal-handle"></div>
+      <div class="detail-top">
+        <button class="detail-tick" id="detail-tick"></button>
+        <div class="detail-title" id="detail-title"></div>
+      </div>
+      <div class="tag-row" id="detail-tags"></div>
+      <div id="detail-subtasks"></div>
+      <div class="modal-actions">
+        <button class="modal-action" id="edit-task-btn">EDITAR</button>
+        <button class="modal-action danger" id="delete-task-btn">EXCLUIR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-habit-detail">
+    <div class="modal-sheet" id="habit-detail-sheet">
+      <div class="modal-handle"></div>
+      <div class="habit-detail-header">
+        <button class="habit-detail-check" id="hd-check"></button>
+        <div class="habit-detail-title" id="hd-title"></div>
+      </div>
+      <div class="habit-goal-block" id="hd-goal-block">
+        <div class="habit-goal-label">Onde quero chegar</div>
+        <div class="habit-goal-text" id="hd-goal"></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="hd-streak"></div>
+          <div class="stat-label">Sequência</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="hd-week-count"></div>
+          <div class="stat-label">Esta semana</div>
+        </div>
+      </div>
+      <div class="view-toggle" id="hd-toggle" style="margin-bottom:18px">
+        <button class="active" data-hd-view="semana">Semana</button>
+        <button data-hd-view="mensal">Mensal</button>
+      </div>
+      <div id="hd-semana-view"></div>
+      <div id="hd-mensal-view" style="display:none"></div>
+      <div class="modal-actions">
+        <button class="modal-action" id="edit-habit-btn">EDITAR</button>
+        <button class="modal-action danger" id="delete-habit-btn">EXCLUIR</button>
+      </div>
+      <button class="modal-close-btn" id="hd-close">FECHAR</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-project">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-label">Novo projeto</div>
+      <input class="modal-input" id="new-project-name" placeholder="Nome do projeto..."/>
+      <div class="modal-label">Cor</div>
+      <div class="color-swatches" id="project-color-swatches"></div>
+      <button class="modal-submit" id="submit-project">CRIAR PROJETO</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+function saveState() {
+  try {
+    localStorage.setItem('fd-tasks', JSON.stringify(tasks));
+    localStorage.setItem('fd-habits', JSON.stringify(habits));
+    localStorage.setItem('fd-projects', JSON.stringify(PROJECTS));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const t = localStorage.getItem('fd-tasks');
+    const h = localStorage.getItem('fd-habits');
+    const p = localStorage.getItem('fd-projects');
+    if (t) tasks = JSON.parse(t);
+    if (h) habits = JSON.parse(h);
+    if (p) PROJECTS.splice(0, PROJECTS.length, ...JSON.parse(p));
+  } catch(e) {}
+}
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const TODAY = '2026-05-12';
+const TODAY_IDX = 3;
+const WEEK_DATES = ['2026-05-09','2026-05-10','2026-05-11','2026-05-12','2026-05-13','2026-05-14','2026-05-15'];
+const DAYS_LETTER = ['S','T','Q','Q','S','S','D'];
+const DAYS_SHORT  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const DATES_MAP = {
+  '2026-05-09':'Seg 9','2026-05-10':'Ter 10','2026-05-11':'Qua 11',
+  '2026-05-12':'Qui 12','2026-05-13':'Sex 13','2026-05-14':'Sáb 14','2026-05-15':'Dom 15'
+};
+const MONTH_WEEKS = ['Abr 7','Abr 14','Abr 21','Abr 28','Mai 5'];
+const PROJECTS = [
+  { id:1, name:'Trabalho', dot:'#C84B2F' },
+  { id:2, name:'Pessoal',  dot:'#B07D2A' },
+  { id:3, name:'Saúde',    dot:'#2A6E4A' },
+];
+const PRIORITY = {
+  alta:  { label:'Alta',  color:'#C84B2F', bg:'#F5EDE9' },
+  média: { label:'Média', color:'#B07D2A', bg:'#F5F0E6' },
+  baixa: { label:'Baixa', color:'#2A6E4A', bg:'#E6F0EB' },
+};
+const COLORS = ['#C84B2F','#B07D2A','#2A6E4A','#2A5FA3','#7A4FA3'];
+const REPEAT_OPTIONS = [
+  { id:'nenhuma', label:'Unica' },
+  { id:'diaria', label:'Diaria' },
+  { id:'semanal', label:'Semanal' },
+];
+const PROFILE_ITEMS = ['Aparência','Notificações','Sincronização','Exportar dados','Conta','Sair'];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let tasks = [
+  { id:1, title:'Reunião com equipe de design', done:false, priority:'alta',  projectId:1, time:'10:00', date:TODAY,        subtasks:['Preparar apresentação','Revisar wireframes'] },
+  { id:2, title:'Finalizar relatório mensal',   done:false, priority:'alta',  projectId:1, time:'14:00', date:TODAY,        subtasks:[] },
+  { id:3, title:'Treino de força',              done:true,  priority:'média', projectId:3, time:'07:00', date:TODAY,        subtasks:[] },
+  { id:4, title:'Ler 30 páginas',               done:false, priority:'baixa', projectId:2, time:'',      date:null,         subtasks:[] },
+  { id:5, title:'Revisar pull requests',         done:false, priority:'média', projectId:1, time:'',      date:'2026-05-13', subtasks:['Frontend PR #42','Backend PR #38'] },
+  { id:6, title:'Planejar viagem de julho',      done:false, priority:'baixa', projectId:2, time:'',      date:null,         subtasks:['Pesquisar voos','Reservar hotel'] },
+];
+
+function makeHeatmap(pct) {
+  return Array.from({length:35},(_,i)=>i<32?Math.random()<pct:null);
+}
+let habits = [
+  { id:1, name:'Leitura diária',          goal:'Tornar-me alguém que aprende todos os dias', cue:'Após o café da manhã',           streak:14, color:'#B07D2A', week:[true,true,true,true,false,null,null],  heatmap:makeHeatmap(0.75) },
+  { id:2, name:'Meditação — 10 min',      goal:'Ter clareza mental e menos ansiedade',        cue:'Ao acordar, antes do celular',   streak:7,  color:'#2A6E4A', week:[true,true,false,true,true,null,null],  heatmap:makeHeatmap(0.65) },
+  { id:3, name:'Sem redes até o meio-dia',goal:'Recuperar o controle do meu foco',            cue:'Ligar o computador → bloqueador',streak:3,  color:'#C84B2F', week:[true,false,true,true,null,null,null],  heatmap:makeHeatmap(0.50) },
+  { id:4, name:'Caminhar 30 minutos',     goal:'Manter energia alta e saúde cardiovascular',  cue:'Após o almoço',                  streak:21, color:'#2A5FA3', week:[true,true,true,true,true,null,null],   heatmap:makeHeatmap(0.88) },
+];
+
+let activeDay    = TODAY_IDX;
+let currentNav   = 'hoje';
+let currentView  = 'semana'; // semana | mensal
+let selectedTaskId  = null;
+let selectedHabitId = null;
+let hdView = 'semana';
+let scrollDayAccum = 0;
+let scrollDayLock = false;
+let taskDragActive = false;
+
+// add task form state
+let newPriority = 'média';
+let newProjectId = 1;
+let newHasDate = true;
+let newTaskDate = TODAY;
+let newRepeat = 'nenhuma';
+let newHabitColor = '#B07D2A';
+let newProjectColor = '#C84B2F';
+let editingTaskId = null;
+let editingHabitId = null;
+
+function clampDay(day) {
+  return Math.max(0, Math.min(WEEK_DATES.length - 1, day));
+}
+
+function showDayToast(text) {
+  const toast = document.getElementById('day-shift-toast');
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showDayToast.timer);
+  showDayToast.timer = setTimeout(() => toast.classList.remove('show'), 900);
+}
+
+function confirmDelete(label) {
+  return window.confirm(`Excluir ${label}? Essa ação não pode ser desfeita.`);
+}
+
+function setActiveDay(day, options = {}) {
+  const nextDay = clampDay(day);
+  const changed = nextDay !== activeDay;
+  activeDay = nextDay;
+  buildWeekStrip();
+  updateHeader();
+  renderAll();
+  const content = document.getElementById('content');
+  if (content && currentNav === 'hoje' && currentView === 'semana') content.scrollTop = 0;
+  if (options.toast && changed) showDayToast(options.toast);
+}
+
+function shiftActiveDay(direction, source = 'scroll') {
+  const nextDay = clampDay(activeDay + direction);
+  if (nextDay === activeDay) return false;
+  const label = `${DAYS_SHORT[nextDay]} ${9 + nextDay}`;
+  setActiveDay(nextDay, { toast: source === 'scroll' ? label : `Movida para ${label}` });
+  return true;
+}
+
+// ─── SVG HELPERS ─────────────────────────────────────────────────────────────
+const CHECK_SVG = `<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const CHECK_SVG_SM = `<svg width="9" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const DASH_SVG = `<div class="week-cell-dash"></div>`;
+const CHEVRON = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#D8D7D0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  {id:'hoje',    label:'Hoje'},
+  {id:'habitos', label:'Hábitos'},
+  {id:'projetos',label:'Projetos'},
+  {id:'perfil',  label:'Perfil'},
+];
+
+const NAV_ICONS = {
+  hoje: '<svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/></svg>',
+  habitos: '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  projetos: '<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z"/></svg>',
+  perfil: '<svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20a8 8 0 0 1 16 0"/></svg>',
+};
+
+function buildNav() {
+  const nav = document.getElementById('bottom-nav');
+  nav.innerHTML = NAV_ITEMS.map(n => `
+    <button class="nav-btn ${n.id === currentNav ? 'active':''}" data-nav="${n.id}">
+      <span class="nav-icon">${NAV_ICONS[n.id]}</span>
+      <span class="nav-label">${n.label}</span>
+      <div class="nav-indicator"></div>
+    </button>
+  `).join('');
+  nav.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchNav(btn.dataset.nav));
+  });
+}
+
+function switchNav(nav) {
+  currentNav = nav;
+  currentView = 'semana';
+  buildNav();
+  updateHeader();
+  renderAll();
+}
+
+// ─── HEADER ──────────────────────────────────────────────────────────────────
+function updateHeader() {
+  const sub = {
+    hoje:     `${DAYS_SHORT[activeDay]}, ${9+activeDay} de maio`,
+    habitos:  'Acompanhamento',
+    projetos: 'Todos os projetos',
+    perfil:   'Configurações',
+  };
+  const title = {hoje:'Hoje',habitos:'Hábitos',projetos:'Projetos',perfil:'Perfil'};
+  document.getElementById('page-sub').textContent   = sub[currentNav];
+  document.getElementById('page-title').textContent = title[currentNav];
+
+  const isHoje    = currentNav === 'hoje';
+  const isHabitos = currentNav === 'habitos';
+
+  // task count
+  document.getElementById('task-count').style.display = isHoje ? 'block' : 'none';
+
+  // progress bar
+  document.getElementById('main-progress').style.display =
+    (isHoje || isHabitos) ? 'block' : 'none';
+
+  // week strip
+  document.getElementById('week-strip').style.display = isHoje ? 'flex' : 'none';
+
+  // view toggle
+  document.getElementById('view-toggle').style.display =
+    (isHoje || isHabitos) ? 'flex' : 'none';
+
+  // FAB
+  document.getElementById('fab').classList.toggle('hidden', !(isHoje || isHabitos || currentNav === 'projetos'));
+}
+
+// ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
+function buildWeekStrip() {
+  const strip = document.getElementById('week-strip');
+  strip.innerHTML = DAYS_LETTER.map((d,i) => {
+    const isActive = i === activeDay;
+    const isToday  = i === TODAY_IDX;
+    return `
+      <button class="day-btn ${isActive?'active':''} ${isToday&&!isActive?'today':''}" data-day="${i}">
+        <span class="day-letter">${d}</span>
+        <span class="day-num">${9+i}</span>
+        ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
+      </button>`;
+  }).join('');
+  strip.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setActiveDay(parseInt(btn.dataset.day));
+    });
+  });
+}
+
+// ─── VIEW TOGGLE ─────────────────────────────────────────────────────────────
+function buildViewToggle() {
+  const tg = document.getElementById('view-toggle');
+  tg.querySelectorAll('button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === currentView);
+    btn.onclick = () => {
+      currentView = btn.dataset.view;
+      buildViewToggle();
+      renderAll();
+    };
+  });
+}
+
+// ─── SCREEN MANAGER ──────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  const nav = currentNav, view = currentView;
+
+  if (nav === 'hoje' && view === 'semana') {
+    showScreen('screen-hoje-semana');
+    renderTaskList();
+  } else if (nav === 'hoje' && view === 'mensal') {
+    showScreen('screen-hoje-mensal');
+    renderMonthView();
+  } else if (nav === 'habitos' && view === 'semana') {
+    showScreen('screen-habitos-semana');
+    renderHabitsWeek();
+  } else if (nav === 'habitos' && view === 'mensal') {
+    showScreen('screen-habitos-mensal');
+    renderHabitsMonth();
+  } else if (nav === 'projetos') {
+    showScreen('screen-projetos');
+    renderProjects();
+  } else if (nav === 'perfil') {
+    showScreen('screen-perfil');
+    renderProfile();
+  }
+
+  updateProgress();
+  updateTaskCount();
+  saveState();
+}
+
+// ─── PROGRESS ────────────────────────────────────────────────────────────────
+function canScrollChangeDay() {
+  return currentNav === 'hoje' && currentView === 'semana' && !taskDragActive;
+}
+
+function lockScrollDay() {
+  scrollDayLock = true;
+  setTimeout(() => {
+    scrollDayLock = false;
+    scrollDayAccum = 0;
+  }, 360);
+}
+
+function attachDayScrollNavigation() {
+  const content = document.getElementById('content');
+  if (!content) return;
+
+  content.addEventListener('wheel', e => {
+    if (!canScrollChangeDay() || scrollDayLock) return;
+    scrollDayAccum += e.deltaY;
+    if (Math.abs(scrollDayAccum) < 90) return;
+    const changed = shiftActiveDay(scrollDayAccum > 0 ? 1 : -1, 'scroll');
+    if (changed) {
+      e.preventDefault();
+      lockScrollDay();
+    }
+  }, { passive:false });
+
+  let touchStartY = 0;
+  let touchStartX = 0;
+  content.addEventListener('touchstart', e => {
+    if (!canScrollChangeDay()) return;
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }, { passive:true });
+
+  content.addEventListener('touchend', e => {
+    if (!canScrollChangeDay() || scrollDayLock || !touchStartY) return;
+    const t = e.changedTouches[0];
+    const dy = t.clientY - touchStartY;
+    const dx = t.clientX - touchStartX;
+    touchStartY = 0;
+    if (Math.abs(dx) > Math.abs(dy) || Math.abs(dy) < 62) return;
+    const changed = shiftActiveDay(dy < 0 ? 1 : -1, 'scroll');
+    if (changed) lockScrollDay();
+  }, { passive:true });
+}
+
+function updateProgress() {
+  const fill = document.getElementById('main-progress-fill');
+  if (currentNav === 'hoje') {
+    const dayTasks = tasks.filter(t => t.date === WEEK_DATES[activeDay]);
+    const pct = dayTasks.length ? (dayTasks.filter(t=>t.done).length / dayTasks.length)*100 : 0;
+    fill.style.width = pct + '%';
+  } else if (currentNav === 'habitos') {
+    const done = habits.filter(h=>h.week[TODAY_IDX]===true).length;
+    const pct = habits.length ? (done/habits.length)*100 : 0;
+    fill.style.width = pct + '%';
+  }
+}
+
+function updateTaskCount() {
+  const dayTasks = tasks.filter(t => t.date === WEEK_DATES[activeDay]);
+  document.getElementById('done-count').textContent  = dayTasks.filter(t=>t.done).length;
+  document.getElementById('total-count').textContent = dayTasks.length;
+}
+
+// ─── TASK LIST ────────────────────────────────────────────────────────────────
+function renderTaskList() {
+  const viewDate = WEEK_DATES[activeDay];
+  const dayTasks = tasks.filter(t => t.date === viewDate);
+  const undated  = tasks.filter(t => !t.date);
+  const pending  = dayTasks.filter(t => !t.done);
+  const done     = dayTasks.filter(t => t.done);
+
+  document.getElementById('task-list-pending').innerHTML = pending.map(t => taskRowHTML(t)).join('');
+  
+  const doneWrap = document.getElementById('task-list-done-wrap');
+  doneWrap.style.display = done.length ? 'block' : 'none';
+  document.getElementById('task-list-done').innerHTML = done.map(t => taskRowHTML(t)).join('');
+
+  const undatedWrap = document.getElementById('task-list-undated-wrap');
+  undatedWrap.style.display = undated.length ? 'block' : 'none';
+  document.getElementById('task-list-undated').innerHTML = undated.map(t => taskRowHTML(t)).join('');
+
+  attachTaskEvents();
+}
+
+function taskRowHTML(task) {
+  const proj = PROJECTS.find(p => p.id === task.projectId);
+  const pc   = PRIORITY[task.priority];
+  const checkStyle = proj ? `style="--check-color:${proj.dot}"` : '';
+  return `
+    <div class="task-row ${task.done?'done':''}" data-id="${task.id}" ${checkStyle}>
+      <div class="drag-hint left"></div>
+      <div class="drag-hint right"></div>
+      <button class="tick-btn ${task.done?'checked':''}" data-tick="${task.id}" ${checkStyle}>
+        ${CHECK_SVG}
+      </button>
+      <div class="task-body">
+        <div class="task-title">${task.title}</div>
+        <div class="task-meta">
+          ${proj ? `<span class="meta-proj"><span class="proj-dot" style="background:${proj.dot}"></span>${proj.name}</span>` : ''}
+          ${task.time ? `<span class="meta-time">${task.time}</span>` : ''}
+          ${!task.date ? `<span class="meta-nodate">sem data</span>` : ''}
+          ${task.repeat && task.repeat !== 'nenhuma' ? `<span class="meta-sub">recorrente: ${task.repeat}</span>` : ''}
+          ${task.subtasks?.length ? `<span class="meta-sub">${task.subtasks.length} subtarefas</span>` : ''}
+        </div>
+      </div>
+      <span class="priority-badge" style="color:${pc.color}">
+        <span class="priority-dot" style="background:${pc.color}"></span>${pc.label}
+      </span>
+    </div>
+    <div class="reschedule-panel" id="rp-${task.id}" style="display:none">
+      <div class="panel-label">Mover para</div>
+      <div class="reschedule-dates">
+        ${Object.entries(DATES_MAP).map(([dk,label]) =>
+          `<button data-move="${task.id}" data-date="${dk}">${label}</button>`
+        ).join('')}
+        <button data-move="${task.id}" data-date="null">Sem data</button>
+        <button class="cancel" data-cancel="${task.id}">Cancelar</button>
+      </div>
+    </div>`;
+}
+
+function attachTaskEvents() {
+  // tick buttons
+  document.querySelectorAll('[data-tick]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.tick);
+      toggleTask(id);
+    });
+  });
+
+  // task row click (open detail)
+  document.querySelectorAll('.task-row').forEach(row => {
+    row.addEventListener('click', () => {
+      if (row.dataset.suppressClick === 'true') {
+        row.dataset.suppressClick = 'false';
+        return;
+      }
+      selectedTaskId = parseInt(row.dataset.id);
+      openTaskDetail();
+    });
+    // drag to reschedule
+    setupDrag(row);
+  });
+
+  // reschedule buttons
+  document.querySelectorAll('[data-move]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.move);
+      const date = btn.dataset.date === 'null' ? null : btn.dataset.date;
+      rescheduleTask(id, date);
+    });
+  });
+  document.querySelectorAll('[data-cancel]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.cancel;
+      document.getElementById(`rp-${id}`).style.display = 'none';
+    });
+  });
+}
+
+function setupDrag(row) {
+  let startX = 0, startY = 0, offset = 0, dragging = false, ready = false, moved = false, pressed = false, holdTimer = null;
+  const id = row.dataset.id;
+
+  const resetDrag = () => {
+    clearTimeout(holdTimer);
+    pressed = false;
+    ready = false;
+    dragging = false;
+    taskDragActive = false;
+    row.classList.remove('drag-ready','dragging');
+    row.style.transform = '';
+    row.querySelector('.drag-hint.left').style.opacity = 0;
+    row.querySelector('.drag-hint.right').style.opacity = 0;
+  };
+
+  row.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    if (row.setPointerCapture) row.setPointerCapture(e.pointerId);
+    startX = e.clientX;
+    startY = e.clientY;
+    offset = 0;
+    moved = false;
+    pressed = true;
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      ready = true;
+      taskDragActive = true;
+      row.classList.add('drag-ready');
+    }, 170);
+  });
+
+  row.addEventListener('pointermove', e => {
+    if (!pressed) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx) && !ready) {
+      clearTimeout(holdTimer);
+      return;
+    }
+    if (!ready && Math.abs(dx) < 14) return;
+    ready = true;
+    dragging = true;
+    taskDragActive = true;
+    moved = true;
+    row.classList.remove('drag-ready');
+    row.classList.add('dragging');
+    offset = Math.max(-128, Math.min(128, dx));
+    row.style.transform = `translateX(${offset}px)`;
+    const hintL = row.querySelector('.drag-hint.left');
+    const hintR = row.querySelector('.drag-hint.right');
+    if (Math.abs(offset) > 28) {
+      const op = Math.min(1,(Math.abs(offset)-28)/28);
+      if (offset > 0) {
+        hintR.textContent = 'mover »'; hintR.style.opacity = op;
+        hintL.style.opacity = 0;
+      } else {
+        hintL.textContent = '« mover'; hintL.style.opacity = op;
+        hintR.style.opacity = 0;
+      }
+    } else {
+      hintL.style.opacity = 0; hintR.style.opacity = 0;
+    }
+  });
+
+  row.addEventListener('pointerup', () => {
+    clearTimeout(holdTimer);
+    if (dragging && Math.abs(offset) > 64) {
+      if (offset > 0) {
+        moveTaskByDays(parseInt(id), 1);
+      } else {
+        deleteTask(parseInt(id), true);
+      }
+      row.dataset.suppressClick = 'true';
+      resetDrag();
+      return;
+    }
+    if (moved || dragging || ready) row.dataset.suppressClick = 'true';
+    resetDrag();
+    offset = 0;
+  });
+
+  row.addEventListener('pointercancel', resetDrag);
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  renderAll();
+}
+
+function deleteTask(id, ask = true) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  if (ask && !confirmDelete(`a tarefa "${t.title}"`)) return;
+  tasks = tasks.filter(task => task.id !== id);
+  closeModal('modal-task-detail');
+  renderAll();
+  showDayToast('Tarefa excluida');
+}
+
+function rescheduleTask(id, date) {
+  const t = tasks.find(t => t.id === id);
+  if (t) t.date = date;
+  renderAll();
+}
+
+function moveTaskByDays(id, direction) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const currentIdx = t.date ? WEEK_DATES.indexOf(t.date) : activeDay;
+  const baseIdx = currentIdx >= 0 ? currentIdx : activeDay;
+  const targetIdx = clampDay(baseIdx + direction);
+  if (targetIdx === baseIdx) {
+    showDayToast(direction > 0 ? 'Ultimo dia da semana' : 'Primeiro dia da semana');
+    return;
+  }
+  t.date = WEEK_DATES[targetIdx];
+  const label = `${DAYS_SHORT[targetIdx]} ${9 + targetIdx}`;
+  if (targetIdx !== activeDay) {
+    setActiveDay(targetIdx, { toast: `Movida para ${label}` });
+  } else {
+    renderAll();
+    showDayToast(`Movida para ${label}`);
+  }
+}
+
+// ─── MONTH VIEW ───────────────────────────────────────────────────────────────
+function renderMonthView() {
+  const mv = document.getElementById('month-view');
+  const startOffset = 4; // May 1, 2026 = Friday
+  const cells = Array.from({length:35}, (_,i) => {
+    const d = i - startOffset + 1;
+    return (d<1||d>31) ? null : d;
+  });
+
+  let html = `
+    <div class="month-day-headers">
+      ${['D','S','T','Q','Q','S','S'].map(d=>`<span>${d}</span>`).join('')}
+    </div>`;
+
+  for (let w=0; w<5; w++) {
+    html += `<div class="month-week">`;
+    for (let d=0; d<7; d++) {
+      const day = cells[w*7+d];
+      if (!day) { html += `<div class="month-cell empty"></div>`; continue; }
+      const ds = `2026-05-${String(day).padStart(2,'0')}`;
+      const dt = tasks.filter(t=>t.date===ds);
+      const hasDone = dt.some(t=>t.done), hasPending = dt.some(t=>!t.done);
+      const isToday = day===12;
+      html += `
+        <div class="month-cell ${isToday?'today':''}">
+          <span class="cell-num">${day}</span>
+          ${(hasDone||hasPending) ? `<div class="cell-dots">
+            ${hasPending?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.7)':'#C84B2F'}"></div>`:''}
+            ${hasDone?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.5)':'#2A6E4A'}"></div>`:''}
+          </div>` : ''}
+        </div>`;
+    }
+    html += `</div>`;
+  }
+  html += `
+    <div class="month-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#C84B2F"></div>Pendente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2A6E4A"></div>Concluída</div>
+    </div>`;
+  mv.innerHTML = html;
+
+  mv.querySelectorAll('.month-cell:not(.empty)').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const dayNum = parseInt(cell.querySelector('.cell-num').textContent);
+      const dateStr = `2026-05-${String(dayNum).padStart(2,'0')}`;
+      const idx = WEEK_DATES.indexOf(dateStr);
+      if (idx >= 0) {
+        currentView = 'semana';
+        buildViewToggle();
+        setActiveDay(idx);
+      }
+    });
+  });
+}
+
+// ─── HABITS WEEK ─────────────────────────────────────────────────────────────
+function renderHabitsWeek() {
+  const doneToday = habits.filter(h=>h.week[TODAY_IDX]===true).length;
+  document.getElementById('habits-summary').textContent =
+    `${doneToday} de ${habits.length} concluídos hoje`;
+
+  const list = document.getElementById('habits-list-week');
+  list.innerHTML = habits.map(h => habitCardHTML(h)).join('') +
+    `<button class="add-habit-btn" id="add-habit-btn">+ NOVO HÁBITO</button>`;
+
+  // attach events
+  list.querySelectorAll('[data-habit-check]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      checkHabit(parseInt(btn.dataset.habitCheck));
+    });
+  });
+  list.querySelectorAll('[data-habit-open]').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.dataset.suppressClick === 'true') {
+        card.dataset.suppressClick = 'false';
+        return;
+      }
+      selectedHabitId = parseInt(card.dataset.habitOpen);
+      openHabitDetail();
+    });
+    setupHabitDrag(card);
+  });
+
+  list.querySelectorAll('[data-habit-day]').forEach(cell => {
+    cell.addEventListener('click', e => {
+      e.stopPropagation();
+      checkHabitDay(parseInt(cell.dataset.habitDay), parseInt(cell.dataset.dayIdx));
+    });
+  });
+  const addBtn = document.getElementById('add-habit-btn');
+  if (addBtn) addBtn.addEventListener('click', () => {
+    editingHabitId = null;
+    document.getElementById('new-habit-name').value = '';
+    document.getElementById('new-habit-goal').value = '';
+    document.getElementById('new-habit-cue').value = '';
+    document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
+    document.getElementById('submit-habit').className = 'modal-submit';
+    newHabitColor = '#B07D2A';
+    buildColorSwatches();
+    openModal('modal-add-habit');
+  });
+}
+
+function habitCardHTML(h) {
+  const todayDone = h.week[TODAY_IDX]===true;
+  const weekCells = h.week.map((day,i) => {
+    const isTodayCell = i===TODAY_IDX;
+    const clickable = day !== null;
+    return `
+      <div class="week-cell-wrap">
+        <div class="week-cell ${day===true?'done':''} ${isTodayCell&&day!==true?'today-cell':''} ${day===null?'future':''}"
+             style="${day===true?`--habit-color:${h.color}`:''}"
+             ${clickable ? `data-habit-day="${h.id}" data-day-idx="${i}"` : ''}>
+          ${day===true ? CHECK_SVG_SM : ''}
+          ${day===false ? DASH_SVG : ''}
+        </div>
+        <span class="week-cell-label ${isTodayCell?'today-label':''}">${DAYS_LETTER[i]}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="habit-card" data-habit-open="${h.id}" style="--habit-color:${h.color}">
+      <div class="habit-top">
+        <button class="habit-check ${todayDone?'done':''}" data-habit-check="${h.id}">
+          ${CHECK_SVG}
+        </button>
+        <div class="habit-info">
+          <div class="habit-name">${h.name}</div>
+          <div class="habit-cue">${h.cue}</div>
+        </div>
+        <div class="habit-streak">
+          <div class="streak-num" style="color:${h.color}">${h.streak}</div>
+          <div class="streak-label">dias</div>
+        </div>
+      </div>
+      <div class="week-grid">${weekCells}</div>
+    </div>`;
+}
+
+function checkHabit(id) {
+  checkHabitDay(id, TODAY_IDX);
+}
+
+function checkHabitDay(id, dayIdx) {
+  const h = habits.find(h=>h.id===id);
+  if (!h || h.week[dayIdx] === null) return;
+  const was = h.week[dayIdx]===true;
+  h.week[dayIdx] = !was;
+  if (dayIdx === TODAY_IDX) {
+    h.streak = was ? Math.max(0, h.streak-1) : h.streak+1;
+  }
+  renderAll();
+  if (selectedHabitId === id) {
+    const overlay = document.getElementById('modal-habit-detail');
+    if (overlay.classList.contains('open')) openHabitDetail();
+  }
+}
+
+function setupHabitDrag(card) {
+  let startX = 0, startY = 0, offset = 0, dragging = false, pressed = false, holdTimer = null;
+  const id = parseInt(card.dataset.habitOpen);
+
+  const reset = () => {
+    clearTimeout(holdTimer);
+    pressed = false;
+    dragging = false;
+    card.classList.remove('drag-ready','dragging');
+    card.style.transform = '';
+  };
+
+  card.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    if (card.setPointerCapture) card.setPointerCapture(e.pointerId);
+    startX = e.clientX;
+    startY = e.clientY;
+    offset = 0;
+    pressed = true;
+    holdTimer = setTimeout(() => card.classList.add('drag-ready'), 170);
+  });
+
+  card.addEventListener('pointermove', e => {
+    if (!pressed) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) {
+      clearTimeout(holdTimer);
+      return;
+    }
+    if (Math.abs(dx) < 14) return;
+    dragging = true;
+    card.classList.remove('drag-ready');
+    card.classList.add('dragging');
+    offset = Math.max(-128, Math.min(40, dx));
+    card.style.transform = `translateX(${offset}px)`;
+  });
+
+  card.addEventListener('pointerup', () => {
+    clearTimeout(holdTimer);
+    if (dragging && offset < -64) {
+      card.dataset.suppressClick = 'true';
+      deleteHabit(id, true);
+      reset();
+      return;
+    }
+    if (dragging) card.dataset.suppressClick = 'true';
+    reset();
+  });
+
+  card.addEventListener('pointercancel', reset);
+}
+
+// ─── HABITS MONTH ────────────────────────────────────────────────────────────
+function renderHabitsMonth() {
+  const list = document.getElementById('habits-list-month');
+  list.innerHTML = habits.map(h => {
+    const weeks = [];
+    for (let w=0;w<5;w++) weeks.push(h.heatmap.slice(w*7,w*7+7));
+    const heatmapHTML = `
+      <div class="heatmap" style="--habit-color:${h.color}">
+        <div class="heatmap-header">
+          <div class="heatmap-header-spacer"></div>
+          ${DAYS_LETTER.map(d=>`<span>${d}</span>`).join('')}
+        </div>
+        ${weeks.map((week,wi) => `
+          <div class="heatmap-row">
+            <div class="heatmap-week-label">${MONTH_WEEKS[wi]}</div>
+            ${week.map(day => `
+              <div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"></div>
+            `).join('')}
+          </div>`).join('')}
+      </div>`;
+    return `
+      <div class="habit-month-card" style="--habit-color:${h.color}">
+        <div class="habit-month-header">
+          <div class="habit-month-dot" style="background:${h.color}"></div>
+          <div class="habit-month-name">${h.name}</div>
+          <div class="habit-month-streak" style="color:${h.color}">${h.streak} dias</div>
+        </div>
+        ${heatmapHTML}
+      </div>`;
+  }).join('') + '<div style="height:100px"></div>';
+}
+
+// ─── PROJECTS ────────────────────────────────────────────────────────────────
+function renderProjects() {
+  const view = document.getElementById('projects-view');
+  view.innerHTML = PROJECTS.map((p,idx) => {
+    const projTasks = tasks.filter(t=>t.projectId===p.id);
+    const done = projTasks.filter(t=>t.done).length;
+    const total = projTasks.length;
+    const pct = total>0 ? (done/total)*100 : 0;
+    return `
+      <div class="project-block" style="${idx===PROJECTS.length-1?'border-bottom:none':''}">
+        <div class="project-header">
+          <div class="project-name-wrap">
+            <div class="project-dot" style="background:${p.dot}"></div>
+            <div class="project-name">${p.name}</div>
+          </div>
+          <div class="project-count">${done}/${total}</div>
+        </div>
+        <div class="project-bar">
+          <div class="project-bar-fill" style="width:${pct}%;background:${p.dot}"></div>
+        </div>
+        ${projTasks.map(t => `
+          <div class="project-task ${t.done?'done':''}">
+            <div class="project-task-dot" style="background:${t.done?'#D8D7D0':p.dot}"></div>
+            <div class="project-task-title">${t.title}</div>
+            ${!t.date ? `<div class="project-task-nodate">sem data</div>` : ''}
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ─── PROFILE ─────────────────────────────────────────────────────────────────
+function renderProfile() {
+  document.getElementById('profile-items').innerHTML =
+    PROFILE_ITEMS.map((s,i) => `
+      <div class="profile-item ${i===PROFILE_ITEMS.length-1?'danger':''}">
+        <span>${s}</span>${CHEVRON}
+      </div>`).join('');
+}
+
+// ─── TASK DETAIL MODAL ────────────────────────────────────────────────────────
+function openTaskDetail() {
+  const task = tasks.find(t=>t.id===selectedTaskId);
+  if (!task) return;
+  const proj = PROJECTS.find(p=>p.id===task.projectId);
+  const pc   = PRIORITY[task.priority];
+
+  const tick = document.getElementById('detail-tick');
+  tick.className = `detail-tick ${task.done?'checked':''}`;
+  tick.style.cssText = proj ? `--check-color:${proj.dot}` : '';
+  tick.innerHTML = CHECK_SVG;
+  tick.onclick = () => { toggleTask(task.id); closeModal('modal-task-detail'); };
+
+  document.getElementById('detail-title').textContent = task.title;
+
+  const tags = document.getElementById('detail-tags');
+  const dateIdx = WEEK_DATES.indexOf(task.date);
+  const dateLabel = dateIdx >= 0 ? DATES_MAP[task.date] : task.date;
+  tags.innerHTML = `
+    <span class="tag" style="background:${pc.bg};color:${pc.color}">${pc.label}</span>
+    ${proj?`<span class="tag" style="background:${proj.dot}18;color:${proj.dot}">${proj.name}</span>`:''}
+    ${task.time?`<span class="tag" style="background:#EDECE8;color:#5A5A55">${task.time}</span>`:''}
+    ${task.date?`<span class="tag" style="background:#EDECE8;color:#5A5A55">${dateLabel}</span>`:''}
+    ${task.repeat && task.repeat !== 'nenhuma'?`<span class="tag" style="background:#E6F0EB;color:#2A6E4A">${task.repeat}</span>`:''}
+    ${!task.date?`<span class="tag" style="background:#EDECE8;color:#B0AFA8">Sem data</span>`:''}
+  `;
+
+  const subs = document.getElementById('detail-subtasks');
+  if (task.subtasks?.length) {
+    let subDone = task.subtasks.map(()=>false);
+    subs.innerHTML = `
+      <div class="modal-label" style="margin-bottom:0">Subtarefas</div>
+      ${task.subtasks.map((s,i) => `
+        <div class="subtask-row" id="sr-${i}">
+          <button class="sub-tick" data-sub="${i}">${CHECK_SVG}</button>
+          <span class="sub-title">${s}</span>
+        </div>`).join('')}`;
+
+    subs.querySelectorAll('[data-sub]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.sub);
+        subDone[i] = !subDone[i];
+        btn.classList.toggle('checked', subDone[i]);
+      });
+    });
+  } else {
+    subs.innerHTML = '';
+  }
+
+  document.getElementById('edit-task-btn').onclick = () => {
+    startEditTask(task.id);
+  };
+  document.getElementById('delete-task-btn').onclick = () => {
+    deleteTask(task.id, true);
+  };
+
+  openModal('modal-task-detail');
+}
+
+// ─── HABIT DETAIL MODAL ───────────────────────────────────────────────────────
+function openHabitDetail() {
+  const h = habits.find(h=>h.id===selectedHabitId);
+  if (!h) return;
+  hdView = 'semana';
+
+  const todayDone = h.week[TODAY_IDX]===true;
+  const doneCount = h.week.filter(d=>d===true).length;
+  const totalCount= h.week.filter(d=>d!==null).length;
+
+  const chk = document.getElementById('hd-check');
+  chk.className = `habit-detail-check ${todayDone?'done':''}`;
+  chk.style.cssText = `--habit-color:${h.color}`;
+  chk.innerHTML = CHECK_SVG;
+  chk.onclick = () => checkHabit(h.id);
+
+  document.getElementById('hd-title').textContent = h.name;
+
+  const goalBlock = document.getElementById('hd-goal-block');
+  goalBlock.style.cssText = `background:${h.color}12;border-left:2.5px solid ${h.color};border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:20px;margin-left:42px`;
+  document.getElementById('hd-goal').textContent = `"${h.goal}"`;
+
+  const strEl = document.getElementById('hd-streak');
+  strEl.innerHTML = `<span style="color:${h.color}">${h.streak}</span>`;
+  document.getElementById('hd-week-count').innerHTML = `${doneCount}<span>/${totalCount}</span>`;
+
+  // toggle
+  const hdTg = document.getElementById('hd-toggle');
+  hdTg.querySelectorAll('button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.hdView === hdView);
+    btn.onclick = () => {
+      hdView = btn.dataset.hdView;
+      hdTg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.hdView===hdView));
+      document.getElementById('hd-semana-view').style.display = hdView==='semana' ? 'block' : 'none';
+      document.getElementById('hd-mensal-view').style.display = hdView==='mensal' ? 'block' : 'none';
+    };
+  });
+
+  // week grid
+  const semanaView = document.getElementById('hd-semana-view');
+  semanaView.style.display = 'block';
+  semanaView.innerHTML = `
+    <div class="detail-week-grid" style="margin-bottom:20px">
+      ${h.week.map((day,i) => {
+        const isT = i===TODAY_IDX;
+        return `
+          <div class="detail-week-cell-wrap">
+            <div class="detail-week-cell ${day===true?'done':''} ${isT&&day!==true?'today-cell':''} ${day===null?'future':''}"
+                 style="${day===true?`--habit-color:${h.color}`:''}">
+              ${day===true ? CHECK_SVG_SM : ''}
+            </div>
+            <span class="detail-week-label ${isT?'today-label':''}">${DAYS_SHORT[i].slice(0,3)}</span>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  // heatmap
+  const mensalView = document.getElementById('hd-mensal-view');
+  mensalView.style.display = 'none';
+  const weeks2 = [];
+  for (let w=0;w<5;w++) weeks2.push(h.heatmap.slice(w*7,w*7+7));
+  mensalView.innerHTML = `
+    <div class="heatmap" style="--habit-color:${h.color};margin-bottom:20px">
+      <div class="heatmap-header">
+        <div class="heatmap-header-spacer"></div>
+        ${DAYS_LETTER.map(d=>`<span>${d}</span>`).join('')}
+      </div>
+      ${weeks2.map((week,wi) => `
+        <div class="heatmap-row">
+          <div class="heatmap-week-label">${MONTH_WEEKS[wi]}</div>
+          ${week.map(day=>`<div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"></div>`).join('')}
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('hd-close').onclick = () => closeModal('modal-habit-detail');
+  document.getElementById('edit-habit-btn').onclick = () => startEditHabit(h.id);
+  document.getElementById('delete-habit-btn').onclick = () => deleteHabit(h.id, true);
+
+  openModal('modal-habit-detail');
+}
+
+// ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
+function buildAddTaskModal() {
+  const titleLabel = document.getElementById('task-modal-title');
+  if (titleLabel) titleLabel.textContent = editingTaskId ? 'Editar tarefa' : 'Nova tarefa';
+  document.getElementById('submit-task').textContent = editingTaskId ? 'SALVAR' : 'ADICIONAR';
+
+  // priority buttons
+  const pg = document.getElementById('priority-group');
+  pg.innerHTML = Object.entries(PRIORITY).map(([k,v]) => `
+    <button class="choice-btn ${k===newPriority?'active':''}" data-p="${k}"
+      style="${k===newPriority?`border-color:${v.color};background:${v.bg};color:${v.color}`:''}">
+      ${v.label}
+    </button>`).join('');
+  pg.querySelectorAll('[data-p]').forEach(btn => {
+    btn.onclick = () => {
+      newPriority = btn.dataset.p;
+      buildAddTaskModal();
+    };
+  });
+
+  // project buttons
+  const prg = document.getElementById('project-group');
+  prg.innerHTML = PROJECTS.map(p => `
+    <button class="choice-btn" data-proj="${p.id}"
+      style="${p.id===newProjectId?`border-color:${p.dot};background:${p.dot}18;color:${p.dot}`:''}">
+      ${p.name}
+    </button>`).join('');
+  prg.querySelectorAll('[data-proj]').forEach(btn => {
+    btn.onclick = () => { newProjectId = parseInt(btn.dataset.proj); buildAddTaskModal(); };
+  });
+
+  const dg = document.getElementById('task-date-group');
+  dg.innerHTML = WEEK_DATES.map((date,i) => `
+    <button class="date-choice ${newTaskDate===date?'active':''}" data-task-date="${date}">
+      <span class="date-day">${DAYS_SHORT[i]}</span>
+      <span class="date-num">${9+i}</span>
+    </button>`).join('') + `
+    <button class="date-choice no-date ${newTaskDate===null?'active':''}" data-task-date="null">
+      <span class="date-day">Sem</span>
+      <span class="date-num">data</span>
+    </button>`;
+  dg.querySelectorAll('[data-task-date]').forEach(btn => {
+    btn.onclick = () => {
+      newTaskDate = btn.dataset.taskDate === 'null' ? null : btn.dataset.taskDate;
+      newHasDate = newTaskDate !== null;
+      buildAddTaskModal();
+    };
+  });
+
+  const rg = document.getElementById('repeat-group');
+  rg.innerHTML = REPEAT_OPTIONS.map(opt => `
+    <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}"
+      style="${newRepeat===opt.id?'border-color:#111110;background:#111110;color:#fff':''}">
+      ${opt.label}
+    </button>`).join('');
+  rg.querySelectorAll('[data-repeat]').forEach(btn => {
+    btn.onclick = () => {
+      newRepeat = btn.dataset.repeat;
+      buildAddTaskModal();
+    };
+  });
+
+  // submit readiness
+  const title = document.getElementById('new-task-title').value.trim();
+  document.getElementById('submit-task').className = `modal-submit ${title?'ready':''}`;
+}
+
+document.getElementById('new-task-title').addEventListener('input', buildAddTaskModal);
+
+document.getElementById('submit-task').addEventListener('click', () => {
+  const title = document.getElementById('new-task-title').value.trim();
+  if (!title) return;
+  if (editingTaskId) {
+    const t = tasks.find(t => t.id === editingTaskId);
+    if (t) {
+      t.title = title;
+      t.priority = newPriority;
+      t.projectId = newProjectId;
+      t.date = newTaskDate;
+      t.repeat = newRepeat;
+    }
+  } else if (newRepeat === 'diaria' && newTaskDate) {
+    const startIdx = WEEK_DATES.indexOf(newTaskDate);
+    const seriesId = Date.now();
+    WEEK_DATES.slice(Math.max(0,startIdx)).forEach((date, i) => {
+      tasks.push({
+        id: seriesId + i,
+        seriesId,
+        title,
+        done: false,
+        priority: newPriority,
+        projectId: newProjectId,
+        time: '',
+        date,
+        repeat: 'diaria',
+        subtasks: [],
+      });
+    });
+  } else {
+    tasks.push({
+      id: Date.now(),
+      title,
+      done: false,
+      priority: newPriority,
+      projectId: newProjectId,
+      time: '',
+      date: newTaskDate,
+      repeat: newRepeat,
+      subtasks: [],
+    });
+  }
+  document.getElementById('new-task-title').value = '';
+  editingTaskId = null;
+  newRepeat = 'nenhuma';
+  closeModal('modal-add-task');
+  renderAll();
+});
+
+function startEditTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  editingTaskId = id;
+  newPriority = t.priority;
+  newProjectId = t.projectId;
+  newTaskDate = t.date;
+  newRepeat = t.repeat || 'nenhuma';
+  document.getElementById('new-task-title').value = t.title;
+  closeModal('modal-task-detail');
+  buildAddTaskModal();
+  openModal('modal-add-task');
+}
+
+// ─── ADD HABIT MODAL ──────────────────────────────────────────────────────────
+function buildColorSwatches() {
+  const sw = document.getElementById('color-swatches');
+  sw.innerHTML = COLORS.map(c =>
+    `<div class="color-swatch ${c===newHabitColor?'selected':''}" data-color="${c}"
+          style="background:${c}"></div>`
+  ).join('');
+  sw.querySelectorAll('[data-color]').forEach(el => {
+    el.addEventListener('click', () => {
+      newHabitColor = el.dataset.color;
+      buildColorSwatches();
+    });
+  });
+}
+
+function buildProjectColorSwatches() {
+  const sw = document.getElementById('project-color-swatches');
+  if (!sw) return;
+  sw.innerHTML = COLORS.map(c =>
+    `<div class="color-swatch ${c===newProjectColor?'selected':''}" data-project-color="${c}"
+          style="background:${c}"></div>`
+  ).join('');
+  sw.querySelectorAll('[data-project-color]').forEach(el => {
+    el.addEventListener('click', () => {
+      newProjectColor = el.dataset.projectColor;
+      buildProjectColorSwatches();
+    });
+  });
+}
+
+document.getElementById('new-habit-name').addEventListener('input', () => {
+  const ready = document.getElementById('new-habit-name').value.trim();
+  document.getElementById('submit-habit').className = `modal-submit ${ready?'ready':''}`;
+});
+
+document.getElementById('submit-habit').addEventListener('click', () => {
+  const name = document.getElementById('new-habit-name').value.trim();
+  if (!name) return;
+  if (editingHabitId) {
+    const h = habits.find(h => h.id === editingHabitId);
+    if (h) {
+      h.name = name;
+      h.goal = document.getElementById('new-habit-goal').value.trim();
+      h.cue = document.getElementById('new-habit-cue').value.trim();
+      h.color = newHabitColor;
+    }
+  } else {
+    habits.push({
+      id: Date.now(),
+      name,
+      goal: document.getElementById('new-habit-goal').value.trim(),
+      cue:  document.getElementById('new-habit-cue').value.trim(),
+      color: newHabitColor,
+      streak: 0,
+      week: Array(7).fill(null),
+      heatmap: makeHeatmap(0),
+    });
+  }
+  document.getElementById('new-habit-name').value = '';
+  document.getElementById('new-habit-goal').value = '';
+  document.getElementById('new-habit-cue').value  = '';
+  editingHabitId = null;
+  document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
+  closeModal('modal-add-habit');
+  renderAll();
+});
+
+document.getElementById('new-project-name').addEventListener('input', () => {
+  const ready = document.getElementById('new-project-name').value.trim();
+  document.getElementById('submit-project').className = `modal-submit ${ready?'ready':''}`;
+});
+
+document.getElementById('submit-project').addEventListener('click', () => {
+  const name = document.getElementById('new-project-name').value.trim();
+  if (!name) return;
+  PROJECTS.push({
+    id: Date.now(),
+    name,
+    dot: newProjectColor,
+  });
+  newProjectId = PROJECTS[PROJECTS.length - 1].id;
+  document.getElementById('new-project-name').value = '';
+  document.getElementById('submit-project').className = 'modal-submit';
+  closeModal('modal-add-project');
+  renderAll();
+});
+
+function startEditHabit(id) {
+  const h = habits.find(h => h.id === id);
+  if (!h) return;
+  editingHabitId = id;
+  newHabitColor = h.color;
+  document.getElementById('new-habit-name').value = h.name;
+  document.getElementById('new-habit-goal').value = h.goal || '';
+  document.getElementById('new-habit-cue').value = h.cue || '';
+  document.getElementById('submit-habit').textContent = 'SALVAR';
+  document.getElementById('submit-habit').className = 'modal-submit ready';
+  buildColorSwatches();
+  closeModal('modal-habit-detail');
+  openModal('modal-add-habit');
+}
+
+function deleteHabit(id, ask = true) {
+  const h = habits.find(h => h.id === id);
+  if (!h) return;
+  if (ask && !confirmDelete(`o hábito "${h.name}"`)) return;
+  habits = habits.filter(habit => habit.id !== id);
+  closeModal('modal-habit-detail');
+  renderAll();
+  showDayToast('Habito excluido');
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  overlay.classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// close on overlay click
+['modal-add-task','modal-add-habit','modal-task-detail','modal-habit-detail','modal-add-project'].forEach(id => {
+  const overlay = document.getElementById(id);
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(id);
+  });
+});
+
+// ─── FAB ─────────────────────────────────────────────────────────────────────
+document.getElementById('fab').addEventListener('click', () => {
+  if (currentNav === 'hoje') {
+    newPriority = 'média'; newProjectId = 1; newHasDate = true;
+    newTaskDate = WEEK_DATES[activeDay];
+    newRepeat = 'nenhuma';
+    editingTaskId = null;
+    document.getElementById('new-task-title').value = '';
+    buildAddTaskModal();
+    openModal('modal-add-task');
+  } else if (currentNav === 'habitos') {
+    editingHabitId = null;
+    document.getElementById('new-habit-name').value = '';
+    document.getElementById('new-habit-goal').value = '';
+    document.getElementById('new-habit-cue').value = '';
+    document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
+    document.getElementById('submit-habit').className = 'modal-submit';
+    newHabitColor = '#B07D2A';
+    buildColorSwatches();
+    openModal('modal-add-habit');
+  } else if (currentNav === 'projetos') {
+    newProjectColor = COLORS[PROJECTS.length % COLORS.length];
+    document.getElementById('new-project-name').value = '';
+    document.getElementById('submit-project').className = 'modal-submit';
+    buildProjectColorSwatches();
+    openModal('modal-add-project');
+  }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+loadState();
+buildNav();
+buildWeekStrip();
+buildViewToggle();
+updateHeader();
+buildColorSwatches();
+buildProjectColorSwatches();
+attachDayScrollNavigation();
+renderAll();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

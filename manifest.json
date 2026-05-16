@@ -1,0 +1,19 @@
+{
+  "name": "FlowDo",
+  "short_name": "FlowDo",
+  "description": "Organize seu dia e rastreie hábitos",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F4F0",
+  "theme_color": "#111110",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
