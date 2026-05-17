@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="FlowDo"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -180,12 +180,49 @@
   /* ── WEEK STRIP ── */
   #week-strip {
     display: flex;
-    gap: 2px;
-    padding: 12px 20px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    align-items: center;
+    padding: 6px 10px;
+    gap: 0;
   }
-  #week-strip::-webkit-scrollbar { display: none; }
+  .week-nav-arrow {
+    flex-shrink: 0;
+    width: 28px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 0;
+  }
+  .week-nav-arrow:active { color: var(--ink-mid); }
+  .week-nav-days {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+  }
+  .inline-task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+  .inline-task-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink);
+    outline: none;
+    padding: 0;
+  }
+  .inline-task-input::placeholder { color: var(--ink-ghost); }
   .day-btn {
     flex: 0 0 auto;
     display: flex;
@@ -862,6 +899,10 @@
     font-size: 10px;
     color: var(--ink-faint);
   }
+
+  /* ── THEME OVERRIDES ── */
+  #app[data-theme="nevoa"] .nav-btn.active { color: #7B9EC0 !important; }
+  #app[data-theme="nevoa"] .day-btn.active .day-num { color: #7B9EC0; }
 
   /* ── FAB ── */
   #fab {
@@ -1957,7 +1998,9 @@ let habits = [
   { id:4, name:'Caminhar 30 minutos',     goal:'Manter energia alta e saúde cardiovascular',  cue:'Após o almoço',                  streak:21, color:'#2A5FA3', week:[true,true,true,true,true,null,null],   heatmap:makeHeatmap(0.88) },
 ];
 
-let activeDay    = TODAY_IDX;
+let activeDay       = TODAY_IDX;
+let weekOffset      = 0;
+let taskMonthOffset = 0;
 let currentNav   = 'hoje';
 let currentView  = 'semana'; // semana | mensal
 let darkTheme    = localStorage.getItem('fd-theme') === 'dark';
@@ -2015,11 +2058,26 @@ function getDateLabel(dateKey) {
   return label;
 }
 
+function rebuildCurrentWeekDates() {
+  const base = parseDateKey('2026-05-09'); // Monday of base week
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base.getTime());
+    d.setDate(d.getDate() + weekOffset * 7 + i);
+    WEEK_DATES[i] = formatDateKey(d);
+  }
+  WEEK_DATES.length = 7;
+}
+
 function ensureDateInWeek(dateKey) {
   let idx = WEEK_DATES.indexOf(dateKey);
   if (idx >= 0) return idx;
-  WEEK_DATES.push(dateKey);
-  return WEEK_DATES.length - 1;
+  // navigate to the week that contains dateKey
+  const base = parseDateKey('2026-05-09');
+  const target = parseDateKey(dateKey);
+  const diffDays = Math.round((target - base) / 86400000);
+  weekOffset = Math.floor(diffDays / 7);
+  rebuildCurrentWeekDates();
+  return Math.max(0, WEEK_DATES.indexOf(dateKey));
 }
 
 function showDayToast(text) {
@@ -2141,22 +2199,41 @@ function updateHeader() {
 // ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
 function buildWeekStrip() {
   const strip = document.getElementById('week-strip');
-  strip.innerHTML = WEEK_DATES.map((date,i) => {
-    const isActive = i === activeDay;
-    const isToday  = i === TODAY_IDX;
-    const parsed = parseDateKey(date);
-    const letter = DAYS_LETTER[i % DAYS_LETTER.length];
-    return `
-      <button class="day-btn ${isActive?'active':''} ${isToday&&!isActive?'today':''}" data-day="${i}">
-        <span class="day-letter">${letter}</span>
-        <span class="day-num">${parsed.getDate()}</span>
-        ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
-      </button>`;
-  }).join('');
+  strip.innerHTML = `
+    <button class="week-nav-arrow" id="week-prev">&#8249;</button>
+    <div class="week-nav-days">
+      ${WEEK_DATES.map((date, i) => {
+        const isActive = i === activeDay;
+        const isToday  = date === TODAY;
+        const parsed   = parseDateKey(date);
+        const letter   = DAYS_LETTER[i];
+        return `
+          <button class="day-btn ${isActive?'active':''} ${isToday&&!isActive?'today':''}" data-day="${i}">
+            <span class="day-letter">${letter}</span>
+            <span class="day-num">${parsed.getDate()}</span>
+            ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
+          </button>`;
+      }).join('')}
+    </div>
+    <button class="week-nav-arrow" id="week-next">&#8250;</button>`;
+
+  strip.querySelector('#week-prev').addEventListener('click', () => {
+    weekOffset--;
+    rebuildCurrentWeekDates();
+    if (activeDay > WEEK_DATES.length - 1) activeDay = WEEK_DATES.length - 1;
+    buildWeekStrip();
+    updateHeader();
+    renderAll();
+  });
+  strip.querySelector('#week-next').addEventListener('click', () => {
+    weekOffset++;
+    rebuildCurrentWeekDates();
+    buildWeekStrip();
+    updateHeader();
+    renderAll();
+  });
   strip.querySelectorAll('.day-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      setActiveDay(parseInt(btn.dataset.day));
-    });
+    btn.addEventListener('click', () => setActiveDay(parseInt(btn.dataset.day)));
   });
 }
 
@@ -2238,8 +2315,28 @@ function renderTaskList() {
   const pending  = dayTasks.filter(t => !t.done);
   const done     = dayTasks.filter(t => t.done);
 
-  document.getElementById('task-list-pending').innerHTML = pending.map(t => taskRowHTML(t)).join('');
-  
+  const pendingList = document.getElementById('task-list-pending');
+  pendingList.innerHTML = pending.map(t => taskRowHTML(t)).join('') + `
+    <div class="inline-task-row">
+      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
+      <input class="inline-task-input" id="inline-task-input"
+             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false">
+    </div>`;
+
+  const inlineInput = document.getElementById('inline-task-input');
+  if (inlineInput) {
+    inlineInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const title = inlineInput.value.trim();
+      if (!title) return;
+      tasks.push({ id: Date.now(), title, done: false, priority: 'média',
+                   projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
+      renderTaskList();
+      const next = document.getElementById('inline-task-input');
+      if (next) next.focus();
+    });
+  }
+
   const doneWrap = document.getElementById('task-list-done-wrap');
   doneWrap.style.display = done.length ? 'block' : 'none';
   document.getElementById('task-list-done').innerHTML = done.map(t => taskRowHTML(t)).join('');
@@ -2442,13 +2539,11 @@ function moveTaskByDays(id, direction) {
   if (!t) return;
   const currentIdx = t.date ? WEEK_DATES.indexOf(t.date) : activeDay;
   const baseIdx = currentIdx >= 0 ? currentIdx : activeDay;
-  if (direction < 0 && baseIdx === 0) {
-    showDayToast('Primeiro dia da semana');
-    return;
-  }
-  const targetDate = direction > 0 && baseIdx === WEEK_DATES.length - 1
-    ? addDays(WEEK_DATES[baseIdx], 1)
-    : WEEK_DATES[baseIdx + direction];
+  const targetDate = baseIdx + direction < 0
+    ? addDays(WEEK_DATES[0], -1)
+    : baseIdx + direction >= WEEK_DATES.length
+      ? addDays(WEEK_DATES[WEEK_DATES.length - 1], 1)
+      : WEEK_DATES[baseIdx + direction];
   const targetIdx = ensureDateInWeek(targetDate);
   t.date = WEEK_DATES[targetIdx];
   const label = getDateLabel(WEEK_DATES[targetIdx]);
@@ -2464,32 +2559,43 @@ function moveTaskByDays(id, direction) {
 // ─── MONTH VIEW ───────────────────────────────────────────────────────────────
 function renderMonthView() {
   const mv = document.getElementById('month-view');
-  const startOffset = 4; // May 1, 2026 = Friday
-  const cells = Array.from({length:35}, (_,i) => {
-    const d = i - startOffset + 1;
-    return (d<1||d>31) ? null : d;
-  });
+  const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                       'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const base = new Date(2026, 4, 1); // May 2026
+  base.setMonth(base.getMonth() + taskMonthOffset);
+  const year  = base.getFullYear();
+  const month = base.getMonth();
+  const daysInMonth   = new Date(year, month + 1, 0).getDate();
+  const firstWeekday  = new Date(year, month, 1).getDay(); // 0=Sun
+  const totalCells    = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+  const pad = n => String(n).padStart(2, '0');
+  const todayParsed = parseDateKey(TODAY);
 
   let html = `
+    <div class="period-nav" style="margin:0 16px 12px">
+      <button type="button" data-month-dir="-1">&#8249;</button>
+      <div class="period-label">${MONTH_NAMES[month]} ${year}</div>
+      <button type="button" data-month-dir="1">&#8250;</button>
+    </div>
     <div class="month-day-headers">
       ${['D','S','T','Q','Q','S','S'].map(d=>`<span>${d}</span>`).join('')}
     </div>`;
 
-  for (let w=0; w<5; w++) {
+  for (let w = 0; w * 7 < totalCells; w++) {
     html += `<div class="month-week">`;
-    for (let d=0; d<7; d++) {
-      const day = cells[w*7+d];
-      if (!day) { html += `<div class="month-cell empty"></div>`; continue; }
-      const ds = `2026-05-${String(day).padStart(2,'0')}`;
-      const dt = tasks.filter(t=>t.date===ds);
-      const hasDone = dt.some(t=>t.done), hasPending = dt.some(t=>!t.done);
-      const isToday = day===12;
+    for (let d = 0; d < 7; d++) {
+      const dayNum = w * 7 + d - firstWeekday + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) { html += `<div class="month-cell empty"></div>`; continue; }
+      const ds = `${year}-${pad(month+1)}-${pad(dayNum)}`;
+      const dt = tasks.filter(t => t.date === ds);
+      const hasDone = dt.some(t => t.done), hasPending = dt.some(t => !t.done);
+      const isToday = year === todayParsed.getFullYear() && month === todayParsed.getMonth() && dayNum === todayParsed.getDate();
       html += `
-        <div class="month-cell ${isToday?'today':''}">
-          <span class="cell-num">${day}</span>
+        <div class="month-cell ${isToday?'today':''}" data-month-date="${ds}">
+          <span class="cell-num">${dayNum}</span>
           ${(hasDone||hasPending) ? `<div class="cell-dots">
-            ${hasPending?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.7)':'#C84B2F'}"></div>`:''}
-            ${hasDone?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.5)':'#2A6E4A'}"></div>`:''}
+            ${hasPending?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.7)':PRIORITY.alta.color}"></div>`:''}
+            ${hasDone?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.5)':PRIORITY.baixa.color}"></div>`:''}
           </div>` : ''}
         </div>`;
     }
@@ -2497,21 +2603,26 @@ function renderMonthView() {
   }
   html += `
     <div class="month-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#C84B2F"></div>Pendente</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#2A6E4A"></div>Concluída</div>
+      <div class="legend-item"><div class="legend-dot" style="background:${PRIORITY.alta.color}"></div>Pendente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:${PRIORITY.baixa.color}"></div>Concluída</div>
     </div>`;
   mv.innerHTML = html;
 
+  mv.querySelectorAll('[data-month-dir]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      taskMonthOffset += parseInt(btn.dataset.monthDir);
+      renderMonthView();
+    });
+  });
+
   mv.querySelectorAll('.month-cell:not(.empty)').forEach(cell => {
     cell.addEventListener('click', () => {
-      const dayNum = parseInt(cell.querySelector('.cell-num').textContent);
-      const dateStr = `2026-05-${String(dayNum).padStart(2,'0')}`;
-      const idx = WEEK_DATES.indexOf(dateStr);
-      if (idx >= 0) {
-        currentView = 'semana';
-        buildViewToggle();
-        setActiveDay(idx);
-      }
+      const dateStr = cell.dataset.monthDate;
+      const idx = ensureDateInWeek(dateStr);
+      currentView = 'semana';
+      buildViewToggle();
+      buildWeekStrip();
+      setActiveDay(idx);
     });
   });
 }
@@ -2828,7 +2939,8 @@ function appearancePanelHTML() {
 function attachAppearanceEvents(root) {
   const colorInput = root.querySelector('#appearance-color');
   if (colorInput) {
-    colorInput.addEventListener('input', () => {
+    colorInput.addEventListener('input', (e) => {
+      e.stopPropagation();
       accentColor = colorInput.value;
       applyTheme();
     });
@@ -2844,6 +2956,7 @@ function attachAppearanceEvents(root) {
   root.querySelectorAll('[data-font-mode]').forEach(btn => {
     btn.addEventListener('click', (event) => {
       event.stopPropagation();
+      event.preventDefault();
       fontMode = btn.dataset.fontMode;
       const preset = APPEARANCE_PRESETS.find(item => item.id === fontMode);
       if (preset) accentColor = preset.colors.primary;
@@ -3529,6 +3642,7 @@ document.getElementById('fab').addEventListener('click', () => {
 loadState();
 applyTheme();
 buildNav();
+rebuildCurrentWeekDates();
 buildWeekStrip();
 buildViewToggle();
 updateHeader();
