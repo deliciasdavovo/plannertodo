@@ -680,11 +680,13 @@
   }
   .heatmap-cell.missed { background: var(--deep); opacity: 0.55; }
   .heatmap-cell.future { opacity: 0.2; }
-  .heatmap-cell[data-heatmap-day] {
+  .heatmap-cell[data-heatmap-day], .heatmap-cell[data-detail-heatmap] {
     cursor: pointer;
+    touch-action: manipulation;
     transition: transform 0.12s, opacity 0.12s;
   }
-  .heatmap-cell[data-heatmap-day]:active { transform: scale(0.92); }
+  .heatmap-cell[data-heatmap-day]:active,
+  .heatmap-cell[data-detail-heatmap]:active { transform: scale(0.92); }
 
   /* add habit btn */
   .add-habit-btn {
@@ -726,6 +728,22 @@
     font-size: 15px;
     color: var(--ink);
   }
+  .habit-month-check {
+    margin-left: auto;
+    background: none;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .habit-month-check.done { background: currentColor; color: var(--bg) !important; }
   .habit-month-streak {
     margin-left: auto;
     font-family: var(--serif);
@@ -783,6 +801,17 @@
     color: var(--ink);
   }
   .project-count { font-size: 11px; color: var(--ink-faint); }
+  .project-edit-btn {
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.6;
+  }
+  .project-edit-btn:active { opacity: 1; }
   .project-bar { height: 2px; background: var(--rule); border-radius: 1px; margin-bottom: 14px; }
   .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; background: var(--ink-mid); }
   .project-task {
@@ -2176,6 +2205,7 @@ let newTaskTime = '';
 let newRepeat = 'nenhuma';
 let newHabitColor = '#B07D2A';
 let newProjectColor = '#C84B2F';
+let editingProjectId = null;
 let editingTaskId = null;
 let newSubtasks = [];
 let editingHabitId = null;
@@ -3037,18 +3067,25 @@ function renderHabitsMonth() {
             }).join('')}
           </div>`).join('')}
       </div>`;
+    const todayDone = getHabitWeek(h)[TODAY_IDX] === true;
     return `
       <div class="habit-month-card" style="--habit-color:${h.color}">
         <div class="habit-month-header">
           <div class="habit-month-dot" style="background:${h.color}"></div>
           <div class="habit-month-name">${h.name}</div>
-          <div class="habit-month-streak" style="color:${h.color}">${h.streak} dias</div>
+          <button class="habit-month-check ${todayDone?'done':''}" data-month-check="${h.id}" style="color:${h.color}" title="Marcar hoje">${todayDone?'✓':'○'}</button>
         </div>
         ${heatmapHTML}
       </div>`;
   }).join('') + '<div style="height:100px"></div>';
   attachPeriodNav(list);
   list.onclick = e => {
+    const checkBtn = e.target.closest('[data-month-check]');
+    if (checkBtn) {
+      e.stopPropagation();
+      checkHabit(parseInt(checkBtn.dataset.monthCheck));
+      return;
+    }
     const cell = e.target.closest('[data-heatmap-day]');
     if (cell) {
       e.stopPropagation();
@@ -3072,7 +3109,10 @@ function renderProjects() {
             <div class="project-dot" style="background:${p.dot}"></div>
             <div class="project-name">${p.name}</div>
           </div>
-          <div class="project-count">${done}/${total}</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="project-count">${done}/${total}</div>
+            <button class="project-edit-btn" data-edit-project="${p.id}" title="Editar">✎</button>
+          </div>
         </div>
         <div class="project-bar">
           <div class="project-bar-fill" style="width:${pct}%"></div>
@@ -3088,11 +3128,30 @@ function renderProjects() {
 
   const addProjectBtn = document.getElementById('add-project-btn');
   if (addProjectBtn) addProjectBtn.addEventListener('click', () => {
+    editingProjectId = null;
     newProjectColor = COLORS[PROJECTS.length % COLORS.length];
     document.getElementById('new-project-name').value = '';
+    document.getElementById('submit-project').textContent = 'CRIAR PROJETO';
     document.getElementById('submit-project').className = 'modal-submit';
+    document.getElementById('modal-add-project').querySelector('.modal-label').textContent = 'Novo projeto';
     buildProjectColorSwatches();
     openModal('modal-add-project');
+  });
+
+  view.querySelectorAll('[data-edit-project]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const p = PROJECTS.find(x => x.id === parseInt(btn.dataset.editProject));
+      if (!p) return;
+      editingProjectId = p.id;
+      newProjectColor = p.dot;
+      document.getElementById('new-project-name').value = p.name;
+      document.getElementById('new-project-name').dispatchEvent(new Event('input'));
+      document.getElementById('submit-project').textContent = 'SALVAR';
+      document.getElementById('modal-add-project').querySelector('.modal-label').textContent = 'Editar projeto';
+      buildProjectColorSwatches();
+      openModal('modal-add-project');
+    });
   });
 }
 
@@ -3518,9 +3577,24 @@ function openHabitDetail() {
       ${weeks2.map((week,wi) => `
         <div class="heatmap-row">
           <div class="heatmap-week-label">${MONTH_WEEKS[wi]}</div>
-          ${week.map(day=>`<div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"></div>`).join('')}
+          ${week.map((day,di) => {
+            const idx = wi * 7 + di;
+            return `<div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"
+              ${day !== null ? `data-detail-heatmap="${h.id}" data-detail-idx="${idx}"` : ''}></div>`;
+          }).join('')}
         </div>`).join('')}
     </div>`;
+  mensalView.onclick = e => {
+    const cell = e.target.closest('[data-detail-heatmap]');
+    if (!cell) return;
+    const hab = habits.find(x => x.id === parseInt(cell.dataset.detailHeatmap));
+    if (!hab) return;
+    const idx = parseInt(cell.dataset.detailIdx);
+    if (hab.heatmap[idx] === null) return;
+    hab.heatmap[idx] = !hab.heatmap[idx];
+    cell.className = `heatmap-cell ${hab.heatmap[idx] ? 'done' : 'missed'}`;
+    saveState();
+  };
 
   document.getElementById('hd-close').onclick = () => closeModal('modal-habit-detail');
   document.getElementById('edit-habit-btn').onclick = () => startEditHabit(h.id);
@@ -3803,13 +3877,16 @@ document.getElementById('submit-project').addEventListener('click', () => {
   if (!name) return;
   const colorInput = document.getElementById('project-color-input');
   if (colorInput) newProjectColor = colorInput.value;
-  PROJECTS.push({
-    id: Date.now(),
-    name,
-    dot: newProjectColor,
-  });
-  newProjectId = PROJECTS[PROJECTS.length - 1].id;
+  if (editingProjectId) {
+    const p = PROJECTS.find(x => x.id === editingProjectId);
+    if (p) { p.name = name; p.dot = newProjectColor; }
+    editingProjectId = null;
+  } else {
+    PROJECTS.push({ id: Date.now(), name, dot: newProjectColor });
+    newProjectId = PROJECTS[PROJECTS.length - 1].id;
+  }
   document.getElementById('new-project-name').value = '';
+  document.getElementById('submit-project').textContent = 'CRIAR PROJETO';
   document.getElementById('submit-project').className = 'modal-submit';
   closeModal('modal-add-project');
   renderAll();
@@ -3854,7 +3931,12 @@ function closeModal(id) {
 ['modal-add-task','modal-add-habit','modal-task-detail','modal-habit-detail','modal-add-project'].forEach(id => {
   const overlay = document.getElementById(id);
   overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeModal(id);
+    if (e.target !== overlay) return;
+    if (id === 'modal-add-habit' && editingHabitId) {
+      document.getElementById('submit-habit').click();
+      return;
+    }
+    closeModal(id);
   });
 });
 
