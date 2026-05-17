@@ -1,5 +1,5 @@
-const CACHE = 'flowdo-v1';
-const LOCAL = ['./index.html', './manifest.json', './icon.svg'];
+const CACHE = 'flowdo-v2';
+const LOCAL = ['./manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(LOCAL)));
@@ -18,7 +18,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = e.request.url;
 
-  // Network-first para fontes externas, cacheando para uso offline
+  // Fontes externas: network-first, cache como fallback offline
   if (url.includes('fonts.g')) {
     e.respondWith(
       fetch(e.request)
@@ -31,7 +31,20 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first para assets locais
+  // index.html: network-first — garante que atualizações chegam mesmo na tela inicial
+  if (url.endsWith('/') || url.includes('index.html') || e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(cached => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Demais assets: cache-first
   e.respondWith(
     caches.match(e.request).then(cached =>
       cached || fetch(e.request).catch(() => caches.match('./index.html'))
