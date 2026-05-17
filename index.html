@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="FlowDo"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@300;400;600&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -904,6 +904,20 @@
   #app[data-theme="nevoa"] .nav-btn.active { color: #7B9EC0 !important; }
   #app[data-theme="nevoa"] .day-btn.active .day-num { color: #7B9EC0; }
 
+  #app[data-theme="terra"] #bottom-nav { border-top: 2px solid #C4593A; }
+  #app[data-theme="terra"] .nav-btn.active { color: #C4593A !important; }
+  #app[data-theme="terra"] .nav-indicator  { background: #C4593A; }
+  #app[data-theme="terra"] .page-title {
+    font-style: italic;
+    font-weight: 300;
+    font-size: 36px;
+  }
+  #app[data-theme="terra"] .task-title,
+  #app[data-theme="terra"] .habit-name,
+  #app[data-theme="terra"] .project-name { font-style: italic; font-weight: 400; }
+  #app[data-theme="terra"] .day-btn { border-radius: 4px; border: 1px solid #E8DDD0; }
+  #app[data-theme="terra"] .day-btn.active { border-color: #C4593A; }
+
   /* ── FAB ── */
   #fab {
     position: absolute;
@@ -1546,11 +1560,17 @@
   .bottom-space { height: 100px; }
 
   @media (max-width: 420px) {
-    html, body { background: var(--bg); }
+    html, body {
+      background: var(--bg);
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
     #app {
       width: 100%;
-      height: 100dvh;
-      min-height: 100vh;
+      height: 100%;
+      min-height: unset;
       border-radius: 0;
       box-shadow: none;
     }
@@ -1926,12 +1946,12 @@ const PROFILE_ITEMS = [
 const APPEARANCE_PRESETS = [
   { id:'brejo', name:'Brejo', title:"'Instrument Serif', serif", body:"'DM Mono', monospace",
     colors:{ bg:'#EDEBE6', primary:'#1A1A1A', secondary:'#9B9690', divider:'#D8D5D0', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
-  { id:'sol', name:'Sol', title:"'DM Sans', sans-serif", body:"'DM Sans', sans-serif",
-    colors:{ bg:'#FFF8E7', primary:'#1A1200', secondary:'#9B8A5A', divider:'#EDE5C0', day:'#1A1200', tab:'#1A1200', alta:'#D96B2E', media:'#C8A030', baixa:'#4A7A40' } },
-  { id:'nevoa', name:'Névoa', title:"'Source Han Serif', 'Noto Serif', serif", body:"'Lato', sans-serif",
-    colors:{ bg:'#EEF1F8', primary:'#1A1E2E', secondary:'#6B7490', divider:'#C8D0E8', day:'#5B7EC9', tab:'#5B7EC9', alta:'#C0392B', media:'#8FA3D4', baixa:'#5E8A7A' } },
-  { id:'terra', name:'Terra', title:"'Libre Baskerville', serif", body:"'Source Serif Pro', 'Source Serif 4', serif",
-    colors:{ bg:'#F5EDD6', primary:'#1A0A00', secondary:'#8B6A3A', divider:'#D8C8A0', day:'#C0392B', tab:'#C0392B', alta:'#C0392B', media:'#C8A84B', baixa:'#5A7A4A' } },
+  { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'Inter', sans-serif",
+    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
+  { id:'nevoa', name:'Névoa', title:"'Spectral', serif", body:"'Lato', sans-serif",
+    colors:{ bg:'#F0F2F7', primary:'#1B2A4A', secondary:'#7B8FA8', divider:'#D4DAE8', day:'#1B2A4A', tab:'#1B2A4A', alta:'#C87941', media:'#7B9EC0', baixa:'#5C8A7A' } },
+  { id:'terra', name:'Terra', title:"'Cormorant Garamond', serif", body:"'Josefin Sans', sans-serif",
+    colors:{ bg:'#FBF6F0', primary:'#1E0E06', secondary:'#A07860', divider:'#E8DDD0', day:'#C4593A', tab:'#1E0E06', alta:'#C4593A', media:'#C8A84B', baixa:'#5A7A4A' } },
   { id:'floresta', name:'Floresta', title:"'Josefin Sans', sans-serif", body:"'DM Sans', sans-serif",
     colors:{ bg:'#F0EAD6', primary:'#1A2A1A', secondary:'#5A6B4A', divider:'#C0C8A8', day:'#3D5A3E', tab:'#3D5A3E', alta:'#C0392B', media:'#C8A84B', baixa:'#3D5A3E' } },
   { id:'bistro', name:'Bistrô', title:"'Times New Roman MT', 'Times New Roman', Times, serif", body:"'DM Sans', sans-serif",
