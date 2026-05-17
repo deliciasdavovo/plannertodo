@@ -2161,10 +2161,29 @@ let tasks = [
 function makeHeatmap(pct) {
   return Array.from({length:35},(_,i)=>i<32?Math.random()<pct:null);
 }
+function alignHabitWeek(week, offset) {
+  return Array.from({length: 7}, (_, i) => {
+    const isFutureDay = offset > 0 || (offset === 0 && i > TODAY_IDX);
+    if (isFutureDay) return null;
+    return Array.isArray(week) && week[i] === true ? true : false;
+  });
+}
+function normalizeHabits() {
+  habits.forEach(h => {
+    h.week = alignHabitWeek(h.week, 0);
+    if (h.weekPages) {
+      Object.keys(h.weekPages).forEach(k => {
+        h.weekPages[k] = alignHabitWeek(h.weekPages[k], parseInt(k));
+      });
+    }
+  });
+}
 function getHabitWeek(h) {
   if (habitWeekOffset === 0) return h.week;
   h.weekPages = h.weekPages || {};
-  if (!h.weekPages[habitWeekOffset]) h.weekPages[habitWeekOffset] = [false,false,false,false,false,null,null];
+  if (!h.weekPages[habitWeekOffset]) {
+    h.weekPages[habitWeekOffset] = alignHabitWeek(null, habitWeekOffset);
+  }
   return h.weekPages[habitWeekOffset];
 }
 function getHabitHeatmap(h) {
@@ -4066,6 +4085,7 @@ document.getElementById('fab').addEventListener('click', () => {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 loadState();
+normalizeHabits();
 applyTheme();
 buildNav();
 rebuildCurrentWeekDates();
