@@ -216,6 +216,8 @@
   }
   .day-btn.today .day-num { color: var(--ink); }
   .day-btn.active .day-num { color: var(--day-selected-text); }
+  [data-theme="sol"] .day-btn.active .day-num { color: #F5C430; }
+  [data-theme="sol"] .nav-btn.active { color: #F5C430 !important; }
   .day-dot {
     width: 3px; height: 3px;
     border-radius: 50%;
@@ -226,7 +228,7 @@
   #content {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow-y: scroll;
     scrollbar-width: none;
   }
   #content::-webkit-scrollbar { display: none; }
@@ -721,7 +723,7 @@
   }
   .project-count { font-size: 11px; color: var(--ink-faint); }
   .project-bar { height: 2px; background: var(--rule); border-radius: 1px; margin-bottom: 14px; }
-  .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; }
+  .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; background: var(--ink-mid); }
   .project-task {
     display: flex;
     align-items: center;
@@ -1000,10 +1002,9 @@
   }
   .modal-input::placeholder { color: var(--ink-ghost); }
   #new-task-title {
-    min-height: 92px;
-    background: var(--surface);
-    border-color: var(--rule);
-    font-size: 17px;
+    font-size: 22px;
+    padding: 14px 0 16px;
+    margin-bottom: 26px;
   }
   #modal-add-task.editing #new-task-title {
     display: none;
@@ -1634,7 +1635,7 @@
       <div class="modal-sheet" id="modal-add-task-sheet">
         <div class="modal-handle"></div>
         <div class="modal-label" id="task-modal-title">Nova tarefa</div>
-      <textarea class="modal-textarea" id="new-task-title" rows="3" placeholder="Anote a tarefa..."></textarea>
+      <input class="modal-input" id="new-task-title" type="text" placeholder="Anote a tarefa..."/>
       <div class="modal-label">Data</div>
       <div class="date-choice-grid" id="task-date-group"></div>
       <div id="task-advanced-fields">
@@ -1884,8 +1885,8 @@ const PROFILE_ITEMS = [
 const APPEARANCE_PRESETS = [
   { id:'brejo', name:'Brejo', title:"'Instrument Serif', serif", body:"'DM Mono', monospace",
     colors:{ bg:'#EDEBE6', primary:'#1A1A1A', secondary:'#9B9690', divider:'#D8D5D0', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
-  { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'TT Interphases', 'Inter', sans-serif",
-    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#F5C842', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
+  { id:'sol', name:'Sol', title:"'DM Sans', sans-serif", body:"'DM Sans', sans-serif",
+    colors:{ bg:'#FFF8E7', primary:'#1A1200', secondary:'#9B8A5A', divider:'#EDE5C0', day:'#1A1200', tab:'#1A1200', alta:'#D96B2E', media:'#C8A030', baixa:'#4A7A40' } },
   { id:'nevoa', name:'Névoa', title:"'Source Han Serif', 'Noto Serif', serif", body:"'Lato', sans-serif",
     colors:{ bg:'#EEF1F8', primary:'#1A1E2E', secondary:'#6B7490', divider:'#C8D0E8', day:'#5B7EC9', tab:'#5B7EC9', alta:'#C0392B', media:'#8FA3D4', baixa:'#5E8A7A' } },
   { id:'terra', name:'Terra', title:"'Libre Baskerville', serif", body:"'Source Serif Pro', 'Source Serif 4', serif",
@@ -2747,7 +2748,7 @@ function renderProjects() {
           <div class="project-count">${done}/${total}</div>
         </div>
         <div class="project-bar">
-          <div class="project-bar-fill" style="width:${pct}%;background:${p.dot}"></div>
+          <div class="project-bar-fill" style="width:${pct}%"></div>
         </div>
         ${projTasks.map(t => `
           <div class="project-task ${t.done?'done':''}">
@@ -2756,7 +2757,16 @@ function renderProjects() {
             ${!t.date ? `<div class="project-task-nodate">sem data</div>` : ''}
           </div>`).join('')}
       </div>`;
-  }).join('');
+  }).join('') + `<button class="add-habit-btn" id="add-project-btn">+ NOVO PROJETO</button>`;
+
+  const addProjectBtn = document.getElementById('add-project-btn');
+  if (addProjectBtn) addProjectBtn.addEventListener('click', () => {
+    newProjectColor = COLORS[PROJECTS.length % COLORS.length];
+    document.getElementById('new-project-name').value = '';
+    document.getElementById('submit-project').className = 'modal-submit';
+    buildProjectColorSwatches();
+    openModal('modal-add-project');
+  });
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
@@ -2905,6 +2915,7 @@ function applyTheme() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colors.tab);
   document.documentElement.style.setProperty('--serif', selectedPreset.title);
   document.documentElement.style.setProperty('--mono', selectedPreset.body);
+  document.getElementById('app').dataset.theme = fontMode;
   localStorage.setItem('fd-theme', darkTheme ? 'dark' : 'light');
   localStorage.setItem('fd-accent', accentColor);
   localStorage.setItem('fd-font-mode', fontMode);
@@ -3531,4 +3542,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
