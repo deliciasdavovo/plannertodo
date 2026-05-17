@@ -4394,7 +4394,11 @@ function closeModal(id) {
       document.getElementById('submit-habit').click();
       return;
     }
-    if (id === 'modal-add-task') activeSubpanel = null;
+    if (id === 'modal-add-task') {
+      const title = document.getElementById('new-task-title').value.trim();
+      if (title) { document.getElementById('submit-task').click(); return; }
+      activeSubpanel = null;
+    }
     closeModal(id);
   });
 });
