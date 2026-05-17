@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="FlowDo"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -30,6 +30,12 @@
     --green:    #2A6E4A;
     --grn-soft: #E6F0EB;
     --blue:     #2A5FA3;
+    --accent:   #111110;
+    --accent-text: #FFFFFF;
+    --day-selected: #111110;
+    --day-selected-text: #FFFFFF;
+    --tabbar:   #111110;
+    --tabbar-text: #FFFFFF;
     --serif:    'Instrument Serif', serif;
     --mono:     'DM Mono', monospace;
   }
@@ -54,13 +60,13 @@
   body.dark .detail-title,
   body.dark .habit-detail-title,
   body.dark .profile-name {
-    color: #F5F4F0;
+    color: var(--ink);
   }
   body.dark .profile-item,
   body.dark .project-task-title,
   body.dark .meta-proj,
   body.dark .day-btn.today .day-num {
-    color: #C7C5BD;
+    color: var(--ink-mid);
   }
 
   html, body {
@@ -87,14 +93,36 @@
   }
 
   /* ── STATUS BAR ── */
-  #status-bar {
+  #theme-info {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    padding: 14px 24px 0;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink-mid);
+    gap: 12px;
+    padding: 14px 22px 12px;
+    background: var(--tabbar);
+    color: var(--tabbar-text);
     flex-shrink: 0;
+  }
+  #theme-kicker {
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    opacity: 0.72;
+    white-space: nowrap;
+  }
+  #theme-hint {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
   }
 
   /* ── HEADER ── */
@@ -149,7 +177,7 @@
   }
   .progress-fill {
     height: 100%;
-    background: var(--ink);
+    background: var(--accent);
     border-radius: 1px;
     transition: width 0.5s ease;
   }
@@ -205,7 +233,7 @@
     min-width: 38px;
     transition: background 0.15s;
   }
-  .day-btn.active { background: var(--ink); }
+  .day-btn.active { background: var(--day-selected); }
   .day-letter {
     font-size: 9px;
     font-weight: 700;
@@ -213,14 +241,14 @@
     text-transform: uppercase;
     color: var(--ink-faint);
   }
-  .day-btn.active .day-letter { color: rgba(255,255,255,0.45); }
+  .day-btn.active .day-letter { color: color-mix(in srgb, var(--day-selected-text) 52%, transparent); }
   .day-num {
     font-family: var(--serif);
     font-size: 15px;
     color: var(--ink-mid);
   }
   .day-btn.today .day-num { color: var(--ink); }
-  .day-btn.active .day-num { color: #fff; }
+  .day-btn.active .day-num { color: var(--day-selected-text); }
   .day-dot {
     width: 3px; height: 3px;
     border-radius: 50%;
@@ -301,8 +329,8 @@
     left: 50%;
     bottom: 146px;
     transform: translateX(-50%) translateY(8px);
-    background: var(--ink);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-text);
     border-radius: 10px;
     padding: 9px 13px;
     font-size: 10px;
@@ -454,14 +482,14 @@
     gap: 2px;
   }
   .month-cell.empty { background: transparent; border-color: transparent; }
-  .month-cell.today { background: var(--ink); border-color: var(--ink); }
+  .month-cell.today { background: var(--day-selected); border-color: var(--day-selected); }
   .month-cell .cell-num {
     font-size: 10px;
     font-weight: 400;
     color: var(--ink-mid);
     line-height: 1;
   }
-  .month-cell.today .cell-num { color: #fff; font-weight: 700; }
+  .month-cell.today .cell-num { color: var(--day-selected-text); font-weight: 700; }
   .cell-dots { display: flex; gap: 2px; }
   .cell-dot { width: 4px; height: 4px; border-radius: 50%; }
   .month-legend {
@@ -753,14 +781,14 @@
   .profile-avatar {
     width: 56px; height: 56px;
     border-radius: 18px;
-    background: var(--ink);
+    background: var(--tabbar);
     margin-bottom: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--serif);
     font-size: 22px;
-    color: #fff;
+    color: var(--tabbar-text);
   }
   .profile-name {
     font-family: var(--serif);
@@ -790,6 +818,81 @@
     white-space: nowrap;
   }
   .profile-item svg { flex-shrink: 0; }
+  .appearance-panel {
+    padding: 14px 0 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .appearance-row { margin-bottom: 16px; }
+  .appearance-row:last-child { margin-bottom: 0; }
+  .appearance-label {
+    margin-bottom: 8px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .appearance-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .appearance-options.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .appearance-options button {
+    min-width: 0;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .appearance-options button.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+  .appearance-color {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .appearance-color input[type="color"] {
+    width: 54px;
+    height: 42px;
+    border: 1.5px solid var(--rule);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .appearance-preview {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--ink-mid);
+  }
+  .appearance-preview strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.1;
+    color: var(--accent);
+  }
+  .appearance-preview span {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+  }
 
   /* ── FAB ── */
   #fab {
@@ -798,7 +901,7 @@
     bottom: 82px;
     width: 50px; height: 50px;
     border-radius: 15px;
-    background: var(--ink);
+    background: var(--tabbar);
     border: none;
     cursor: pointer;
     display: flex;
@@ -815,8 +918,8 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
-    background: #111110;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    background: var(--tabbar);
+    border-top: 1px solid color-mix(in srgb, var(--tabbar-text) 16%, transparent);
     padding: 10px 12px calc(18px + env(safe-area-inset-bottom));
     flex-shrink: 0;
     box-shadow: 0 -14px 32px rgba(17,17,16,0.16);
@@ -834,13 +937,13 @@
     min-height: 54px;
     padding: 6px 0 5px;
     border-radius: 12px;
-    color: rgba(255,255,255,0.42);
+    color: color-mix(in srgb, var(--tabbar-text) 48%, transparent);
     transition: background 0.15s, color 0.15s, transform 0.15s;
   }
   .nav-btn:active { transform: scale(0.96); }
   .nav-btn.active {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
+    background: color-mix(in srgb, var(--tabbar-text) 13%, transparent);
+    color: var(--tabbar-text);
   }
   .nav-icon {
     width: 18px;
@@ -985,6 +1088,11 @@
     font-family: var(--mono);
     transition: all 0.13s;
   }
+  .choice-btn.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
   .color-swatches { display: flex; gap: 10px; margin-bottom: 26px; }
   .color-swatch {
     width: 30px; height: 30px;
@@ -993,7 +1101,7 @@
     cursor: pointer;
     transition: border 0.13s;
   }
-  .color-swatch.selected { border-color: var(--ink); }
+  .color-swatch.selected { border-color: var(--accent); }
   .project-color-field {
     display: flex;
     align-items: center;
@@ -1038,8 +1146,8 @@
     flex-shrink: 0;
   }
   .checkbox-box.checked {
-    border-color: var(--ink);
-    background: var(--ink);
+    border-color: var(--accent);
+    background: var(--accent);
   }
   .checkbox-box svg { display: none; }
   .checkbox-box.checked svg { display: block; }
@@ -1061,9 +1169,9 @@
     transition: border-color 0.13s, background 0.13s, color 0.13s;
   }
   .date-choice.active {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: #fff;
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
   }
   .date-choice .date-day {
     display: block;
@@ -1181,7 +1289,7 @@
     letter-spacing: 1px;
     transition: all 0.15s;
   }
-  .modal-submit.ready { background: var(--ink); color: #fff; }
+  .modal-submit.ready { background: var(--accent); color: var(--accent-text); }
   .modal-actions {
     display: flex;
     gap: 8px;
@@ -1277,7 +1385,7 @@
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
-  .sub-tick.checked { border-color: var(--ink); background: var(--ink); }
+  .sub-tick.checked { border-color: var(--accent); background: var(--accent); }
   .sub-tick svg { display: none; }
   .sub-tick.checked svg { display: block; }
   .sub-title {
@@ -1309,8 +1417,8 @@
     min-height: 40px;
     border: none;
     border-radius: 10px;
-    background: var(--ink);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-text);
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 700;
@@ -1420,7 +1528,7 @@
   .modal-close-btn {
     width: 100%; padding: 14px 0;
     border-radius: 12px; border: none;
-    background: var(--ink); color: #fff;
+    background: var(--accent); color: var(--accent-text);
     font-size: 11px; font-weight: 700;
     cursor: pointer; font-family: var(--mono); letter-spacing: 1px;
   }
@@ -1461,10 +1569,10 @@
 
 <div id="app">
 
-  <!-- STATUS BAR -->
-  <div id="status-bar">
-    <span id="clock">9:41</span>
-    <span style="font-size:11px">●●●● 100%</span>
+  <!-- THEME INFO -->
+  <div id="theme-info">
+    <span id="theme-kicker">FlowDo</span>
+    <span id="theme-hint">Toque em uma tarefa para editar</span>
   </div>
 
   <!-- HEADER -->
@@ -1723,6 +1831,22 @@ const PROFILE_ITEMS = [
   { id:'account', label:'Conta' },
   { id:'logout', label:'Sair', danger:true },
 ];
+const APPEARANCE_PRESETS = [
+  { id:'brejo', name:'Brejo', title:"'Instrument Serif', serif", body:"'DM Mono', monospace",
+    colors:{ bg:'#EDEBE6', primary:'#1A1A1A', secondary:'#9B9690', divider:'#D8D5D0', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
+  { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'Inter', sans-serif",
+    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
+  { id:'nevoa', name:'Névoa', title:"'Cormorant Garamond', serif", body:"'Lato', sans-serif",
+    colors:{ bg:'#EEF1F8', primary:'#1A1E2E', secondary:'#6B7490', divider:'#C8D0E8', day:'#8FA3D4', tab:'#1A1E2E', alta:'#C0392B', media:'#8FA3D4', baixa:'#5E8A7A' } },
+  { id:'terra', name:'Terra', title:"'Libre Baskerville', serif", body:"'Source Serif Pro', 'Source Serif 4', serif",
+    colors:{ bg:'#F5EDD6', primary:'#1A0A00', secondary:'#8B6A3A', divider:'#D8C8A0', day:'#1A0A00', tab:'#1A0A00', alta:'#C0392B', media:'#C8A84B', baixa:'#5A7A4A' } },
+  { id:'floresta', name:'Floresta', title:"'Josefin Sans', sans-serif", body:"'DM Sans', sans-serif",
+    colors:{ bg:'#F0EAD6', primary:'#1A2A1A', secondary:'#5A6B4A', divider:'#C0C8A8', day:'#3D5A3E', tab:'#3D5A3E', alta:'#C0392B', media:'#C8A84B', baixa:'#3D5A3E' } },
+  { id:'bistro', name:'Bistrô', title:"'Fraunces', serif", body:"'DM Sans', sans-serif",
+    colors:{ bg:'#F5EDD6', primary:'#1A0800', secondary:'#A0724A', divider:'#D8C0A0', day:'#7B3F1E', tab:'#7B3F1E', alta:'#C0392B', media:'#C8A84B', baixa:'#6B8A5A' } },
+  { id:'pomar', name:'Pomar', title:"'Libre Caslon Display', serif", body:"'Courier Prime', monospace",
+    colors:{ bg:'#FAF7F0', primary:'#1A1A00', secondary:'#7A6A3A', divider:'#D8D0A8', day:'#4A4A1E', tab:'#4A4A1E', alta:'#C0392B', media:'#C9A82C', baixa:'#4A6A3A' } },
+];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let tasks = [
@@ -1786,6 +1910,9 @@ let activeDay    = TODAY_IDX;
 let currentNav   = 'hoje';
 let currentView  = 'semana'; // semana | mensal
 let darkTheme    = localStorage.getItem('fd-theme') === 'dark';
+let appearanceOpen = false;
+let fontMode     = localStorage.getItem('fd-font-mode') || 'brejo';
+let accentColor  = localStorage.getItem('fd-accent') || (APPEARANCE_PRESETS.find(preset => preset.id === fontMode)?.colors.primary || '#1A1A1A');
 let selectedTaskId  = null;
 let selectedHabitId = null;
 let hdView = 'semana';
@@ -1890,14 +2017,6 @@ const DASH_SVG = `<div class="week-cell-dash"></div>`;
 const CHEVRON = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#D8D7D0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 // ─── CLOCK ───────────────────────────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-}
-updateClock();
-setInterval(updateClock, 10000);
-
 // ─── NAV ─────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   {id:'hoje',    label:'Hoje'},
@@ -1947,6 +2066,7 @@ function updateHeader() {
   if (currentNav === 'hoje') sub.hoje = `${getDateLabel(WEEK_DATES[activeDay])} de maio`;
   document.getElementById('page-sub').textContent   = sub[currentNav];
   document.getElementById('page-title').textContent = title[currentNav];
+  updateThemeInfo();
 
   const isHoje    = currentNav === 'hoje';
   const isHabitos = currentNav === 'habitos';
@@ -1967,6 +2087,17 @@ function updateHeader() {
 
   // FAB
   document.getElementById('fab').classList.toggle('hidden', !(isHoje || isHabitos || currentNav === 'projetos'));
+}
+
+function updateThemeInfo() {
+  const hints = {
+    hoje:     'Toque para editar; arraste para mover',
+    habitos:  'Marque os dias e acompanhe sua sequencia',
+    projetos: 'Organize tarefas por cor e area',
+    perfil:   'Ajuste tema, cor e fonte do app',
+  };
+  document.getElementById('theme-kicker').textContent = currentNav === 'hoje' ? 'Planejamento' : 'FlowDo';
+  document.getElementById('theme-hint').textContent = hints[currentNav] || 'Organize seu dia';
 }
 
 // ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
@@ -2597,14 +2728,16 @@ function renderProfile() {
     PROFILE_ITEMS.map(item => `
       <div class="profile-item ${item.danger?'danger':''}" data-profile-action="${item.id}">
         <span>${profileItemLabel(item)}</span>${CHEVRON}
-      </div>`).join('');
+      </div>
+      ${item.id === 'appearance' && appearanceOpen ? appearancePanelHTML() : ''}`).join('');
   items.querySelectorAll('[data-profile-action]').forEach(item => {
     item.addEventListener('click', () => handleProfileAction(item.dataset.profileAction));
   });
+  attachAppearanceEvents(items);
 }
 
 function profileItemLabel(item) {
-  if (item.id === 'appearance') return `${item.label}: ${darkTheme ? 'escura' : 'clara'}`;
+  if (item.id === 'appearance') return item.label;
   if (item.id === 'notifications' && 'Notification' in window) {
     const labels = { granted:'ativas', denied:'bloqueadas', default:'desativadas' };
     return `${item.label}: ${labels[Notification.permission] || 'desativadas'}`;
@@ -2612,17 +2745,137 @@ function profileItemLabel(item) {
   return item.label;
 }
 
+function appearancePanelHTML() {
+  return `
+    <div class="appearance-panel">
+      <div class="appearance-row">
+        <div class="appearance-label">Tema</div>
+        <div class="appearance-options two">
+          <button type="button" class="${!darkTheme ? 'active' : ''}" data-theme-choice="light">Clara</button>
+          <button type="button" class="${darkTheme ? 'active' : ''}" data-theme-choice="dark">Escura</button>
+        </div>
+      </div>
+      <div class="appearance-row">
+        <div class="appearance-label">Primária</div>
+        <div class="appearance-color">
+          <input type="color" id="appearance-color" value="${accentColor}">
+          <div class="appearance-preview">
+            <strong>FlowDo</strong>
+            <span>Textos e botões principais</span>
+          </div>
+        </div>
+      </div>
+      <div class="appearance-row">
+        <div class="appearance-label">Presets de fonte</div>
+        <div class="appearance-options">
+          ${APPEARANCE_PRESETS.map(preset => `
+            <button type="button" class="${fontMode === preset.id ? 'active' : ''}" data-font-mode="${preset.id}">
+              ${preset.name}
+            </button>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachAppearanceEvents(root) {
+  const colorInput = root.querySelector('#appearance-color');
+  if (colorInput) {
+    colorInput.addEventListener('input', () => {
+      accentColor = colorInput.value;
+      applyTheme();
+    });
+  }
+  root.querySelectorAll('[data-theme-choice]').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      darkTheme = btn.dataset.themeChoice === 'dark';
+      applyTheme();
+      renderProfile();
+    });
+  });
+  root.querySelectorAll('[data-font-mode]').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      fontMode = btn.dataset.fontMode;
+      const preset = APPEARANCE_PRESETS.find(item => item.id === fontMode);
+      if (preset) accentColor = preset.colors.primary;
+      applyTheme();
+      renderAll();
+    });
+  });
+}
+
+function setThemeVar(name, value) {
+  document.documentElement.style.setProperty(name, value);
+  document.body.style.setProperty(name, value);
+}
+
+function softColor(color) {
+  return `color-mix(in srgb, ${color} 13%, #ffffff)`;
+}
+
+function updatePriorityPalette(colors) {
+  PRIORITY.alta.color = colors.alta;
+  PRIORITY.alta.bg = softColor(colors.alta);
+  PRIORITY['média'].color = colors.media;
+  PRIORITY['média'].bg = softColor(colors.media);
+  PRIORITY.baixa.color = colors.baixa;
+  PRIORITY.baixa.bg = softColor(colors.baixa);
+}
+
+function getAccentTextColor(color) {
+  const hex = color.replace('#', '').trim();
+  const normalized = hex.length === 3
+    ? hex.split('').map(char => char + char).join('')
+    : hex;
+  const value = parseInt(normalized, 16);
+  if (Number.isNaN(value)) return '#FFFFFF';
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? '#111110' : '#FFFFFF';
+}
+
 function applyTheme() {
   document.body.classList.toggle('dark', darkTheme);
+  const selectedPreset = APPEARANCE_PRESETS.find(preset => preset.id === fontMode) || APPEARANCE_PRESETS[0];
+  fontMode = selectedPreset.id;
+  const colors = { ...selectedPreset.colors, primary: accentColor || selectedPreset.colors.primary };
+  const accentText = getAccentTextColor(colors.primary);
+  setThemeVar('--bg', colors.bg);
+  setThemeVar('--surface', `color-mix(in srgb, ${colors.bg} 36%, #ffffff)`);
+  setThemeVar('--ink', colors.primary);
+  setThemeVar('--ink-mid', colors.secondary);
+  setThemeVar('--ink-faint', colors.secondary);
+  setThemeVar('--ink-ghost', colors.divider);
+  setThemeVar('--rule', colors.divider);
+  setThemeVar('--deep', `color-mix(in srgb, ${colors.bg} 82%, ${colors.divider})`);
+  setThemeVar('--accent', colors.primary);
+  setThemeVar('--accent-text', accentText);
+  setThemeVar('--day-selected', colors.day);
+  setThemeVar('--day-selected-text', getAccentTextColor(colors.day));
+  setThemeVar('--tabbar', colors.tab);
+  setThemeVar('--tabbar-text', getAccentTextColor(colors.tab));
+  setThemeVar('--red', colors.alta);
+  setThemeVar('--red-soft', softColor(colors.alta));
+  setThemeVar('--amber', colors.media);
+  setThemeVar('--amb-soft', softColor(colors.media));
+  setThemeVar('--green', colors.baixa);
+  setThemeVar('--grn-soft', softColor(colors.baixa));
+  updatePriorityPalette(colors);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colors.tab);
+  document.documentElement.style.setProperty('--serif', selectedPreset.title);
+  document.documentElement.style.setProperty('--mono', selectedPreset.body);
   localStorage.setItem('fd-theme', darkTheme ? 'dark' : 'light');
+  localStorage.setItem('fd-accent', accentColor);
+  localStorage.setItem('fd-font-mode', fontMode);
 }
 
 function handleProfileAction(action) {
   if (action === 'appearance') {
-    darkTheme = !darkTheme;
-    applyTheme();
+    appearanceOpen = !appearanceOpen;
     renderProfile();
-    showDayToast(darkTheme ? 'Tema escuro' : 'Tema claro');
     return;
   }
 
@@ -2965,8 +3218,7 @@ function buildAddTaskModal() {
         </button>
         <div class="repeat-choice-group collapsed" id="repeat-options">
           ${REPEAT_OPTIONS.map(opt => `
-            <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}"
-              style="${newRepeat===opt.id?'border-color:#111110;background:#111110;color:#fff':''}">
+            <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}">
               ${opt.label}
             </button>`).join('')}
         </div>
