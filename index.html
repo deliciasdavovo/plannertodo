@@ -2261,6 +2261,26 @@ function buildWeekStrip() {
   });
 }
 
+function setupWeekSwipe() {
+  const strip = document.getElementById('week-strip');
+  let startX = 0, startY = 0, moved = false;
+
+  strip.addEventListener('pointerdown', e => {
+    startX = e.clientX; startY = e.clientY; moved = false;
+  });
+  strip.addEventListener('pointermove', e => {
+    if (Math.abs(e.clientX - startX) > 8) moved = true;
+  });
+  strip.addEventListener('pointerup', e => {
+    if (!moved) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+    if (dx < 0) setActiveDay(activeDay + 1);
+    else         setActiveDay(activeDay - 1);
+  });
+}
+
 // ─── VIEW TOGGLE ─────────────────────────────────────────────────────────────
 function buildViewToggle() {
   const tg = document.getElementById('view-toggle');
@@ -2333,19 +2353,38 @@ function updateTaskCount() {
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function renderTaskList() {
-  const viewDate = WEEK_DATES[activeDay];
-  const dayTasks = tasks.filter(t => t.date === viewDate);
-  const undated  = tasks.filter(t => !t.date);
-  const pending  = dayTasks.filter(t => !t.done);
-  const done     = dayTasks.filter(t => t.done);
+  const allTasks = [...tasks].sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
 
-  const pendingList = document.getElementById('task-list-pending');
-  pendingList.innerHTML = pending.map(t => taskRowHTML(t)).join('') + `
+  const byDate = {};
+  allTasks.forEach(t => {
+    const key = t.date || '__nodate__';
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(t);
+  });
+
+  let html = '';
+  Object.entries(byDate).forEach(([dateKey, group]) => {
+    const label = dateKey === '__nodate__' ? 'Sem data' : getDateLabel(dateKey);
+    const isToday = dateKey === TODAY;
+    html += `<div class="section-label" style="${isToday ? 'color:var(--ink)' : ''}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+    html += group.map(t => taskRowHTML(t)).join('');
+  });
+
+  html += `
     <div class="inline-task-row">
       <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
       <input class="inline-task-input" id="inline-task-input"
              placeholder="Nova tarefa…" autocomplete="off" spellcheck="false">
     </div>`;
+
+  document.getElementById('task-list-pending').innerHTML = html;
+  document.getElementById('task-list-done-wrap').style.display = 'none';
+  document.getElementById('task-list-undated-wrap').style.display = 'none';
 
   const inlineInput = document.getElementById('inline-task-input');
   if (inlineInput) {
@@ -2360,14 +2399,6 @@ function renderTaskList() {
       if (next) next.focus();
     });
   }
-
-  const doneWrap = document.getElementById('task-list-done-wrap');
-  doneWrap.style.display = done.length ? 'block' : 'none';
-  document.getElementById('task-list-done').innerHTML = done.map(t => taskRowHTML(t)).join('');
-
-  const undatedWrap = document.getElementById('task-list-undated-wrap');
-  undatedWrap.style.display = undated.length ? 'block' : 'none';
-  document.getElementById('task-list-undated').innerHTML = undated.map(t => taskRowHTML(t)).join('');
 
   attachTaskEvents();
 }
@@ -3672,6 +3703,7 @@ buildViewToggle();
 updateHeader();
 buildColorSwatches();
 buildProjectColorSwatches();
+setupWeekSwipe();
 renderAll();
 
 if ('serviceWorker' in navigator) {
