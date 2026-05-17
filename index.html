@@ -183,6 +183,8 @@
     align-items: center;
     padding: 6px 10px;
     gap: 0;
+    touch-action: pan-y;
+    user-select: none;
   }
   .week-nav-arrow {
     flex-shrink: 0;
@@ -300,6 +302,14 @@
     border-bottom-color: var(--ink-mid);
     border-bottom-style: dashed;
     font-style: italic;
+  }
+  .day-empty {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-faint);
+    padding: 28px 0;
+    text-align: center;
   }
 
   .task-row {
@@ -1640,7 +1650,8 @@
 
     <!-- VIEW TOGGLE -->
     <div class="view-toggle" id="view-toggle">
-      <button class="active" data-view="semana">Semana</button>
+      <button class="active" data-view="dia">Dia</button>
+      <button data-view="semana">Semana</button>
       <button data-view="mensal">Mensal</button>
     </div>
   </div>
@@ -1931,15 +1942,33 @@ function showTaskNotification(taskId, key) {
 }
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const TODAY = '2026-05-12';
-const TODAY_IDX = 3;
-const WEEK_DATES = ['2026-05-09','2026-05-10','2026-05-11','2026-05-12','2026-05-13','2026-05-14','2026-05-15'];
+const TODAY_DATE = (() => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+})();
+const TODAY = formatDateKey(TODAY_DATE);
+const TODAY_IDX = (TODAY_DATE.getDay() + 6) % 7; // 0=Seg, 6=Dom
+const WEEK_BASE_MONDAY = (() => {
+  const d = new Date(TODAY_DATE.getTime());
+  d.setDate(d.getDate() - TODAY_IDX);
+  return formatDateKey(d);
+})();
+const WEEK_DATES = (() => {
+  const base = parseDateKey(WEEK_BASE_MONDAY);
+  const arr = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base.getTime());
+    d.setDate(d.getDate() + i);
+    arr.push(formatDateKey(d));
+  }
+  return arr;
+})();
 const DAYS_LETTER = ['S','T','Q','Q','S','S','D'];
 const DAYS_SHORT  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-const DATES_MAP = {
-  '2026-05-09':'Seg 9','2026-05-10':'Ter 10','2026-05-11':'Qua 11',
-  '2026-05-12':'Qui 12','2026-05-13':'Sex 13','2026-05-14':'Sáb 14','2026-05-15':'Dom 15'
-};
+const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTHS_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DATES_MAP = {};
 const MONTH_WEEKS = ['Abr 7','Abr 14','Abr 21','Abr 28','Mai 5'];
 const PROJECTS = [
   { id:1, name:'Trabalho', dot:'#C84B2F' },
@@ -2011,7 +2040,7 @@ function periodLabel(kind) {
     if (habitWeekOffset === 0) return 'Esta semana';
     return habitWeekOffset > 0 ? `${habitWeekOffset + 1} semanas a frente` : `${Math.abs(habitWeekOffset)} semanas atras`;
   }
-  const base = new Date(2026, 4 + habitMonthOffset, 1);
+  const base = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth() + habitMonthOffset, 1);
   return base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
 }
 function periodNavHTML(kind) {
@@ -2043,7 +2072,7 @@ let activeDay       = TODAY_IDX;
 let weekOffset      = 0;
 let taskMonthOffset = 0;
 let currentNav   = 'hoje';
-let currentView  = 'semana'; // semana | mensal
+let currentView  = 'dia'; // dia | semana | mensal
 let darkTheme    = localStorage.getItem('fd-theme') === 'dark';
 let appearanceOpen = false;
 let fontMode     = localStorage.getItem('fd-font-mode') || 'brejo';
@@ -2100,7 +2129,7 @@ function getDateLabel(dateKey) {
 }
 
 function rebuildCurrentWeekDates() {
-  const base = parseDateKey('2026-05-09'); // Monday of base week
+  const base = parseDateKey(WEEK_BASE_MONDAY);
   for (let i = 0; i < 7; i++) {
     const d = new Date(base.getTime());
     d.setDate(d.getDate() + weekOffset * 7 + i);
@@ -2112,8 +2141,7 @@ function rebuildCurrentWeekDates() {
 function ensureDateInWeek(dateKey) {
   let idx = WEEK_DATES.indexOf(dateKey);
   if (idx >= 0) return idx;
-  // navigate to the week that contains dateKey
-  const base = parseDateKey('2026-05-09');
+  const base = parseDateKey(WEEK_BASE_MONDAY);
   const target = parseDateKey(dateKey);
   const diffDays = Math.round((target - base) / 86400000);
   weekOffset = Math.floor(diffDays / 7);
@@ -2198,8 +2226,9 @@ function buildNav() {
 
 function switchNav(nav) {
   currentNav = nav;
-  currentView = 'semana';
+  currentView = (nav === 'hoje') ? 'dia' : 'semana';
   buildNav();
+  buildViewToggle();
   updateHeader();
   renderAll();
 }
@@ -2213,7 +2242,10 @@ function updateHeader() {
     perfil:   'Configurações',
   };
   const title = {hoje:'Hoje',habitos:'Hábitos',projetos:'Projetos',perfil:'Perfil'};
-  if (currentNav === 'hoje') sub.hoje = `${getDateLabel(WEEK_DATES[activeDay])} de maio`;
+  if (currentNav === 'hoje') {
+    const d = parseDateKey(WEEK_DATES[activeDay]);
+    sub.hoje = `${getDateLabel(WEEK_DATES[activeDay])} de ${MONTHS_LONG[d.getMonth()]}`;
+  }
   document.getElementById('page-sub').textContent   = sub[currentNav];
   document.getElementById('page-title').textContent = title[currentNav];
   const isHoje    = currentNav === 'hoje';
@@ -2232,6 +2264,8 @@ function updateHeader() {
   // view toggle
   document.getElementById('view-toggle').style.display =
     (isHoje || isHabitos) ? 'flex' : 'none';
+  const diaBtn = document.querySelector('#view-toggle button[data-view="dia"]');
+  if (diaBtn) diaBtn.style.display = isHoje ? '' : 'none';
 
   // FAB
   document.getElementById('fab').classList.toggle('hidden', !(isHoje || isHabitos || currentNav === 'projetos'));
@@ -2280,26 +2314,40 @@ function buildWeekStrip() {
 
 function setupWeekSwipe() {
   const strip = document.getElementById('week-strip');
-  let startX = 0, startY = 0, moved = false;
+  let startX = 0, startY = 0, lastX = 0, lastY = 0, tracking = false, moved = false;
+
+  const reset = () => { tracking = false; moved = false; };
 
   strip.addEventListener('pointerdown', e => {
-    startX = e.clientX; startY = e.clientY; moved = false;
+    startX = lastX = e.clientX;
+    startY = lastY = e.clientY;
+    tracking = true;
+    moved = false;
+    try { strip.setPointerCapture(e.pointerId); } catch (_) {}
   });
   strip.addEventListener('pointermove', e => {
-    if (Math.abs(e.clientX - startX) > 8) moved = true;
+    if (!tracking) return;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    if (Math.abs(lastX - startX) > 6) moved = true;
   });
-  strip.addEventListener('pointerup', e => {
+  const finish = e => {
+    if (!tracking) return;
+    tracking = false;
     if (!moved) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+    const dx = (e.clientX ?? lastX) - startX;
+    const dy = (e.clientY ?? lastY) - startY;
+    if (Math.abs(dx) < 32 || Math.abs(dy) > Math.abs(dx)) return;
     if (dx < 0) weekOffset++;
     else         weekOffset--;
     rebuildCurrentWeekDates();
     buildWeekStrip();
     updateHeader();
     renderAll();
-  });
+  };
+  strip.addEventListener('pointerup', finish);
+  strip.addEventListener('pointercancel', reset);
+  strip.addEventListener('lostpointercapture', reset);
 }
 
 // ─── VIEW TOGGLE ─────────────────────────────────────────────────────────────
@@ -2326,7 +2374,10 @@ function showScreen(id) {
 function renderAll() {
   const nav = currentNav, view = currentView;
 
-  if (nav === 'hoje' && view === 'semana') {
+  if (nav === 'hoje' && view === 'dia') {
+    showScreen('screen-hoje-semana');
+    renderDayList();
+  } else if (nav === 'hoje' && view === 'semana') {
     showScreen('screen-hoje-semana');
     renderTaskList();
   } else if (nav === 'hoje' && view === 'mensal') {
@@ -2373,6 +2424,48 @@ function updateTaskCount() {
 }
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
+function renderDayList() {
+  const dayKey = WEEK_DATES[activeDay];
+  const dayTasks = tasks.filter(t => t.date === dayKey);
+  const isToday = dayKey === TODAY;
+
+  let html = `
+    <div class="inline-task-row top">
+      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
+      <input class="inline-task-input" id="inline-task-input"
+             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false">
+    </div>`;
+
+  const label = getDateLabel(dayKey);
+  html += `<div class="section-label${isToday ? ' today' : ''}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+
+  if (dayTasks.length === 0) {
+    html += `<div class="day-empty">Sem tarefas para este dia.</div>`;
+  } else {
+    html += dayTasks.map(t => taskRowHTML(t)).join('');
+  }
+
+  document.getElementById('task-list-pending').innerHTML = html;
+  document.getElementById('task-list-done-wrap').style.display = 'none';
+  document.getElementById('task-list-undated-wrap').style.display = 'none';
+
+  const inlineInput = document.getElementById('inline-task-input');
+  if (inlineInput) {
+    inlineInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const title = inlineInput.value.trim();
+      if (!title) return;
+      tasks.push({ id: Date.now(), title, done: false, priority: 'média',
+                   projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
+      renderAll();
+      const next = document.getElementById('inline-task-input');
+      if (next) next.focus();
+    });
+  }
+
+  attachTaskEvents();
+}
+
 function renderTaskList() {
   const allTasks = [...tasks].sort((a, b) => {
     if (!a.date && !b.date) return 0;
@@ -2638,7 +2731,7 @@ function renderMonthView() {
   const mv = document.getElementById('month-view');
   const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const base = new Date(2026, 4, 1); // May 2026
+  const base = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth(), 1);
   base.setMonth(base.getMonth() + taskMonthOffset);
   const year  = base.getFullYear();
   const month = base.getMonth();
@@ -2696,7 +2789,7 @@ function renderMonthView() {
     cell.addEventListener('click', () => {
       const dateStr = cell.dataset.monthDate;
       const idx = ensureDateInWeek(dateStr);
-      currentView = 'semana';
+      currentView = 'dia';
       buildViewToggle();
       buildWeekStrip();
       setActiveDay(idx);
