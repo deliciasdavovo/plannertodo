@@ -1060,6 +1060,9 @@
     font-size: 22px;
     padding: 14px 0 16px;
     margin-bottom: 26px;
+    resize: none;
+    line-height: 1.5;
+    min-height: 80px;
   }
   #modal-add-task.editing #new-task-title {
     display: none;
@@ -1696,7 +1699,8 @@
       <div class="modal-sheet" id="modal-add-task-sheet">
         <div class="modal-handle"></div>
         <div class="modal-label" id="task-modal-title">Nova tarefa</div>
-      <input class="modal-input" id="new-task-title" type="text" placeholder="Anote a tarefa..."/>
+      <textarea class="modal-input" id="new-task-title"
+        placeholder="Anote a tarefa..." rows="3"></textarea>
       <div class="modal-label">Data</div>
       <div class="date-choice-grid" id="task-date-group"></div>
       <div id="task-advanced-fields">
