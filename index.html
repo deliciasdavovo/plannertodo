@@ -1423,6 +1423,288 @@
     margin-bottom: 18px;
   }
 
+  /* ── TASK SHEET (new design) ── */
+  #modal-add-task .modal-sheet { display: none; }
+  .task-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-radius: 24px 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    z-index: 200;
+    overflow: hidden;
+    box-shadow: 0 -4px 40px rgba(0,0,0,0.18);
+  }
+  #modal-add-task.open .task-sheet { transform: translateY(0); }
+  .task-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .task-sheet-date-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    letter-spacing: 0.2px;
+  }
+  .task-sheet-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--deep);
+    border: none;
+    color: var(--ink-faint);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .task-sheet-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px 20px 4px;
+    flex-shrink: 0;
+  }
+  .task-sheet-title {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    border: none;
+    background: none;
+    outline: none;
+    resize: none;
+    line-height: 1.3;
+    padding: 0;
+    min-height: 32px;
+  }
+  .task-sheet-title::placeholder { color: var(--ink-ghost); font-weight: 400; }
+  .task-sheet-check-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--ink-faint);
+    background: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--ink-faint);
+    font-size: 15px;
+  }
+  .task-sheet-check-btn.done {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+  .task-sheet-notes {
+    padding: 10px 20px;
+    font-family: var(--sans);
+    font-size: 15px;
+    color: var(--ink-mid);
+    border: none;
+    background: none;
+    outline: none;
+    resize: none;
+    width: 100%;
+    min-height: 52px;
+    box-sizing: border-box;
+  }
+  .task-sheet-notes::placeholder { color: var(--ink-ghost); }
+  .task-sheet-sub-list { padding: 0 20px; }
+  .task-sheet-sub-list .task-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+    color: var(--ink-mid);
+    font-family: var(--sans);
+  }
+  .task-sheet-sub-list .task-sub-item button {
+    background: none;
+    border: none;
+    color: var(--ink-ghost);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+  }
+  .task-sheet-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-top: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .task-sheet-sub-input {
+    flex: 1;
+    font-family: var(--sans);
+    font-size: 15px;
+    color: var(--ink-mid);
+    background: none;
+    border: none;
+    outline: none;
+  }
+  .task-sheet-sub-input::placeholder { color: var(--ink-ghost); }
+  .task-sheet-subpanel {
+    background: var(--surface);
+    border-top: 1px solid var(--rule);
+    padding: 14px 20px;
+    flex-shrink: 0;
+  }
+  .task-sheet-subpanel:empty { display: none; padding: 0; border: none; }
+  .task-sheet-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px 20px;
+    border-top: 1px solid var(--rule);
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .toolbar-icon-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 10px;
+    color: var(--ink-faint);
+    touch-action: manipulation;
+    transition: background 0.12s, color 0.12s;
+  }
+  .toolbar-icon-btn:active { background: var(--deep); }
+  .toolbar-icon-btn.active { color: var(--accent); }
+  .tbr-label {
+    font-size: 9px;
+    font-family: var(--mono);
+    font-weight: 700;
+    max-width: 46px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+  }
+  .task-sheet-submit {
+    margin-left: auto;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    background: var(--rule);
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .task-sheet-submit.ready { background: var(--accent); color: var(--accent-text); }
+  /* Sub-panel inner layouts */
+  .tsp-datetime { display: flex; flex-direction: column; gap: 10px; }
+  .tsp-datetime .tsp-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .tsp-datetime input[type="date"],
+  .tsp-datetime input[type="time"] {
+    height: 42px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .tsp-clear-btn {
+    height: 42px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tsp-priority { display: flex; gap: 8px; }
+  .tsp-priority-btn {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.13s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .tsp-priority-btn .tsp-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .tsp-priority-btn.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+  .tsp-repeat { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tsp-repeat-btn {
+    padding: 9px 14px;
+    border-radius: 8px;
+    border: 1.5px solid var(--rule);
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.13s;
+  }
+  .tsp-repeat-btn.active { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+  .tsp-project select {
+    width: 100%;
+    height: 44px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 12px;
+  }
+
   /* detail modal */
   .detail-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
   .detail-tick {
@@ -1775,30 +2057,44 @@
 
   <!-- MODALS -->
   <div class="modal-overlay" id="modal-add-task">
-      <div class="modal-sheet" id="modal-add-task-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-label" id="task-modal-title">Nova tarefa</div>
-      <textarea class="modal-input" id="new-task-title"
-        placeholder="Anote a tarefa..." rows="3"></textarea>
-      <div class="modal-label">Data</div>
-      <div class="date-choice-grid" id="task-date-group"></div>
-      <div id="task-advanced-fields">
-        <div class="modal-label">Hora</div>
-        <div class="task-date-editor">
-          <input class="task-select" id="task-time-input" type="time"/>
-          <button class="task-time-clear" id="task-time-clear" type="button">Sem hora</button>
+    <div class="task-sheet" id="modal-add-task-sheet">
+      <div class="task-sheet-head">
+        <div class="task-sheet-date-label" id="task-sheet-date-label">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span id="task-sheet-date-text">Sem data</span>
         </div>
-        <div class="modal-label">Prioridade</div>
-        <div class="btn-group" id="priority-group"></div>
-        <div class="modal-label">Projeto</div>
-        <div class="btn-group" id="project-group"></div>
-        <div class="modal-label">Recorrência</div>
-        <div class="repeat-choice-group" id="repeat-group"></div>
-        <div class="modal-label" style="margin-top:16px">Subtarefas</div>
-        <div id="task-subtasks-list"></div>
-        <input class="modal-input-sm" id="task-subtask-input" placeholder="+ nova subtarefa…" autocomplete="off"/>
+        <button class="task-sheet-close" id="task-sheet-close-btn">✕</button>
       </div>
-      <button class="modal-submit ready" id="submit-task">CRIAR</button>
+      <div class="task-sheet-body">
+        <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
+        <button class="task-sheet-check-btn" id="task-sheet-check-btn" type="button"></button>
+      </div>
+      <textarea class="task-sheet-notes" id="task-notes-input" placeholder="Adicionar notas..."></textarea>
+      <div class="task-sheet-sub-list" id="task-subtasks-list"></div>
+      <div class="task-sheet-sub-row">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;color:var(--ink-ghost)"><circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 5v5M5 7.5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <input class="task-sheet-sub-input" id="task-subtask-input" placeholder="Adicionar subtarefa..." autocomplete="off"/>
+      </div>
+      <div class="task-sheet-subpanel" id="task-sheet-subpanel"></div>
+      <div class="task-sheet-toolbar">
+        <button type="button" class="toolbar-icon-btn" id="tbr-datetime" title="Data e hora">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><rect x="1.5" y="2.5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h16" stroke="currentColor" stroke-width="1.5"/><path d="M6 1v3M13 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="tbr-label" id="tbr-datetime-label">Data</span>
+        </button>
+        <button type="button" class="toolbar-icon-btn" id="tbr-priority" title="Prioridade">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><circle cx="9.5" cy="9.5" r="8" stroke="currentColor" stroke-width="1.5"/><circle cx="9.5" cy="9.5" r="3.5" fill="currentColor"/></svg>
+          <span class="tbr-label" id="tbr-priority-label">Prior.</span>
+        </button>
+        <button type="button" class="toolbar-icon-btn" id="tbr-repeat" title="Recorrência">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M3 7c1-3 4-5 7-4.5S15 6 15 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 7l-1-2-2 1M16 12c-1 3-4 5-7 4.5S4 13 4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 12l1 2 2-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="tbr-label" id="tbr-repeat-label">Repeat</span>
+        </button>
+        <button type="button" class="toolbar-icon-btn" id="tbr-project" title="Projeto">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M2 5h15v11a1 1 0 01-1 1H3a1 1 0 01-1-1V5z" stroke="currentColor" stroke-width="1.5"/><path d="M2 5l2-3h11l2 3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span class="tbr-label" id="tbr-project-label">Projeto</span>
+        </button>
+        <button class="task-sheet-submit" id="submit-task">SALVAR</button>
+      </div>
     </div>
   </div>
 
@@ -3715,14 +4011,43 @@ function openHabitDetail() {
 }
 
 // ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
+let activeSubpanel = null;
+let newTaskNotes = '';
+
 function buildAddTaskModal() {
-  const titleLabel = document.getElementById('task-modal-title');
   const isEditing = editingTaskId !== null;
-  document.getElementById('modal-add-task').classList.toggle('editing', isEditing);
-  if (titleLabel) titleLabel.textContent = isEditing ? 'Editar tarefa' : 'Nova tarefa';
-  document.getElementById('submit-task').textContent = isEditing ? 'SALVAR' : 'CRIAR';
-  const advanced = document.getElementById('task-advanced-fields');
-  if (advanced) advanced.style.display = 'block';
+  setupTaskSheetEvents();
+
+  // date label in header
+  const dateText = document.getElementById('task-sheet-date-text');
+  if (dateText) {
+    if (newTaskDate) {
+      const d = parseDateKey(newTaskDate);
+      dateText.textContent = d.toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+    } else {
+      dateText.textContent = 'Sem data';
+    }
+  }
+
+  // done check button
+  const checkBtn = document.getElementById('task-sheet-check-btn');
+  if (checkBtn) {
+    if (isEditing) {
+      const t = tasks.find(t => t.id === editingTaskId);
+      const isDone = t?.done || false;
+      checkBtn.className = 'task-sheet-check-btn' + (isDone ? ' done' : '');
+      checkBtn.textContent = isDone ? '✓' : '';
+      checkBtn.style.display = '';
+      checkBtn.onclick = () => { if (t) { t.done = !t.done; buildAddTaskModal(); } };
+    } else {
+      checkBtn.style.display = 'none';
+    }
+  }
+
+  // notes
+  const notesEl = document.getElementById('task-notes-input');
+  if (notesEl && notesEl.value === '' && newTaskNotes) notesEl.value = newTaskNotes;
+  if (notesEl) notesEl.oninput = () => { newTaskNotes = notesEl.value; };
 
   // subtasks
   const subList = document.getElementById('task-subtasks-list');
@@ -3737,120 +4062,132 @@ function buildAddTaskModal() {
     });
   }
   const subInput = document.getElementById('task-subtask-input');
-  if (subInput) {
-    subInput.value = '';
-    subInput.onkeydown = e => {
+  if (subInput && !subInput._bound) {
+    subInput._bound = true;
+    subInput.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       const v = subInput.value.trim();
       if (!v) return;
       newSubtasks.push({ title: v, done: false });
+      subInput.value = '';
       buildAddTaskModal();
       document.getElementById('task-subtask-input')?.focus();
-    };
-  }
-  const timeInput = document.getElementById('task-time-input');
-  if (timeInput) {
-    timeInput.value = newTaskTime || '';
-    timeInput.onchange = () => { newTaskTime = timeInput.value; };
-  }
-  const clearTime = document.getElementById('task-time-clear');
-  if (clearTime) clearTime.onclick = () => {
-    newTaskTime = '';
-    if (timeInput) timeInput.value = '';
-  };
-
-  // priority buttons
-  const pg = document.getElementById('priority-group');
-  if (pg) {
-    const priorityKeys = ['baixa','média','alta'];
-    const priorityIdx = Math.max(0, priorityKeys.indexOf(newPriority));
-    const pc = PRIORITY[newPriority] || PRIORITY['média'];
-    pg.innerHTML = `
-      <div class="priority-grow" style="--priority-color:${pc.color}">
-        <button type="button" id="priority-grow-btn">
-          <div class="priority-meter">
-            ${priorityKeys.map((_,i) => `<span class="${i <= priorityIdx ? 'on' : ''}"></span>`).join('')}
-          </div>
-          <div class="priority-grow-label">
-            <span>${pc.label}</span>
-            <small>toque para aumentar</small>
-          </div>
-        </button>
-      </div>`;
-    const growBtn = document.getElementById('priority-grow-btn');
-    if (growBtn) growBtn.onclick = () => {
-      newPriority = priorityKeys[(priorityIdx + 1) % priorityKeys.length];
-      buildAddTaskModal();
-    };
-  }
-
-  // project buttons
-  const prg = document.getElementById('project-group');
-  if (prg) {
-    prg.innerHTML = `
-      <select class="task-select" id="task-project-select">
-        <option value="">Sem projeto</option>
-        ${PROJECTS.map(p => `<option value="${p.id}" ${p.id===newProjectId?'selected':''}>${p.name}</option>`).join('')}
-      </select>`;
-    const select = document.getElementById('task-project-select');
-    if (select) select.onchange = () => {
-      newProjectId = select.value ? parseInt(select.value) : null;
-    };
-  }
-
-  const dg = document.getElementById('task-date-group');
-  dg.className = 'task-date-field';
-  dg.innerHTML = `
-    <div class="task-date-editor">
-      <input type="date" id="task-date-input" value="${newTaskDate || ''}"/>
-      <button class="task-date-clear" id="task-date-clear" type="button">Sem data</button>
-    </div>`;
-  const dateInput = document.getElementById('task-date-input');
-  const clearDate = document.getElementById('task-date-clear');
-  if (dateInput) dateInput.onchange = () => {
-    newTaskDate = dateInput.value || null;
-    newHasDate = newTaskDate !== null;
-    if (newTaskDate) ensureDateInWeek(newTaskDate);
-  };
-  if (clearDate) clearDate.onclick = () => {
-    newTaskDate = null;
-    newHasDate = false;
-    buildAddTaskModal();
-  };
-
-  const rg = document.getElementById('repeat-group');
-  if (rg) {
-    const activeRepeat = REPEAT_OPTIONS.find(opt => opt.id === newRepeat)?.label || 'Unica';
-    rg.innerHTML = `
-      <div class="repeat-section">
-        <button class="repeat-toggle" id="repeat-toggle" type="button">
-          <span>${activeRepeat}</span><span>abrir</span>
-        </button>
-        <div class="repeat-choice-group collapsed" id="repeat-options">
-          ${REPEAT_OPTIONS.map(opt => `
-            <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}">
-              ${opt.label}
-            </button>`).join('')}
-        </div>
-      </div>`;
-    const toggle = document.getElementById('repeat-toggle');
-    const options = document.getElementById('repeat-options');
-    if (toggle && options) toggle.onclick = () => options.classList.toggle('collapsed');
-    rg.querySelectorAll('[data-repeat]').forEach(btn => {
-      btn.onclick = () => {
-        newRepeat = btn.dataset.repeat;
-        buildAddTaskModal();
-      };
     });
   }
 
-  // submit readiness
-  const title = document.getElementById('new-task-title').value.trim();
-  document.getElementById('submit-task').className = `modal-submit ${title?'ready':''}`;
+  // toolbar labels
+  const PRIORITY_LABELS = { baixa:'Baixa', média:'Média', alta:'Alta' };
+  const el = id => document.getElementById(id);
+  if (el('tbr-datetime-label')) {
+    el('tbr-datetime-label').textContent = newTaskDate
+      ? (newTaskTime || parseDateKey(newTaskDate).toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))
+      : 'Data';
+  }
+  if (el('tbr-priority-label')) el('tbr-priority-label').textContent = PRIORITY_LABELS[newPriority] || 'Prior.';
+  if (el('tbr-repeat-label')) el('tbr-repeat-label').textContent = REPEAT_OPTIONS.find(o=>o.id===newRepeat)?.label || 'Nunca';
+  const proj = PROJECTS.find(p=>p.id===newProjectId);
+  if (el('tbr-project-label')) el('tbr-project-label').textContent = proj ? proj.name : 'Projeto';
+
+  // active toolbar states
+  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project'].forEach(id => {
+    const b = el(id);
+    if (b) b.classList.toggle('active', activeSubpanel === id.replace('tbr-',''));
+  });
+
+  // submit button
+  const titleVal = document.getElementById('new-task-title').value.trim();
+  const submitBtn = document.getElementById('submit-task');
+  if (submitBtn) {
+    submitBtn.textContent = isEditing ? 'SALVAR' : 'CRIAR';
+    submitBtn.className = 'task-sheet-submit' + (titleVal ? ' ready' : '');
+  }
+
+  buildSubpanel();
 }
 
-document.getElementById('new-task-title').addEventListener('input', buildAddTaskModal);
+function buildSubpanel() {
+  const panel = document.getElementById('task-sheet-subpanel');
+  if (!panel) return;
+  if (!activeSubpanel) { panel.innerHTML = ''; return; }
+
+  if (activeSubpanel === 'datetime') {
+    panel.innerHTML = `
+      <div class="tsp-datetime">
+        <div class="tsp-row">
+          <input type="date" id="tsp-date-input" value="${newTaskDate || ''}"/>
+          <button class="tsp-clear-btn" id="tsp-date-clear">Sem data</button>
+        </div>
+        <div class="tsp-row">
+          <input type="time" id="tsp-time-input" value="${newTaskTime || ''}"/>
+          <button class="tsp-clear-btn" id="tsp-time-clear">Sem hora</button>
+        </div>
+      </div>`;
+    panel.querySelector('#tsp-date-input').onchange = e => {
+      newTaskDate = e.target.value || null;
+      newHasDate = !!newTaskDate;
+      if (newTaskDate) ensureDateInWeek(newTaskDate);
+      buildAddTaskModal();
+    };
+    panel.querySelector('#tsp-time-input').onchange = e => { newTaskTime = e.target.value; buildAddTaskModal(); };
+    panel.querySelector('#tsp-date-clear').onclick = () => { newTaskDate = null; newHasDate = false; buildAddTaskModal(); };
+    panel.querySelector('#tsp-time-clear').onclick = () => { newTaskTime = ''; buildAddTaskModal(); };
+  }
+  else if (activeSubpanel === 'priority') {
+    const opts = [
+      { id:'baixa', label:'Baixa', color: (PRIORITY.baixa||{}).color || '#2E7D5E' },
+      { id:'média', label:'Média', color: (PRIORITY.média||{}).color || '#C8A84B' },
+      { id:'alta',  label:'Alta',  color: (PRIORITY.alta||{}).color  || '#C0392B' },
+    ];
+    panel.innerHTML = `<div class="tsp-priority">${opts.map(o => `
+      <button class="tsp-priority-btn ${newPriority===o.id?'active':''}" data-p="${o.id}">
+        <span class="tsp-dot" style="background:${o.color}"></span>${o.label}
+      </button>`).join('')}</div>`;
+    panel.querySelectorAll('[data-p]').forEach(btn => {
+      btn.onclick = () => { newPriority = btn.dataset.p; buildAddTaskModal(); };
+    });
+  }
+  else if (activeSubpanel === 'repeat') {
+    panel.innerHTML = `<div class="tsp-repeat">${REPEAT_OPTIONS.map(o => `
+      <button class="tsp-repeat-btn ${newRepeat===o.id?'active':''}" data-r="${o.id}">${o.label}</button>
+    `).join('')}</div>`;
+    panel.querySelectorAll('[data-r]').forEach(btn => {
+      btn.onclick = () => { newRepeat = btn.dataset.r; buildAddTaskModal(); };
+    });
+  }
+  else if (activeSubpanel === 'project') {
+    panel.innerHTML = `<div class="tsp-project">
+      <select id="tsp-project-select">
+        <option value="">Sem projeto</option>
+        ${PROJECTS.map(p=>`<option value="${p.id}" ${p.id===newProjectId?'selected':''}>${p.name}</option>`).join('')}
+      </select></div>`;
+    panel.querySelector('#tsp-project-select').onchange = e => {
+      newProjectId = e.target.value ? parseInt(e.target.value) : null;
+      buildAddTaskModal();
+    };
+  }
+}
+
+function setupTaskSheetEvents() {
+  const close = document.getElementById('task-sheet-close-btn');
+  if (close && !close._bound) {
+    close._bound = true;
+    close.onclick = () => { activeSubpanel = null; closeModal('modal-add-task'); };
+  }
+  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn && !btn._bound) {
+      btn._bound = true;
+      const key = id.replace('tbr-','');
+      btn.onclick = () => { activeSubpanel = activeSubpanel === key ? null : key; buildAddTaskModal(); };
+    }
+  });
+  const titleEl = document.getElementById('new-task-title');
+  if (titleEl && !titleEl._bound) {
+    titleEl._bound = true;
+    titleEl.addEventListener('input', buildAddTaskModal);
+  }
+}
 
 document.getElementById('submit-task').addEventListener('click', () => {
   const title = document.getElementById('new-task-title').value.trim();
@@ -3860,6 +4197,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
     const t = tasks.find(t => t.id === editingTaskId);
     if (t) {
       t.title = title;
+      t.notes = newTaskNotes;
       t.priority = newPriority;
       t.projectId = newProjectId;
       t.time = newTaskTime;
@@ -3874,6 +4212,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
     changedTask = {
       id: Date.now(),
       title,
+      notes: newTaskNotes,
       done: false,
       priority: newPriority,
       projectId: newProjectId,
@@ -3886,9 +4225,13 @@ document.getElementById('submit-task').addEventListener('click', () => {
     tasks.push(changedTask);
   }
   document.getElementById('new-task-title').value = '';
+  const notesEl = document.getElementById('task-notes-input');
+  if (notesEl) notesEl.value = '';
+  activeSubpanel = null;
   editingTaskId = null;
   newRepeat = 'nenhuma';
   newSubtasks = [];
+  newTaskNotes = '';
   closeModal('modal-add-task');
   renderAll();
   if (changedTask) requestNotificationsForTask(changedTask);
@@ -3904,7 +4247,11 @@ function startEditTask(id) {
   newTaskTime = t.time || '';
   newRepeat = t.repeat || 'nenhuma';
   newSubtasks = (t.subtasks || []).map(s => typeof s === 'string' ? { title: s, done: false } : { ...s });
+  newTaskNotes = t.notes || '';
+  activeSubpanel = null;
   document.getElementById('new-task-title').value = t.title;
+  const notesEl = document.getElementById('task-notes-input');
+  if (notesEl) notesEl.value = newTaskNotes;
   closeModal('modal-task-detail');
   buildAddTaskModal();
   openModal('modal-add-task');
@@ -4047,6 +4394,7 @@ function closeModal(id) {
       document.getElementById('submit-habit').click();
       return;
     }
+    if (id === 'modal-add-task') activeSubpanel = null;
     closeModal(id);
   });
 });
@@ -4059,8 +4407,12 @@ document.getElementById('fab').addEventListener('click', () => {
     newTaskTime = '';
     newRepeat = 'nenhuma';
     newSubtasks = [];
+    newTaskNotes = '';
+    activeSubpanel = null;
     editingTaskId = null;
     document.getElementById('new-task-title').value = '';
+    const notesEl2 = document.getElementById('task-notes-input');
+    if (notesEl2) notesEl2.value = '';
     buildAddTaskModal();
     openModal('modal-add-task');
   } else if (currentNav === 'habitos') {
