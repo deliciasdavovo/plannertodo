@@ -215,7 +215,11 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 20px;
+    padding: 22px 20px 20px;
+    margin: 0 -20px 6px;
+    background: var(--deep);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
   }
   .inline-task-input {
     flex: 1;
@@ -223,12 +227,15 @@
     border: none;
     background: transparent;
     font-family: var(--serif);
-    font-size: 17px;
+    font-size: 19px;
     color: var(--ink);
     outline: none;
     padding: 0;
   }
-  .inline-task-input::placeholder { color: var(--ink-ghost); }
+  .inline-task-input::placeholder {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
   .day-btn {
     flex: 0 0 auto;
     scroll-snap-align: center;
@@ -284,12 +291,22 @@
   /* ── TASK LIST ── */
   .task-list { padding: 0 20px; }
   .section-label {
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 16px 0 6px;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+    text-transform: none;
+    color: var(--ink);
+    margin: 24px 0 4px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .section-label.today { color: var(--ink); }
+  .section-label.nodate {
+    color: var(--ink-mid);
+    border-bottom-color: var(--ink-mid);
+    border-bottom-style: dashed;
+    font-style: italic;
   }
 
   .task-row {
@@ -2405,20 +2422,21 @@ function renderTaskList() {
     byDate[key].push(t);
   });
 
-  let html = '';
-  Object.entries(byDate).forEach(([dateKey, group]) => {
-    const label = dateKey === '__nodate__' ? 'Sem data' : getDateLabel(dateKey);
-    const isToday = dateKey === TODAY;
-    html += `<div class="section-label" style="${isToday ? 'color:var(--ink)' : ''}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
-    html += group.map(t => taskRowHTML(t)).join('');
-  });
-
-  html += `
-    <div class="inline-task-row">
+  let html = `
+    <div class="inline-task-row top">
       <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
       <input class="inline-task-input" id="inline-task-input"
-             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false">
+             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false">
     </div>`;
+
+  Object.entries(byDate).forEach(([dateKey, group]) => {
+    const isNoDate = dateKey === '__nodate__';
+    const label = isNoDate ? 'Sem data' : getDateLabel(dateKey);
+    const isToday = dateKey === TODAY;
+    const cls = `section-label${isToday ? ' today' : ''}${isNoDate ? ' nodate' : ''}`;
+    html += `<div class="${cls}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+    html += group.map(t => taskRowHTML(t)).join('');
+  });
 
   document.getElementById('task-list-pending').innerHTML = html;
   document.getElementById('task-list-done-wrap').style.display = 'none';
