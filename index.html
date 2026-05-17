@@ -1088,8 +1088,25 @@
     line-height: 1.5;
     min-height: 80px;
   }
-  #modal-add-task.editing #new-task-title {
-    display: none;
+  #modal-add-task { background: rgba(17,17,16,0.22); }
+  .task-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink-mid);
+  }
+  .task-sub-item button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-ghost);
+    font-size: 16px;
+    padding: 0 2px;
+    line-height: 1;
   }
   .modal-textarea {
     width: 100%;
@@ -1739,8 +1756,11 @@
         <div class="btn-group" id="project-group"></div>
         <div class="modal-label">Recorrência</div>
         <div class="repeat-choice-group" id="repeat-group"></div>
+        <div class="modal-label" style="margin-top:16px">Subtarefas</div>
+        <div id="task-subtasks-list"></div>
+        <input class="modal-input-sm" id="task-subtask-input" placeholder="+ nova subtarefa…" autocomplete="off"/>
       </div>
-      <button class="modal-submit ready" id="submit-task">ADICIONAR</button>
+      <button class="modal-submit ready" id="submit-task">CRIAR</button>
     </div>
   </div>
 
@@ -2072,6 +2092,7 @@ let newRepeat = 'nenhuma';
 let newHabitColor = '#B07D2A';
 let newProjectColor = '#C84B2F';
 let editingTaskId = null;
+let newSubtasks = [];
 let editingHabitId = null;
 
 function clampDay(day) {
@@ -2513,8 +2534,7 @@ function attachTaskEvents() {
         row.dataset.suppressClick = 'false';
         return;
       }
-      selectedTaskId = parseInt(row.dataset.id);
-      openTaskDetail();
+      startEditTask(parseInt(row.dataset.id));
     });
     // drag to reschedule
     setupDrag(row);
@@ -3429,10 +3449,36 @@ function buildAddTaskModal() {
   const titleLabel = document.getElementById('task-modal-title');
   const isEditing = editingTaskId !== null;
   document.getElementById('modal-add-task').classList.toggle('editing', isEditing);
-  if (titleLabel) titleLabel.textContent = isEditing ? 'Editar tarefa' : 'Nova anotacao';
+  if (titleLabel) titleLabel.textContent = isEditing ? 'Editar tarefa' : 'Nova tarefa';
   document.getElementById('submit-task').textContent = isEditing ? 'SALVAR' : 'CRIAR';
   const advanced = document.getElementById('task-advanced-fields');
-  if (advanced) advanced.style.display = isEditing ? 'block' : 'none';
+  if (advanced) advanced.style.display = 'block';
+
+  // subtasks
+  const subList = document.getElementById('task-subtasks-list');
+  if (subList) {
+    subList.innerHTML = newSubtasks.map((s, i) => `
+      <div class="task-sub-item">
+        <span style="flex:1">${escapeHTML(typeof s === 'string' ? s : s.title)}</span>
+        <button data-remove-sub="${i}" type="button">✕</button>
+      </div>`).join('');
+    subList.querySelectorAll('[data-remove-sub]').forEach(btn => {
+      btn.onclick = () => { newSubtasks.splice(parseInt(btn.dataset.removeSub), 1); buildAddTaskModal(); };
+    });
+  }
+  const subInput = document.getElementById('task-subtask-input');
+  if (subInput) {
+    subInput.value = '';
+    subInput.onkeydown = e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const v = subInput.value.trim();
+      if (!v) return;
+      newSubtasks.push({ title: v, done: false });
+      buildAddTaskModal();
+      document.getElementById('task-subtask-input')?.focus();
+    };
+  }
   const timeInput = document.getElementById('task-time-input');
   if (timeInput) {
     timeInput.value = newTaskTime || '';
@@ -3549,6 +3595,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
       t.time = newTaskTime;
       t.date = newTaskDate;
       t.repeat = newRepeat;
+      t.subtasks = newSubtasks;
       if (newTaskDate) ensureDateInWeek(newTaskDate);
       changedTask = t;
     }
@@ -3558,12 +3605,12 @@ document.getElementById('submit-task').addEventListener('click', () => {
       id: Date.now(),
       title,
       done: false,
-      priority: 'média',
-      projectId: null,
-      time: '',
+      priority: newPriority,
+      projectId: newProjectId,
+      time: newTaskTime,
       date: newTaskDate,
-      repeat: 'nenhuma',
-      subtasks: [],
+      repeat: newRepeat,
+      subtasks: newSubtasks,
       attachments: [],
     };
     tasks.push(changedTask);
@@ -3571,6 +3618,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
   document.getElementById('new-task-title').value = '';
   editingTaskId = null;
   newRepeat = 'nenhuma';
+  newSubtasks = [];
   closeModal('modal-add-task');
   renderAll();
   if (changedTask) requestNotificationsForTask(changedTask);
@@ -3585,6 +3633,7 @@ function startEditTask(id) {
   newTaskDate = t.date;
   newTaskTime = t.time || '';
   newRepeat = t.repeat || 'nenhuma';
+  newSubtasks = (t.subtasks || []).map(s => typeof s === 'string' ? { title: s, done: false } : { ...s });
   document.getElementById('new-task-title').value = t.title;
   closeModal('modal-task-detail');
   buildAddTaskModal();
@@ -3726,6 +3775,7 @@ document.getElementById('fab').addEventListener('click', () => {
     newTaskDate = null;
     newTaskTime = '';
     newRepeat = 'nenhuma';
+    newSubtasks = [];
     editingTaskId = null;
     document.getElementById('new-task-title').value = '';
     buildAddTaskModal();
