@@ -1773,6 +1773,8 @@
       <textarea class="modal-textarea" id="new-habit-goal" rows="2" placeholder="Quero ser alguém que aprende todos os dias..."></textarea>
       <div class="modal-label">Gatilho</div>
       <input class="modal-input-sm" id="new-habit-cue" placeholder="Após o café da manhã..."/>
+      <div class="modal-label">Lembrete (opcional)</div>
+      <input class="modal-input-sm" type="time" id="new-habit-reminder" placeholder="--:--"/>
       <div class="modal-label">Cor</div>
       <div class="project-color-field">
         <input type="color" id="habit-color-input" value="#B07D2A"/>
@@ -1903,10 +1905,10 @@ function requestNotificationsForTask(task) {
   if (Notification.permission === 'default') {
     Notification.requestPermission().then(() => {
       renderProfile();
-      scheduleTaskNotifications();
+      scheduleNotifications();
     });
   } else {
-    scheduleTaskNotifications();
+    scheduleNotifications();
   }
 }
 
@@ -1918,16 +1920,18 @@ function scheduleTaskNotifications() {
   const alreadyNotified = new Set(notifiedTaskKeys());
   const now = Date.now();
   const maxDelay = 2147483647;
+  const GRACE = 30 * 60 * 1000; // show missed notifications up to 30 min late
 
   tasks.forEach(task => {
     if (task.done || !task.date || !task.time) return;
     const key = taskNotificationKey(task);
     if (alreadyNotified.has(key)) return;
     const at = taskNotificationTime(task);
-    if (!at || at <= now) return;
+    if (!at) return;
     const delay = at - now;
+    if (delay < -GRACE) return; // missed by more than 30 min, skip
+    if (delay <= 0) { showTaskNotification(task.id, key); return; } // fire immediately
     if (delay > maxDelay) return;
-
     const timer = setTimeout(() => showTaskNotification(task.id, key), delay);
     notificationTimers.set(key, timer);
   });
@@ -1955,6 +1959,87 @@ function showTaskNotification(taskId, key) {
   } else {
     new Notification('FlowDo', options);
   }
+}
+
+// ─── HABIT NOTIFICATIONS ──────────────────────────────────────────────────────
+const habitNotificationTimers = new Map();
+
+function notifiedHabitKeys() {
+  try { return JSON.parse(localStorage.getItem('fd-notified-habits') || '[]'); }
+  catch(e) { return []; }
+}
+
+function markHabitNotified(key) {
+  const keys = new Set(notifiedHabitKeys());
+  keys.add(key);
+  localStorage.setItem('fd-notified-habits', JSON.stringify([...keys].slice(-200)));
+}
+
+function habitNotificationKey(habit, dateStr) {
+  return `${habit.id}:${dateStr}:${habit.reminderTime}`;
+}
+
+function scheduleHabitNotifications() {
+  habitNotificationTimers.forEach(timer => clearTimeout(timer));
+  habitNotificationTimers.clear();
+  if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+  const alreadyNotified = new Set(notifiedHabitKeys());
+  const now = Date.now();
+  const maxDelay = 2147483647;
+  const GRACE = 30 * 60 * 1000;
+
+  // Schedule for today and the next 2 days
+  for (let dayOffset = 0; dayOffset <= 2; dayOffset++) {
+    const d = new Date();
+    d.setDate(d.getDate() + dayOffset);
+    const dateStr = formatDateKey(d);
+
+    habits.forEach(habit => {
+      if (!habit.reminderTime) return;
+      const key = habitNotificationKey(habit, dateStr);
+      if (alreadyNotified.has(key)) return;
+
+      const [hour, minute] = habit.reminderTime.split(':').map(Number);
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return;
+      const at = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hour, minute).getTime();
+      const delay = at - now;
+      if (delay < -GRACE) return;
+      if (delay <= 0) { showHabitNotification(habit.id, key); return; }
+      if (delay > maxDelay) return;
+      const timer = setTimeout(() => showHabitNotification(habit.id, key), delay);
+      habitNotificationTimers.set(key, timer);
+    });
+  }
+}
+
+function showHabitNotification(habitId, key) {
+  habitNotificationTimers.delete(key);
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit || !habit.reminderTime) return;
+  if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+  const options = {
+    body: habit.cue ? `${habit.cue} — ${habit.name}` : habit.name,
+    icon: './icon.svg',
+    badge: './icon.svg',
+    tag: `flowdo-habit-${key}`,
+    renotify: true,
+  };
+
+  markHabitNotified(key);
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready
+      .then(reg => reg.showNotification('FlowDo', options))
+      .catch(() => new Notification('FlowDo', options));
+  } else {
+    new Notification('FlowDo', options);
+  }
+}
+
+function scheduleNotifications() {
+  scheduleTaskNotifications();
+  scheduleHabitNotifications();
 }
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -2404,7 +2489,7 @@ function renderAll() {
   updateProgress();
   updateTaskCount();
   saveState();
-  scheduleTaskNotifications();
+  scheduleNotifications();
 }
 
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
@@ -3179,7 +3264,7 @@ function handleProfileAction(action) {
     }
     if (Notification.permission === 'granted') {
       showDayToast('Notificacoes ativas');
-      scheduleTaskNotifications();
+      scheduleNotifications();
       renderProfile();
       return;
     }
@@ -3190,7 +3275,7 @@ function handleProfileAction(action) {
     }
     Notification.requestPermission().then(permission => {
       showDayToast(permission === 'granted' ? 'Notificacoes ativas' : 'Notificacoes desativadas');
-      scheduleTaskNotifications();
+      scheduleNotifications();
       renderProfile();
     });
     return;
@@ -3675,6 +3760,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
   if (!name) return;
   const habitColorInput = document.getElementById('habit-color-input');
   if (habitColorInput) newHabitColor = habitColorInput.value;
+  const reminderTime = (document.getElementById('new-habit-reminder').value || '').trim();
   if (editingHabitId) {
     const h = habits.find(h => h.id === editingHabitId);
     if (h) {
@@ -3682,6 +3768,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
       h.goal = document.getElementById('new-habit-goal').value.trim();
       h.cue = document.getElementById('new-habit-cue').value.trim();
       h.color = newHabitColor;
+      h.reminderTime = reminderTime || null;
     }
   } else {
     habits.push({
@@ -3690,6 +3777,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
       goal: document.getElementById('new-habit-goal').value.trim(),
       cue:  document.getElementById('new-habit-cue').value.trim(),
       color: newHabitColor,
+      reminderTime: reminderTime || null,
       streak: 0,
       week: Array(7).fill(null),
       heatmap: makeHeatmap(0),
@@ -3698,6 +3786,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
   document.getElementById('new-habit-name').value = '';
   document.getElementById('new-habit-goal').value = '';
   document.getElementById('new-habit-cue').value  = '';
+  document.getElementById('new-habit-reminder').value = '';
   editingHabitId = null;
   document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
   closeModal('modal-add-habit');
@@ -3734,6 +3823,7 @@ function startEditHabit(id) {
   document.getElementById('new-habit-name').value = h.name;
   document.getElementById('new-habit-goal').value = h.goal || '';
   document.getElementById('new-habit-cue').value = h.cue || '';
+  document.getElementById('new-habit-reminder').value = h.reminderTime || '';
   document.getElementById('submit-habit').textContent = 'SALVAR';
   document.getElementById('submit-habit').className = 'modal-submit ready';
   buildColorSwatches();
@@ -3785,6 +3875,7 @@ document.getElementById('fab').addEventListener('click', () => {
     document.getElementById('new-habit-name').value = '';
     document.getElementById('new-habit-goal').value = '';
     document.getElementById('new-habit-cue').value = '';
+    document.getElementById('new-habit-reminder').value = '';
     document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
     document.getElementById('submit-habit').className = 'modal-submit';
     newHabitColor = '#B07D2A';
@@ -3814,6 +3905,10 @@ renderAll();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') scheduleNotifications();
+});
 </script>
 </body>
 </html>
