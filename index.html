@@ -2276,8 +2276,12 @@ function setupWeekSwipe() {
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
-    if (dx < 0) setActiveDay(activeDay + 1);
-    else         setActiveDay(activeDay - 1);
+    if (dx < 0) weekOffset++;
+    else         weekOffset--;
+    rebuildCurrentWeekDates();
+    buildWeekStrip();
+    updateHeader();
+    renderAll();
   });
 }
 
