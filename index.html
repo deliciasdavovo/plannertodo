@@ -92,39 +92,6 @@
     flex-shrink: 0;
   }
 
-  /* ── STATUS BAR ── */
-  #theme-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 22px 12px;
-    background: var(--tabbar);
-    color: var(--tabbar-text);
-    flex-shrink: 0;
-  }
-  #theme-kicker {
-    min-width: 0;
-    font-family: var(--mono);
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    opacity: 0.72;
-    white-space: nowrap;
-  }
-  #theme-hint {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: right;
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
-
   /* ── HEADER ── */
   #header {
     padding: 14px 20px 0;
@@ -286,6 +253,8 @@
   }
   .day-btn.today .day-num { color: var(--ink); }
   .day-btn.active .day-num { color: var(--day-selected-text); }
+  [data-theme="sol"] .day-btn.active .day-num { color: #F5C430; }
+  [data-theme="sol"] .nav-btn.active { color: #F5C430 !important; }
   .day-dot {
     width: 3px; height: 3px;
     border-radius: 50%;
@@ -296,7 +265,7 @@
   #content {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow-y: scroll;
     scrollbar-width: none;
   }
   #content::-webkit-scrollbar { display: none; }
@@ -791,7 +760,7 @@
   }
   .project-count { font-size: 11px; color: var(--ink-faint); }
   .project-bar { height: 2px; background: var(--rule); border-radius: 1px; margin-bottom: 14px; }
-  .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; }
+  .project-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s ease; background: var(--ink-mid); }
   .project-task {
     display: flex;
     align-items: center;
@@ -1074,10 +1043,9 @@
   }
   .modal-input::placeholder { color: var(--ink-ghost); }
   #new-task-title {
-    min-height: 92px;
-    background: var(--surface);
-    border-color: var(--rule);
-    font-size: 17px;
+    font-size: 22px;
+    padding: 14px 0 16px;
+    margin-bottom: 26px;
   }
   #modal-add-task.editing #new-task-title {
     display: none;
@@ -1610,12 +1578,6 @@
 
 <div id="app">
 
-  <!-- THEME INFO -->
-  <div id="theme-info">
-    <span id="theme-kicker">FlowDo</span>
-    <span id="theme-hint">Toque em uma tarefa para editar</span>
-  </div>
-
   <!-- HEADER -->
   <div id="header">
     <div id="header-top">
@@ -1714,7 +1676,7 @@
       <div class="modal-sheet" id="modal-add-task-sheet">
         <div class="modal-handle"></div>
         <div class="modal-label" id="task-modal-title">Nova tarefa</div>
-      <textarea class="modal-textarea" id="new-task-title" rows="3" placeholder="Anote a tarefa..."></textarea>
+      <input class="modal-input" id="new-task-title" type="text" placeholder="Anote a tarefa..."/>
       <div class="modal-label">Data</div>
       <div class="date-choice-grid" id="task-date-group"></div>
       <div id="task-advanced-fields">
@@ -1839,6 +1801,94 @@ function loadState() {
   } catch(e) {}
 }
 
+const notificationTimers = new Map();
+
+function notifiedTaskKeys() {
+  try { return JSON.parse(localStorage.getItem('fd-notified-tasks') || '[]'); }
+  catch(e) { return []; }
+}
+
+function markTaskNotified(key) {
+  const keys = new Set(notifiedTaskKeys());
+  keys.add(key);
+  localStorage.setItem('fd-notified-tasks', JSON.stringify([...keys].slice(-80)));
+}
+
+function taskNotificationKey(task) {
+  return `${task.id}:${task.date || ''}:${task.time || ''}`;
+}
+
+function taskNotificationTime(task) {
+  if (!task.date || !task.time) return null;
+  const [year, month, day] = task.date.split('-').map(Number);
+  const [hour, minute] = task.time.split(':').map(Number);
+  if (![year, month, day, hour, minute].every(Number.isFinite)) return null;
+  return new Date(year, month - 1, day, hour, minute).getTime();
+}
+
+function canUseNotifications() {
+  return 'Notification' in window && window.isSecureContext;
+}
+
+function requestNotificationsForTask(task) {
+  if (!task.date || !task.time || !canUseNotifications()) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(() => {
+      renderProfile();
+      scheduleTaskNotifications();
+    });
+  } else {
+    scheduleTaskNotifications();
+  }
+}
+
+function scheduleTaskNotifications() {
+  notificationTimers.forEach(timer => clearTimeout(timer));
+  notificationTimers.clear();
+  if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+  const alreadyNotified = new Set(notifiedTaskKeys());
+  const now = Date.now();
+  const maxDelay = 2147483647;
+
+  tasks.forEach(task => {
+    if (task.done || !task.date || !task.time) return;
+    const key = taskNotificationKey(task);
+    if (alreadyNotified.has(key)) return;
+    const at = taskNotificationTime(task);
+    if (!at || at <= now) return;
+    const delay = at - now;
+    if (delay > maxDelay) return;
+
+    const timer = setTimeout(() => showTaskNotification(task.id, key), delay);
+    notificationTimers.set(key, timer);
+  });
+}
+
+function showTaskNotification(taskId, key) {
+  notificationTimers.delete(key);
+  const task = tasks.find(item => item.id === taskId);
+  if (!task || task.done || taskNotificationKey(task) !== key) return;
+  if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+  const options = {
+    body: task.time ? `${task.time} - ${task.title}` : task.title,
+    icon: './icon.svg',
+    badge: './icon.svg',
+    tag: `flowdo-task-${key}`,
+    renotify: true,
+  };
+
+  markTaskNotified(key);
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready
+      .then(reg => reg.showNotification('FlowDo', options))
+      .catch(() => new Notification('FlowDo', options));
+  } else {
+    new Notification('FlowDo', options);
+  }
+}
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const TODAY = '2026-05-12';
 const TODAY_IDX = 3;
@@ -1869,24 +1919,25 @@ const REPEAT_OPTIONS = [
 const PROFILE_ITEMS = [
   { id:'appearance', label:'Aparência' },
   { id:'notifications', label:'Notificações' },
+  { id:'update', label:'Atualizar app' },
   { id:'account', label:'Conta' },
   { id:'logout', label:'Sair', danger:true },
 ];
 const APPEARANCE_PRESETS = [
   { id:'brejo', name:'Brejo', title:"'Instrument Serif', serif", body:"'DM Mono', monospace",
     colors:{ bg:'#EDEBE6', primary:'#1A1A1A', secondary:'#9B9690', divider:'#D8D5D0', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
-  { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'Inter', sans-serif",
-    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
-  { id:'nevoa', name:'Névoa', title:"'Spectral', serif", body:"'Lato', sans-serif",
-    colors:{ bg:'#F0F2F7', primary:'#1B2A4A', secondary:'#7B8FA8', divider:'#D4DAE8', day:'#1B2A4A', tab:'#1B2A4A', alta:'#C87941', media:'#7B9EC0', baixa:'#5C8A7A' } },
+  { id:'sol', name:'Sol', title:"'DM Sans', sans-serif", body:"'DM Sans', sans-serif",
+    colors:{ bg:'#FFF8E7', primary:'#1A1200', secondary:'#9B8A5A', divider:'#EDE5C0', day:'#1A1200', tab:'#1A1200', alta:'#D96B2E', media:'#C8A030', baixa:'#4A7A40' } },
+  { id:'nevoa', name:'Névoa', title:"'Source Han Serif', 'Noto Serif', serif", body:"'Lato', sans-serif",
+    colors:{ bg:'#EEF1F8', primary:'#1A1E2E', secondary:'#6B7490', divider:'#C8D0E8', day:'#5B7EC9', tab:'#5B7EC9', alta:'#C0392B', media:'#8FA3D4', baixa:'#5E8A7A' } },
   { id:'terra', name:'Terra', title:"'Libre Baskerville', serif", body:"'Source Serif Pro', 'Source Serif 4', serif",
-    colors:{ bg:'#F5EDD6', primary:'#1A0A00', secondary:'#8B6A3A', divider:'#D8C8A0', day:'#1A0A00', tab:'#1A0A00', alta:'#C0392B', media:'#C8A84B', baixa:'#5A7A4A' } },
+    colors:{ bg:'#F5EDD6', primary:'#1A0A00', secondary:'#8B6A3A', divider:'#D8C8A0', day:'#C0392B', tab:'#C0392B', alta:'#C0392B', media:'#C8A84B', baixa:'#5A7A4A' } },
   { id:'floresta', name:'Floresta', title:"'Josefin Sans', sans-serif", body:"'DM Sans', sans-serif",
     colors:{ bg:'#F0EAD6', primary:'#1A2A1A', secondary:'#5A6B4A', divider:'#C0C8A8', day:'#3D5A3E', tab:'#3D5A3E', alta:'#C0392B', media:'#C8A84B', baixa:'#3D5A3E' } },
-  { id:'bistro', name:'Bistrô', title:"'Fraunces', serif", body:"'DM Sans', sans-serif",
+  { id:'bistro', name:'Bistrô', title:"'Times New Roman MT', 'Times New Roman', Times, serif", body:"'DM Sans', sans-serif",
     colors:{ bg:'#F5EDD6', primary:'#1A0800', secondary:'#A0724A', divider:'#D8C0A0', day:'#7B3F1E', tab:'#7B3F1E', alta:'#C0392B', media:'#C8A84B', baixa:'#6B8A5A' } },
-  { id:'pomar', name:'Pomar', title:"'Libre Caslon Display', serif", body:"'Courier Prime', monospace",
-    colors:{ bg:'#FAF7F0', primary:'#1A1A00', secondary:'#7A6A3A', divider:'#D8D0A8', day:'#4A4A1E', tab:'#4A4A1E', alta:'#C0392B', media:'#C9A82C', baixa:'#4A6A3A' } },
+  { id:'pomar', name:'Pomar', title:"'Helios Extended', 'Libre Caslon Display', serif", body:"'Courier Prime', monospace",
+    colors:{ bg:'#F5F0E0', primary:'#2C2800', secondary:'#6B5E1A', divider:'#C8B86A', day:'#C9A82C', tab:'#C9A82C', alta:'#C0392B', media:'#C9A82C', baixa:'#4A4A1E' } },
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -2124,8 +2175,6 @@ function updateHeader() {
   if (currentNav === 'hoje') sub.hoje = `${getDateLabel(WEEK_DATES[activeDay])} de maio`;
   document.getElementById('page-sub').textContent   = sub[currentNav];
   document.getElementById('page-title').textContent = title[currentNav];
-  updateThemeInfo();
-
   const isHoje    = currentNav === 'hoje';
   const isHabitos = currentNav === 'habitos';
 
@@ -2145,17 +2194,6 @@ function updateHeader() {
 
   // FAB
   document.getElementById('fab').classList.toggle('hidden', !(isHoje || isHabitos || currentNav === 'projetos'));
-}
-
-function updateThemeInfo() {
-  const hints = {
-    hoje:     'Toque para editar; arraste para mover',
-    habitos:  'Marque os dias e acompanhe sua sequencia',
-    projetos: 'Organize tarefas por cor e area',
-    perfil:   'Ajuste tema, cor e fonte do app',
-  };
-  document.getElementById('theme-kicker').textContent = currentNav === 'hoje' ? 'Planejamento' : 'FlowDo';
-  document.getElementById('theme-hint').textContent = hints[currentNav] || 'Organize seu dia';
 }
 
 // ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
@@ -2246,6 +2284,7 @@ function renderAll() {
   updateProgress();
   updateTaskCount();
   saveState();
+  scheduleTaskNotifications();
 }
 
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
@@ -2820,7 +2859,7 @@ function renderProjects() {
           <div class="project-count">${done}/${total}</div>
         </div>
         <div class="project-bar">
-          <div class="project-bar-fill" style="width:${pct}%;background:${p.dot}"></div>
+          <div class="project-bar-fill" style="width:${pct}%"></div>
         </div>
         ${projTasks.map(t => `
           <div class="project-task ${t.done?'done':''}">
@@ -2829,7 +2868,16 @@ function renderProjects() {
             ${!t.date ? `<div class="project-task-nodate">sem data</div>` : ''}
           </div>`).join('')}
       </div>`;
-  }).join('');
+  }).join('') + `<button class="add-habit-btn" id="add-project-btn">+ NOVO PROJETO</button>`;
+
+  const addProjectBtn = document.getElementById('add-project-btn');
+  if (addProjectBtn) addProjectBtn.addEventListener('click', () => {
+    newProjectColor = COLORS[PROJECTS.length % COLORS.length];
+    document.getElementById('new-project-name').value = '';
+    document.getElementById('submit-project').className = 'modal-submit';
+    buildProjectColorSwatches();
+    openModal('modal-add-project');
+  });
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
@@ -3000,6 +3048,7 @@ function handleProfileAction(action) {
     }
     if (Notification.permission === 'granted') {
       showDayToast('Notificacoes ativas');
+      scheduleTaskNotifications();
       renderProfile();
       return;
     }
@@ -3010,8 +3059,29 @@ function handleProfileAction(action) {
     }
     Notification.requestPermission().then(permission => {
       showDayToast(permission === 'granted' ? 'Notificacoes ativas' : 'Notificacoes desativadas');
+      scheduleTaskNotifications();
       renderProfile();
     });
+    return;
+  }
+
+  if (action === 'update') {
+    showDayToast('Verificando atualização...');
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (!reg) { location.reload(); return; }
+        reg.update().then(() => {
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+          } else {
+            showDayToast('App já está atualizado');
+          }
+        }).catch(() => location.reload());
+      });
+    } else {
+      location.reload();
+    }
     return;
   }
 
@@ -3358,6 +3428,7 @@ document.getElementById('new-task-title').addEventListener('input', buildAddTask
 document.getElementById('submit-task').addEventListener('click', () => {
   const title = document.getElementById('new-task-title').value.trim();
   if (!title) return;
+  let changedTask = null;
   if (editingTaskId) {
     const t = tasks.find(t => t.id === editingTaskId);
     if (t) {
@@ -3368,10 +3439,11 @@ document.getElementById('submit-task').addEventListener('click', () => {
       t.date = newTaskDate;
       t.repeat = newRepeat;
       if (newTaskDate) ensureDateInWeek(newTaskDate);
+      changedTask = t;
     }
   } else {
     if (newTaskDate) ensureDateInWeek(newTaskDate);
-    tasks.push({
+    changedTask = {
       id: Date.now(),
       title,
       done: false,
@@ -3382,13 +3454,15 @@ document.getElementById('submit-task').addEventListener('click', () => {
       repeat: 'nenhuma',
       subtasks: [],
       attachments: [],
-    });
+    };
+    tasks.push(changedTask);
   }
   document.getElementById('new-task-title').value = '';
   editingTaskId = null;
   newRepeat = 'nenhuma';
   closeModal('modal-add-task');
   renderAll();
+  if (changedTask) requestNotificationsForTask(changedTask);
 });
 
 function startEditTask(id) {
