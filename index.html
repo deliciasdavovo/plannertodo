@@ -1560,11 +1560,17 @@
   .bottom-space { height: 100px; }
 
   @media (max-width: 420px) {
-    html, body { background: var(--bg); }
+    html, body {
+      background: var(--bg);
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
     #app {
       width: 100%;
-      height: 100dvh;
-      min-height: 100vh;
+      height: 100%;
+      min-height: unset;
       border-radius: 0;
       box-shadow: none;
     }
