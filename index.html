@@ -2576,6 +2576,46 @@ function updateTaskCount() {
   document.getElementById('total-count').textContent = dayTasks.length;
 }
 
+function wireInlineTaskInput() {
+  const inlineInput = document.getElementById('inline-task-input');
+  if (!inlineInput) return;
+  const tickBtn = inlineInput.parentElement.querySelector('.tick-btn');
+
+  const submit = () => {
+    const title = inlineInput.value.trim();
+    if (!title) return;
+    tasks.push({ id: Date.now(), title, done: false, priority: 'média',
+                 projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
+    renderAll();
+    const next = document.getElementById('inline-task-input');
+    if (next) next.focus();
+  };
+
+  const updateTick = () => {
+    if (!tickBtn) return;
+    const hasText = !!inlineInput.value.trim();
+    tickBtn.style.opacity = hasText ? '1' : '0.2';
+    tickBtn.style.pointerEvents = hasText ? 'auto' : 'none';
+  };
+
+  inlineInput.addEventListener('input', updateTick);
+  inlineInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submit();
+    }
+  });
+  inlineInput.addEventListener('change', () => {
+    if (inlineInput.value.trim()) submit();
+  });
+  if (tickBtn) {
+    tickBtn.addEventListener('click', e => {
+      e.preventDefault();
+      submit();
+    });
+  }
+}
+
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
@@ -2585,8 +2625,9 @@ function renderDayList() {
   let html = `
     <div class="inline-task-row top">
       <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input"
-             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false">
+      <input class="inline-task-input" id="inline-task-input" type="text"
+             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false"
+             enterkeyhint="done">
     </div>`;
 
   const label = getDateLabel(dayKey);
@@ -2602,20 +2643,7 @@ function renderDayList() {
   document.getElementById('task-list-done-wrap').style.display = 'none';
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
-  const inlineInput = document.getElementById('inline-task-input');
-  if (inlineInput) {
-    inlineInput.addEventListener('keydown', e => {
-      if (e.key !== 'Enter') return;
-      const title = inlineInput.value.trim();
-      if (!title) return;
-      tasks.push({ id: Date.now(), title, done: false, priority: 'média',
-                   projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
-      renderAll();
-      const next = document.getElementById('inline-task-input');
-      if (next) next.focus();
-    });
-  }
-
+  wireInlineTaskInput();
   attachTaskEvents();
 }
 
@@ -2637,8 +2665,9 @@ function renderTaskList() {
   let html = `
     <div class="inline-task-row top">
       <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input"
-             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false">
+      <input class="inline-task-input" id="inline-task-input" type="text"
+             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false"
+             enterkeyhint="done">
     </div>`;
 
   Object.entries(byDate).forEach(([dateKey, group]) => {
@@ -2654,20 +2683,7 @@ function renderTaskList() {
   document.getElementById('task-list-done-wrap').style.display = 'none';
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
-  const inlineInput = document.getElementById('inline-task-input');
-  if (inlineInput) {
-    inlineInput.addEventListener('keydown', e => {
-      if (e.key !== 'Enter') return;
-      const title = inlineInput.value.trim();
-      if (!title) return;
-      tasks.push({ id: Date.now(), title, done: false, priority: 'média',
-                   projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
-      renderTaskList();
-      const next = document.getElementById('inline-task-input');
-      if (next) next.focus();
-    });
-  }
-
+  wireInlineTaskInput();
   attachTaskEvents();
 }
 
