@@ -2784,7 +2784,8 @@ function appearancePanelHTML() {
 function attachAppearanceEvents(root) {
   const colorInput = root.querySelector('#appearance-color');
   if (colorInput) {
-    colorInput.addEventListener('input', () => {
+    colorInput.addEventListener('input', (e) => {
+      e.stopPropagation();
       accentColor = colorInput.value;
       applyTheme();
     });
@@ -2800,6 +2801,7 @@ function attachAppearanceEvents(root) {
   root.querySelectorAll('[data-font-mode]').forEach(btn => {
     btn.addEventListener('click', (event) => {
       event.stopPropagation();
+      event.preventDefault();
       fontMode = btn.dataset.fontMode;
       const preset = APPEARANCE_PRESETS.find(item => item.id === fontMode);
       if (preset) accentColor = preset.colors.primary;
