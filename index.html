@@ -203,8 +203,14 @@
   .week-nav-days {
     flex: 1;
     display: flex;
-    justify-content: space-between;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-left: calc(50% - 29px);
+    padding-right: calc(50% - 29px);
   }
+  .week-nav-days::-webkit-scrollbar { display: none; }
   .inline-task-row {
     display: flex;
     align-items: center;
@@ -225,6 +231,7 @@
   .inline-task-input::placeholder { color: var(--ink-ghost); }
   .day-btn {
     flex: 0 0 auto;
+    scroll-snap-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1585,7 +1592,7 @@
       padding-left: 16px;
       padding-right: 16px;
     }
-    #week-strip { padding-left: 16px; padding-right: 16px; }
+    #week-strip { padding-left: 4px; padding-right: 4px; }
     #bottom-nav {
       gap: 4px;
       padding-left: 8px;
@@ -2134,10 +2141,8 @@ function escapeAttr(value) {
 function setActiveDay(day, options = {}) {
   const nextDay = clampDay(day);
   const changed = nextDay !== activeDay;
-  activeDay = nextDay;
-  buildWeekStrip();
-  updateHeader();
-  renderAll();
+  const dateStr = WEEK_DATES[nextDay];
+  navigateToDate(dateStr);
   const content = document.getElementById('content');
   if (content && currentNav === 'hoje' && currentView === 'semana') content.scrollTop = 0;
   if (options.toast && changed) showDayToast(options.toast);
@@ -2220,69 +2225,98 @@ function updateHeader() {
   document.getElementById('fab').classList.toggle('hidden', !(isHoje || isHabitos || currentNav === 'projetos'));
 }
 
-// ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
+// ─── WEEK STRIP CAROUSEL ─────────────────────────────────────────────────────
 function buildWeekStrip() {
   const strip = document.getElementById('week-strip');
+  const activeDateStr = WEEK_DATES[activeDay];
+  const base = parseDateKey(activeDateStr);
+  const RANGE = 30;
+
+  const dates = Array.from({length: RANGE * 2 + 1}, (_, i) => {
+    const d = new Date(base.getTime());
+    d.setDate(d.getDate() + i - RANGE);
+    return formatDateKey(d);
+  });
+
+  const daysHTML = dates.map(dateStr => {
+    const parsed = parseDateKey(dateStr);
+    const isActive = dateStr === activeDateStr;
+    const isToday  = dateStr === TODAY;
+    const dow = (parsed.getDay() + 6) % 7;
+    return `<button class="day-btn${isActive?' active':''}${isToday&&!isActive?' today':''}" data-date="${dateStr}">
+      <span class="day-letter">${DAYS_LETTER[dow]}</span>
+      <span class="day-num">${parsed.getDate()}</span>
+      ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
+    </button>`;
+  }).join('');
+
   strip.innerHTML = `
     <button class="week-nav-arrow" id="week-prev">&#8249;</button>
-    <div class="week-nav-days">
-      ${WEEK_DATES.map((date, i) => {
-        const isActive = i === activeDay;
-        const isToday  = date === TODAY;
-        const parsed   = parseDateKey(date);
-        const letter   = DAYS_LETTER[i];
-        return `
-          <button class="day-btn ${isActive?'active':''} ${isToday&&!isActive?'today':''}" data-day="${i}">
-            <span class="day-letter">${letter}</span>
-            <span class="day-num">${parsed.getDate()}</span>
-            ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
-          </button>`;
-      }).join('')}
-    </div>
+    <div class="week-nav-days" id="week-scroll">${daysHTML}</div>
     <button class="week-nav-arrow" id="week-next">&#8250;</button>`;
 
+  const scrollEl = strip.querySelector('#week-scroll');
+
+  // center active day instantly
+  const activeBtn = scrollEl.querySelector('.day-btn.active');
+  if (activeBtn) {
+    scrollEl.scrollLeft = activeBtn.offsetLeft - scrollEl.offsetWidth / 2 + activeBtn.offsetWidth / 2;
+  }
+
+  // arrows jump ±7 days
   strip.querySelector('#week-prev').addEventListener('click', () => {
-    weekOffset--;
-    rebuildCurrentWeekDates();
-    if (activeDay > WEEK_DATES.length - 1) activeDay = WEEK_DATES.length - 1;
-    buildWeekStrip();
-    updateHeader();
-    renderAll();
+    navigateToDate(addDays(WEEK_DATES[activeDay], -7));
   });
   strip.querySelector('#week-next').addEventListener('click', () => {
-    weekOffset++;
-    rebuildCurrentWeekDates();
-    buildWeekStrip();
-    updateHeader();
-    renderAll();
+    navigateToDate(addDays(WEEK_DATES[activeDay], 7));
   });
-  strip.querySelectorAll('.day-btn').forEach(btn => {
-    btn.addEventListener('click', () => setActiveDay(parseInt(btn.dataset.day)));
+
+  // click a day
+  scrollEl.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigateToDate(btn.dataset.date));
   });
+
+  // scroll settle → detect centred day
+  let t;
+  scrollEl.addEventListener('scroll', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const center = scrollEl.scrollLeft + scrollEl.offsetWidth / 2;
+      let best = null, bestDist = Infinity;
+      scrollEl.querySelectorAll('.day-btn').forEach(btn => {
+        const dist = Math.abs(btn.offsetLeft + btn.offsetWidth / 2 - center);
+        if (dist < bestDist) { bestDist = dist; best = btn; }
+      });
+      if (best && best.dataset.date !== WEEK_DATES[activeDay]) {
+        navigateToDate(best.dataset.date, false);
+      }
+    }, 80);
+  }, { passive: true });
 }
 
-function setupWeekSwipe() {
-  const strip = document.getElementById('week-strip');
-  let startX = 0, startY = 0, moved = false;
+function navigateToDate(dateStr, smooth = true) {
+  const idx = ensureDateInWeek(dateStr);
+  activeDay = idx;
 
-  strip.addEventListener('pointerdown', e => {
-    startX = e.clientX; startY = e.clientY; moved = false;
-  });
-  strip.addEventListener('pointermove', e => {
-    if (Math.abs(e.clientX - startX) > 8) moved = true;
-  });
-  strip.addEventListener('pointerup', e => {
-    if (!moved) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
-    if (dx < 0) weekOffset++;
-    else         weekOffset--;
-    rebuildCurrentWeekDates();
+  const scrollEl = document.getElementById('week-scroll');
+  const btn = scrollEl && scrollEl.querySelector(`[data-date="${dateStr}"]`);
+
+  if (btn) {
+    // update classes in place — no DOM rebuild
+    scrollEl.querySelectorAll('.day-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.date === dateStr);
+      b.classList.toggle('today', b.dataset.date === TODAY && b.dataset.date !== dateStr);
+    });
+    if (smooth) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  } else {
     buildWeekStrip();
-    updateHeader();
-    renderAll();
-  });
+  }
+
+  updateHeader();
+  updateProgress();
+  updateTaskCount();
+  if (currentNav === 'hoje' && currentView === 'semana') renderTaskList();
+  saveState();
 }
 
 // ─── VIEW TOGGLE ─────────────────────────────────────────────────────────────
@@ -3707,7 +3741,6 @@ buildViewToggle();
 updateHeader();
 buildColorSwatches();
 buildProjectColorSwatches();
-setupWeekSwipe();
 renderAll();
 
 if ('serviceWorker' in navigator) {
