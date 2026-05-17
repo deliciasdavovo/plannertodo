@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="FlowDo"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Courier+Prime:wght@400;700&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&family=Fraunces:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Libre+Caslon+Display&family=Nunito:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -893,6 +893,10 @@
     font-size: 10px;
     color: var(--ink-faint);
   }
+
+  /* ── THEME OVERRIDES ── */
+  #app[data-theme="nevoa"] .nav-btn.active { color: #7B9EC0 !important; }
+  #app[data-theme="nevoa"] .day-btn.active .day-num { color: #7B9EC0; }
 
   /* ── FAB ── */
   #fab {
@@ -1836,8 +1840,8 @@ const APPEARANCE_PRESETS = [
     colors:{ bg:'#EDEBE6', primary:'#1A1A1A', secondary:'#9B9690', divider:'#D8D5D0', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
   { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'Inter', sans-serif",
     colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
-  { id:'nevoa', name:'Névoa', title:"'Cormorant Garamond', serif", body:"'Lato', sans-serif",
-    colors:{ bg:'#EEF1F8', primary:'#1A1E2E', secondary:'#6B7490', divider:'#C8D0E8', day:'#8FA3D4', tab:'#1A1E2E', alta:'#C0392B', media:'#8FA3D4', baixa:'#5E8A7A' } },
+  { id:'nevoa', name:'Névoa', title:"'Spectral', serif", body:"'Lato', sans-serif",
+    colors:{ bg:'#F0F2F7', primary:'#1B2A4A', secondary:'#7B8FA8', divider:'#D4DAE8', day:'#1B2A4A', tab:'#1B2A4A', alta:'#C87941', media:'#7B9EC0', baixa:'#5C8A7A' } },
   { id:'terra', name:'Terra', title:"'Libre Baskerville', serif", body:"'Source Serif Pro', 'Source Serif 4', serif",
     colors:{ bg:'#F5EDD6', primary:'#1A0A00', secondary:'#8B6A3A', divider:'#D8C8A0', day:'#1A0A00', tab:'#1A0A00', alta:'#C0392B', media:'#C8A84B', baixa:'#5A7A4A' } },
   { id:'floresta', name:'Floresta', title:"'Josefin Sans', sans-serif", body:"'DM Sans', sans-serif",
@@ -2867,6 +2871,7 @@ function applyTheme() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colors.tab);
   document.documentElement.style.setProperty('--serif', selectedPreset.title);
   document.documentElement.style.setProperty('--mono', selectedPreset.body);
+  document.getElementById('app').dataset.theme = fontMode;
   localStorage.setItem('fd-theme', darkTheme ? 'dark' : 'light');
   localStorage.setItem('fd-accent', accentColor);
   localStorage.setItem('fd-font-mode', fontMode);
