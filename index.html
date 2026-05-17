@@ -34,6 +34,35 @@
     --mono:     'DM Mono', monospace;
   }
 
+  body.dark {
+    --bg:       #111110;
+    --surface:  #1C1C1A;
+    --ink:      #111110;
+    --ink-mid:  #C7C5BD;
+    --ink-faint:#8E8C84;
+    --ink-ghost:#3B3A36;
+    --rule:     #2A2926;
+    --deep:     #181816;
+    background: #050505;
+  }
+  body.dark .page-title,
+  body.dark .count-num,
+  body.dark .task-title,
+  body.dark .habit-name,
+  body.dark .habit-month-name,
+  body.dark .project-name,
+  body.dark .detail-title,
+  body.dark .habit-detail-title,
+  body.dark .profile-name {
+    color: #F5F4F0;
+  }
+  body.dark .profile-item,
+  body.dark .project-task-title,
+  body.dark .meta-proj,
+  body.dark .day-btn.today .day-num {
+    color: #C7C5BD;
+  }
+
   html, body {
     height: 100%;
     background: #CCC;
@@ -201,6 +230,7 @@
   /* ── SCROLL CONTENT ── */
   #content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: none;
   }
@@ -237,6 +267,9 @@
   .task-row.dragging {
     transition: none;
     z-index: 2;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(17,17,16,0.1);
   }
   .task-row.drag-ready {
     transform: scale(0.985);
@@ -247,16 +280,21 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 700;
-    color: var(--amber);
+    color: #fff;
+    border-radius: 9px;
+    padding: 8px 10px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.1s;
     white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    z-index: 0;
   }
-  .drag-hint.left { right: -4px; }
-  .drag-hint.right { left: -4px; }
+  .drag-hint.left { right: 0; background: var(--red); }
+  .drag-hint.right { left: 0; background: var(--green); }
 
   .day-shift-toast {
     position: absolute;
@@ -305,7 +343,7 @@
   .task-body { flex: 1; min-width: 0; }
   .task-title {
     font-family: var(--serif);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 400;
     color: var(--ink);
     line-height: 1.35;
@@ -322,13 +360,13 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 10.5px;
+    font-size: 11.5px;
     color: var(--ink-mid);
     font-weight: 500;
   }
   .proj-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
   .meta-time, .meta-nodate, .meta-sub {
-    font-size: 10.5px;
+    font-size: 11.5px;
     color: var(--ink-faint);
   }
   .meta-nodate { font-style: italic; font-size: 10px; }
@@ -485,12 +523,12 @@
   .habit-info { flex: 1; }
   .habit-name {
     font-family: var(--serif);
-    font-size: 15px;
+    font-size: 16.5px;
     color: var(--ink);
     line-height: 1.3;
   }
   .habit-cue {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ink-faint);
     margin-top: 4px;
   }
@@ -582,8 +620,13 @@
     background: var(--habit-color);
     border-color: color-mix(in srgb, var(--habit-color) 40%, transparent);
   }
-  .heatmap-cell.missed { opacity: 0.4; }
+  .heatmap-cell.missed { background: var(--deep); opacity: 0.55; }
   .heatmap-cell.future { opacity: 0.2; }
+  .heatmap-cell[data-heatmap-day] {
+    cursor: pointer;
+    transition: transform 0.12s, opacity 0.12s;
+  }
+  .heatmap-cell[data-heatmap-day]:active { transform: scale(0.92); }
 
   /* add habit btn */
   .add-habit-btn {
@@ -630,6 +673,31 @@
     font-family: var(--serif);
     font-size: 14px;
   }
+  .period-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 4px 14px;
+  }
+  .period-nav button {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .period-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+  }
 
   /* ── PROJECTS ── */
   .projects-view { padding: 0 20px; }
@@ -653,7 +721,7 @@
   .project-dot { width: 7px; height: 7px; border-radius: 50%; }
   .project-name {
     font-family: var(--serif);
-    font-size: 19px;
+    font-size: 20px;
     color: var(--ink);
   }
   .project-count { font-size: 11px; color: var(--ink-faint); }
@@ -670,7 +738,7 @@
   .project-task-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
   .project-task-title {
     font-family: var(--serif);
-    font-size: 13.5px;
+    font-size: 15.5px;
     color: var(--ink-mid);
   }
   .project-task.done .project-task-title { text-decoration: line-through; }
@@ -706,14 +774,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     padding: 15px 0;
     border-bottom: 1px solid var(--rule);
     cursor: pointer;
     font-family: var(--serif);
-    font-size: 15px;
+    font-size: 17px;
     color: var(--ink-mid);
   }
   .profile-item.danger { color: var(--red); }
+  .profile-item span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .profile-item svg { flex-shrink: 0; }
 
   /* ── FAB ── */
@@ -737,16 +812,17 @@
 
   /* ── BOTTOM NAV ── */
   #bottom-nav {
-    display: flex;
-    gap: 7px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
     background: #111110;
     border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 10px 14px 22px;
+    padding: 10px 12px calc(18px + env(safe-area-inset-bottom));
     flex-shrink: 0;
     box-shadow: 0 -14px 32px rgba(17,17,16,0.16);
   }
   .nav-btn {
-    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -755,9 +831,9 @@
     background: none;
     border: none;
     cursor: pointer;
-    min-height: 48px;
+    min-height: 54px;
     padding: 6px 0 5px;
-    border-radius: 14px;
+    border-radius: 12px;
     color: rgba(255,255,255,0.42);
     transition: background 0.15s, color 0.15s, transform 0.15s;
   }
@@ -783,11 +859,16 @@
     stroke-linejoin: round;
   }
   .nav-label {
-    font-size: 9.5px;
+    max-width: 100%;
+    font-size: 10.5px;
     font-weight: 700;
     font-family: var(--mono);
     color: currentColor;
-    letter-spacing: 0.3px;
+    letter-spacing: 0;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .nav-indicator {
     width: 4px; height: 4px;
@@ -848,6 +929,15 @@
     margin-bottom: 22px;
   }
   .modal-input::placeholder { color: var(--ink-ghost); }
+  #new-task-title {
+    min-height: 92px;
+    background: var(--surface);
+    border-color: var(--rule);
+    font-size: 17px;
+  }
+  #modal-add-task.editing #new-task-title {
+    display: none;
+  }
   .modal-textarea {
     width: 100%;
     border: 1px solid var(--rule);
@@ -876,6 +966,11 @@
   }
   .modal-input-sm::placeholder { color: var(--ink-ghost); }
   .btn-group { display: flex; gap: 7px; margin-bottom: 18px; }
+  #priority-group,
+  #project-group,
+  #repeat-group {
+    display: block;
+  }
   .choice-btn {
     flex: 1;
     padding: 9px 0;
@@ -899,6 +994,28 @@
     transition: border 0.13s;
   }
   .color-swatch.selected { border-color: var(--ink); }
+  .project-color-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 26px;
+    padding: 10px 0 4px;
+  }
+  .project-color-field input[type="color"] {
+    width: 54px;
+    height: 42px;
+    border: 1.5px solid var(--rule);
+    border-radius: 12px;
+    background: var(--surface);
+    cursor: pointer;
+    padding: 4px;
+  }
+  .project-color-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-mid);
+    font-family: var(--mono);
+  }
   .modal-checkbox-row {
     display: flex;
     align-items: center;
@@ -965,6 +1082,91 @@
   .date-choice.no-date {
     grid-column: span 4;
   }
+  .task-date-field {
+    display: block;
+    margin-bottom: 0;
+  }
+  .task-date-editor {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .task-date-editor input[type="date"],
+  .task-select {
+    width: 100%;
+    min-height: 46px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 12px;
+  }
+  .task-date-clear,
+  .task-time-clear,
+  .repeat-toggle {
+    min-height: 46px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 14px;
+    cursor: pointer;
+  }
+  .priority-grow {
+    margin-bottom: 22px;
+  }
+  .priority-grow button {
+    width: 100%;
+    min-height: 54px;
+    border: 1.5px solid var(--rule);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 9px 10px;
+    cursor: pointer;
+  }
+  .priority-meter {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .priority-meter span {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--deep);
+  }
+  .priority-meter span.on {
+    background: var(--priority-color);
+  }
+  .priority-grow-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--priority-color);
+  }
+  .priority-grow-label small {
+    color: var(--ink-faint);
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .repeat-section { margin-bottom: 20px; }
+  .repeat-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .repeat-choice-group.collapsed { display: none; }
   .modal-submit {
     width: 100%;
     padding: 15px 0;
@@ -1036,6 +1238,19 @@
     color: var(--ink);
     line-height: 1.3;
   }
+  .detail-title-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-bottom: 1.5px solid var(--rule);
+    background: transparent;
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1.3;
+    outline: none;
+    padding: 2px 0 6px;
+  }
   .tag-row { display: flex; gap: 7px; margin-bottom: 22px; flex-wrap: wrap; }
   .tag {
     padding: 3px 10px;
@@ -1071,6 +1286,76 @@
     color: var(--ink-mid);
   }
   .sub-tick.checked + .sub-title { text-decoration: line-through; color: var(--ink-faint); }
+  .detail-add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .detail-add-row.collapsed { display: none; }
+  .detail-add-row input {
+    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 0 11px;
+    outline: none;
+  }
+  .detail-add-row button {
+    min-height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 12px;
+    cursor: pointer;
+  }
+  .dotted-add-btn,
+  .clip-add-btn {
+    width: 100%;
+    min-height: 42px;
+    border: 1.5px dashed var(--ink-ghost);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .clip-add-btn {
+    width: 42px;
+    min-height: 42px;
+    font-size: 18px;
+    margin-top: 10px;
+  }
+  .attachment-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink-mid);
+  }
+  .attachment-row button {
+    border: none;
+    background: transparent;
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
 
   /* habit detail */
   .habit-detail-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px; }
@@ -1128,6 +1413,8 @@
   .detail-week-cell.done { background: var(--habit-color); }
   .detail-week-cell.today-cell { border-color: var(--ink-ghost); }
   .detail-week-cell.future { opacity: 0.3; }
+  .detail-week-cell[data-habit-detail-day] { cursor: pointer; }
+  .detail-week-cell[data-habit-detail-day]:active { transform: scale(0.94); }
   .detail-week-label { font-size: 9px; font-weight: 700; color: var(--ink-faint); }
   .detail-week-label.today-label { color: var(--ink-mid); }
   .modal-close-btn {
@@ -1145,10 +1432,28 @@
     html, body { background: var(--bg); }
     #app {
       width: 100%;
-      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
       border-radius: 0;
       box-shadow: none;
     }
+    #header { padding: 12px 16px 0; }
+    .task-list,
+    .month-view,
+    .projects-view,
+    .profile-view {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    #week-strip { padding-left: 16px; padding-right: 16px; }
+    #bottom-nav {
+      gap: 4px;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+    .nav-label { font-size: 10px; }
+    .task-row { gap: 12px; padding: 16px 0; }
+    .task-title { font-size: 18px; }
   }
 </style>
 </head>
@@ -1257,18 +1562,25 @@
 
   <!-- MODALS -->
   <div class="modal-overlay" id="modal-add-task">
-    <div class="modal-sheet" id="modal-add-task-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-label" id="task-modal-title">Nova tarefa</div>
-      <input class="modal-input" id="new-task-title" placeholder="Descreva a tarefa..."/>
-      <div class="modal-label">Prioridade</div>
-      <div class="btn-group" id="priority-group"></div>
-      <div class="modal-label">Projeto</div>
-      <div class="btn-group" id="project-group"></div>
+      <div class="modal-sheet" id="modal-add-task-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-label" id="task-modal-title">Nova tarefa</div>
+      <textarea class="modal-textarea" id="new-task-title" rows="3" placeholder="Anote a tarefa..."></textarea>
       <div class="modal-label">Data</div>
       <div class="date-choice-grid" id="task-date-group"></div>
-      <div class="modal-label">Recorrência</div>
-      <div class="repeat-choice-group" id="repeat-group"></div>
+      <div id="task-advanced-fields">
+        <div class="modal-label">Hora</div>
+        <div class="task-date-editor">
+          <input class="task-select" id="task-time-input" type="time"/>
+          <button class="task-time-clear" id="task-time-clear" type="button">Sem hora</button>
+        </div>
+        <div class="modal-label">Prioridade</div>
+        <div class="btn-group" id="priority-group"></div>
+        <div class="modal-label">Projeto</div>
+        <div class="btn-group" id="project-group"></div>
+        <div class="modal-label">Recorrência</div>
+        <div class="repeat-choice-group" id="repeat-group"></div>
+      </div>
       <button class="modal-submit ready" id="submit-task">ADICIONAR</button>
     </div>
   </div>
@@ -1283,7 +1595,10 @@
       <div class="modal-label">Gatilho</div>
       <input class="modal-input-sm" id="new-habit-cue" placeholder="Após o café da manhã..."/>
       <div class="modal-label">Cor</div>
-      <div class="color-swatches" id="color-swatches"></div>
+      <div class="project-color-field">
+        <input type="color" id="habit-color-input" value="#B07D2A"/>
+        <span class="project-color-value" id="habit-color-value">#B07D2A</span>
+      </div>
       <button class="modal-submit" id="submit-habit">CRIAR HÁBITO</button>
     </div>
   </div>
@@ -1345,7 +1660,10 @@
       <div class="modal-label">Novo projeto</div>
       <input class="modal-input" id="new-project-name" placeholder="Nome do projeto..."/>
       <div class="modal-label">Cor</div>
-      <div class="color-swatches" id="project-color-swatches"></div>
+      <div class="project-color-field">
+        <input type="color" id="project-color-input" value="#C84B2F"/>
+        <span class="project-color-value" id="project-color-value">#C84B2F</span>
+      </div>
       <button class="modal-submit" id="submit-project">CRIAR PROJETO</button>
     </div>
   </div>
@@ -1399,7 +1717,12 @@ const REPEAT_OPTIONS = [
   { id:'diaria', label:'Diaria' },
   { id:'semanal', label:'Semanal' },
 ];
-const PROFILE_ITEMS = ['Aparência','Notificações','Sincronização','Exportar dados','Conta','Sair'];
+const PROFILE_ITEMS = [
+  { id:'appearance', label:'Aparência' },
+  { id:'notifications', label:'Notificações' },
+  { id:'account', label:'Conta' },
+  { id:'logout', label:'Sair', danger:true },
+];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let tasks = [
@@ -1414,6 +1737,44 @@ let tasks = [
 function makeHeatmap(pct) {
   return Array.from({length:35},(_,i)=>i<32?Math.random()<pct:null);
 }
+function getHabitWeek(h) {
+  if (habitWeekOffset === 0) return h.week;
+  h.weekPages = h.weekPages || {};
+  if (!h.weekPages[habitWeekOffset]) h.weekPages[habitWeekOffset] = [false,false,false,false,false,null,null];
+  return h.weekPages[habitWeekOffset];
+}
+function getHabitHeatmap(h) {
+  if (habitMonthOffset === 0) return h.heatmap;
+  h.heatmapPages = h.heatmapPages || {};
+  if (!h.heatmapPages[habitMonthOffset]) h.heatmapPages[habitMonthOffset] = makeHeatmap(0);
+  return h.heatmapPages[habitMonthOffset];
+}
+function periodLabel(kind) {
+  if (kind === 'semana') {
+    if (habitWeekOffset === 0) return 'Esta semana';
+    return habitWeekOffset > 0 ? `${habitWeekOffset + 1} semanas a frente` : `${Math.abs(habitWeekOffset)} semanas atras`;
+  }
+  const base = new Date(2026, 4 + habitMonthOffset, 1);
+  return base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+}
+function periodNavHTML(kind) {
+  return `
+    <div class="period-nav">
+      <button type="button" data-period="${kind}" data-dir="-1">‹</button>
+      <div class="period-label">${periodLabel(kind)}</div>
+      <button type="button" data-period="${kind}" data-dir="1">›</button>
+    </div>`;
+}
+function attachPeriodNav(root) {
+  root.querySelectorAll('[data-period]').forEach(btn => {
+    btn.onclick = () => {
+      const dir = parseInt(btn.dataset.dir);
+      if (btn.dataset.period === 'semana') habitWeekOffset += dir;
+      else habitMonthOffset += dir;
+      renderAll();
+    };
+  });
+}
 let habits = [
   { id:1, name:'Leitura diária',          goal:'Tornar-me alguém que aprende todos os dias', cue:'Após o café da manhã',           streak:14, color:'#B07D2A', week:[true,true,true,true,false,null,null],  heatmap:makeHeatmap(0.75) },
   { id:2, name:'Meditação — 10 min',      goal:'Ter clareza mental e menos ansiedade',        cue:'Ao acordar, antes do celular',   streak:7,  color:'#2A6E4A', week:[true,true,false,true,true,null,null],  heatmap:makeHeatmap(0.65) },
@@ -1424,18 +1785,20 @@ let habits = [
 let activeDay    = TODAY_IDX;
 let currentNav   = 'hoje';
 let currentView  = 'semana'; // semana | mensal
+let darkTheme    = localStorage.getItem('fd-theme') === 'dark';
 let selectedTaskId  = null;
 let selectedHabitId = null;
 let hdView = 'semana';
-let scrollDayAccum = 0;
-let scrollDayLock = false;
 let taskDragActive = false;
+let habitWeekOffset = 0;
+let habitMonthOffset = 0;
 
 // add task form state
 let newPriority = 'média';
 let newProjectId = 1;
 let newHasDate = true;
 let newTaskDate = TODAY;
+let newTaskTime = '';
 let newRepeat = 'nenhuma';
 let newHabitColor = '#B07D2A';
 let newProjectColor = '#C84B2F';
@@ -1444,6 +1807,41 @@ let editingHabitId = null;
 
 function clampDay(day) {
   return Math.max(0, Math.min(WEEK_DATES.length - 1, day));
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(dateKey, amount) {
+  const date = parseDateKey(dateKey);
+  date.setDate(date.getDate() + amount);
+  return formatDateKey(date);
+}
+
+function getDateLabel(dateKey) {
+  if (!dateKey) return 'Sem data';
+  if (DATES_MAP[dateKey]) return DATES_MAP[dateKey];
+  const idx = WEEK_DATES.indexOf(dateKey);
+  const date = parseDateKey(dateKey);
+  const label = `${DAYS_SHORT[idx >= 0 ? idx % 7 : (date.getDay() + 6) % 7]} ${date.getDate()}`;
+  DATES_MAP[dateKey] = label;
+  return label;
+}
+
+function ensureDateInWeek(dateKey) {
+  let idx = WEEK_DATES.indexOf(dateKey);
+  if (idx >= 0) return idx;
+  WEEK_DATES.push(dateKey);
+  return WEEK_DATES.length - 1;
 }
 
 function showDayToast(text) {
@@ -1459,6 +1857,20 @@ function confirmDelete(label) {
   return window.confirm(`Excluir ${label}? Essa ação não pode ser desfeita.`);
 }
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;',
+  }[ch]));
+}
+
+function escapeAttr(value) {
+  return escapeHTML(value).replace(/`/g, '&#96;');
+}
+
 function setActiveDay(day, options = {}) {
   const nextDay = clampDay(day);
   const changed = nextDay !== activeDay;
@@ -1469,14 +1881,6 @@ function setActiveDay(day, options = {}) {
   const content = document.getElementById('content');
   if (content && currentNav === 'hoje' && currentView === 'semana') content.scrollTop = 0;
   if (options.toast && changed) showDayToast(options.toast);
-}
-
-function shiftActiveDay(direction, source = 'scroll') {
-  const nextDay = clampDay(activeDay + direction);
-  if (nextDay === activeDay) return false;
-  const label = `${DAYS_SHORT[nextDay]} ${9 + nextDay}`;
-  setActiveDay(nextDay, { toast: source === 'scroll' ? label : `Movida para ${label}` });
-  return true;
 }
 
 // ─── SVG HELPERS ─────────────────────────────────────────────────────────────
@@ -1534,12 +1938,13 @@ function switchNav(nav) {
 // ─── HEADER ──────────────────────────────────────────────────────────────────
 function updateHeader() {
   const sub = {
-    hoje:     `${DAYS_SHORT[activeDay]}, ${9+activeDay} de maio`,
+    hoje:     '',
     habitos:  'Acompanhamento',
     projetos: 'Todos os projetos',
     perfil:   'Configurações',
   };
   const title = {hoje:'Hoje',habitos:'Hábitos',projetos:'Projetos',perfil:'Perfil'};
+  if (currentNav === 'hoje') sub.hoje = `${getDateLabel(WEEK_DATES[activeDay])} de maio`;
   document.getElementById('page-sub').textContent   = sub[currentNav];
   document.getElementById('page-title').textContent = title[currentNav];
 
@@ -1567,13 +1972,15 @@ function updateHeader() {
 // ─── WEEK STRIP BUILD ────────────────────────────────────────────────────────
 function buildWeekStrip() {
   const strip = document.getElementById('week-strip');
-  strip.innerHTML = DAYS_LETTER.map((d,i) => {
+  strip.innerHTML = WEEK_DATES.map((date,i) => {
     const isActive = i === activeDay;
     const isToday  = i === TODAY_IDX;
+    const parsed = parseDateKey(date);
+    const letter = DAYS_LETTER[i % DAYS_LETTER.length];
     return `
       <button class="day-btn ${isActive?'active':''} ${isToday&&!isActive?'today':''}" data-day="${i}">
-        <span class="day-letter">${d}</span>
-        <span class="day-num">${9+i}</span>
+        <span class="day-letter">${letter}</span>
+        <span class="day-num">${parsed.getDate()}</span>
         ${isToday && !isActive ? '<span class="day-dot"></span>' : ''}
       </button>`;
   }).join('');
@@ -1634,53 +2041,6 @@ function renderAll() {
 }
 
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
-function canScrollChangeDay() {
-  return currentNav === 'hoje' && currentView === 'semana' && !taskDragActive;
-}
-
-function lockScrollDay() {
-  scrollDayLock = true;
-  setTimeout(() => {
-    scrollDayLock = false;
-    scrollDayAccum = 0;
-  }, 360);
-}
-
-function attachDayScrollNavigation() {
-  const content = document.getElementById('content');
-  if (!content) return;
-
-  content.addEventListener('wheel', e => {
-    if (!canScrollChangeDay() || scrollDayLock) return;
-    scrollDayAccum += e.deltaY;
-    if (Math.abs(scrollDayAccum) < 90) return;
-    const changed = shiftActiveDay(scrollDayAccum > 0 ? 1 : -1, 'scroll');
-    if (changed) {
-      e.preventDefault();
-      lockScrollDay();
-    }
-  }, { passive:false });
-
-  let touchStartY = 0;
-  let touchStartX = 0;
-  content.addEventListener('touchstart', e => {
-    if (!canScrollChangeDay()) return;
-    touchStartY = e.touches[0].clientY;
-    touchStartX = e.touches[0].clientX;
-  }, { passive:true });
-
-  content.addEventListener('touchend', e => {
-    if (!canScrollChangeDay() || scrollDayLock || !touchStartY) return;
-    const t = e.changedTouches[0];
-    const dy = t.clientY - touchStartY;
-    const dx = t.clientX - touchStartX;
-    touchStartY = 0;
-    if (Math.abs(dx) > Math.abs(dy) || Math.abs(dy) < 62) return;
-    const changed = shiftActiveDay(dy < 0 ? 1 : -1, 'scroll');
-    if (changed) lockScrollDay();
-  }, { passive:true });
-}
-
 function updateProgress() {
   const fill = document.getElementById('main-progress-fill');
   if (currentNav === 'hoje') {
@@ -1854,10 +2214,10 @@ function setupDrag(row) {
     if (Math.abs(offset) > 28) {
       const op = Math.min(1,(Math.abs(offset)-28)/28);
       if (offset > 0) {
-        hintR.textContent = 'mover »'; hintR.style.opacity = op;
+        hintR.textContent = 'Solte: proximo dia'; hintR.style.opacity = op;
         hintL.style.opacity = 0;
       } else {
-        hintL.textContent = '« mover'; hintL.style.opacity = op;
+        hintL.textContent = 'Solte: apagar'; hintL.style.opacity = op;
         hintR.style.opacity = 0;
       }
     } else {
@@ -1912,14 +2272,18 @@ function moveTaskByDays(id, direction) {
   if (!t) return;
   const currentIdx = t.date ? WEEK_DATES.indexOf(t.date) : activeDay;
   const baseIdx = currentIdx >= 0 ? currentIdx : activeDay;
-  const targetIdx = clampDay(baseIdx + direction);
-  if (targetIdx === baseIdx) {
-    showDayToast(direction > 0 ? 'Ultimo dia da semana' : 'Primeiro dia da semana');
+  if (direction < 0 && baseIdx === 0) {
+    showDayToast('Primeiro dia da semana');
     return;
   }
+  const targetDate = direction > 0 && baseIdx === WEEK_DATES.length - 1
+    ? addDays(WEEK_DATES[baseIdx], 1)
+    : WEEK_DATES[baseIdx + direction];
+  const targetIdx = ensureDateInWeek(targetDate);
   t.date = WEEK_DATES[targetIdx];
-  const label = `${DAYS_SHORT[targetIdx]} ${9 + targetIdx}`;
+  const label = getDateLabel(WEEK_DATES[targetIdx]);
   if (targetIdx !== activeDay) {
+    buildWeekStrip();
     setActiveDay(targetIdx, { toast: `Movida para ${label}` });
   } else {
     renderAll();
@@ -1984,13 +2348,14 @@ function renderMonthView() {
 
 // ─── HABITS WEEK ─────────────────────────────────────────────────────────────
 function renderHabitsWeek() {
-  const doneToday = habits.filter(h=>h.week[TODAY_IDX]===true).length;
+  const doneToday = habits.filter(h=>getHabitWeek(h)[TODAY_IDX]===true).length;
   document.getElementById('habits-summary').textContent =
     `${doneToday} de ${habits.length} concluídos hoje`;
 
   const list = document.getElementById('habits-list-week');
-  list.innerHTML = habits.map(h => habitCardHTML(h)).join('') +
+  list.innerHTML = periodNavHTML('semana') + habits.map(h => habitCardHTML(h)).join('') +
     `<button class="add-habit-btn" id="add-habit-btn">+ NOVO HÁBITO</button>`;
+  attachPeriodNav(list);
 
   // attach events
   list.querySelectorAll('[data-habit-check]').forEach(btn => {
@@ -2032,8 +2397,9 @@ function renderHabitsWeek() {
 }
 
 function habitCardHTML(h) {
-  const todayDone = h.week[TODAY_IDX]===true;
-  const weekCells = h.week.map((day,i) => {
+  const week = getHabitWeek(h);
+  const todayDone = week[TODAY_IDX]===true;
+  const weekCells = week.map((day,i) => {
     const isTodayCell = i===TODAY_IDX;
     const clickable = day !== null;
     return `
@@ -2073,10 +2439,12 @@ function checkHabit(id) {
 
 function checkHabitDay(id, dayIdx) {
   const h = habits.find(h=>h.id===id);
-  if (!h || h.week[dayIdx] === null) return;
-  const was = h.week[dayIdx]===true;
-  h.week[dayIdx] = !was;
-  if (dayIdx === TODAY_IDX) {
+  if (!h) return;
+  const week = getHabitWeek(h);
+  if (week[dayIdx] === null) return;
+  const was = week[dayIdx]===true;
+  week[dayIdx] = !was;
+  if (habitWeekOffset === 0 && dayIdx === TODAY_IDX) {
     h.streak = was ? Math.max(0, h.streak-1) : h.streak+1;
   }
   renderAll();
@@ -2084,6 +2452,15 @@ function checkHabitDay(id, dayIdx) {
     const overlay = document.getElementById('modal-habit-detail');
     if (overlay.classList.contains('open')) openHabitDetail();
   }
+}
+
+function toggleHabitHeatmapDay(id, heatmapIdx) {
+  const h = habits.find(h=>h.id===id);
+  if (!h) return;
+  const heatmap = getHabitHeatmap(h);
+  if (heatmap[heatmapIdx] === null) return;
+  heatmap[heatmapIdx] = !heatmap[heatmapIdx];
+  renderAll();
 }
 
 function setupHabitDrag(card) {
@@ -2142,9 +2519,10 @@ function setupHabitDrag(card) {
 // ─── HABITS MONTH ────────────────────────────────────────────────────────────
 function renderHabitsMonth() {
   const list = document.getElementById('habits-list-month');
-  list.innerHTML = habits.map(h => {
+  list.innerHTML = periodNavHTML('mensal') + habits.map(h => {
+    const heatmap = getHabitHeatmap(h);
     const weeks = [];
-    for (let w=0;w<5;w++) weeks.push(h.heatmap.slice(w*7,w*7+7));
+    for (let w=0;w<5;w++) weeks.push(heatmap.slice(w*7,w*7+7));
     const heatmapHTML = `
       <div class="heatmap" style="--habit-color:${h.color}">
         <div class="heatmap-header">
@@ -2153,10 +2531,13 @@ function renderHabitsMonth() {
         </div>
         ${weeks.map((week,wi) => `
           <div class="heatmap-row">
-            <div class="heatmap-week-label">${MONTH_WEEKS[wi]}</div>
-            ${week.map(day => `
-              <div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"></div>
-            `).join('')}
+            <div class="heatmap-week-label">${habitMonthOffset === 0 ? MONTH_WEEKS[wi] : `Sem ${wi + 1}`}</div>
+            ${week.map((day,di) => {
+              const heatmapIdx = wi * 7 + di;
+              return `
+              <div class="heatmap-cell ${day===true?'done':day===false?'missed':'future'}"
+                   ${day !== null ? `data-heatmap-day="${h.id}" data-heatmap-idx="${heatmapIdx}"` : ''}></div>`;
+            }).join('')}
           </div>`).join('')}
       </div>`;
     return `
@@ -2169,6 +2550,14 @@ function renderHabitsMonth() {
         ${heatmapHTML}
       </div>`;
   }).join('') + '<div style="height:100px"></div>';
+  attachPeriodNav(list);
+  list.onclick = e => {
+    const cell = e.target.closest('[data-heatmap-day]');
+    if (cell) {
+      e.stopPropagation();
+      toggleHabitHeatmapDay(parseInt(cell.dataset.heatmapDay), parseInt(cell.dataset.heatmapIdx));
+    }
+  };
 }
 
 // ─── PROJECTS ────────────────────────────────────────────────────────────────
@@ -2203,17 +2592,86 @@ function renderProjects() {
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function renderProfile() {
-  document.getElementById('profile-items').innerHTML =
-    PROFILE_ITEMS.map((s,i) => `
-      <div class="profile-item ${i===PROFILE_ITEMS.length-1?'danger':''}">
-        <span>${s}</span>${CHEVRON}
+  const items = document.getElementById('profile-items');
+  items.innerHTML =
+    PROFILE_ITEMS.map(item => `
+      <div class="profile-item ${item.danger?'danger':''}" data-profile-action="${item.id}">
+        <span>${profileItemLabel(item)}</span>${CHEVRON}
       </div>`).join('');
+  items.querySelectorAll('[data-profile-action]').forEach(item => {
+    item.addEventListener('click', () => handleProfileAction(item.dataset.profileAction));
+  });
+}
+
+function profileItemLabel(item) {
+  if (item.id === 'appearance') return `${item.label}: ${darkTheme ? 'escura' : 'clara'}`;
+  if (item.id === 'notifications' && 'Notification' in window) {
+    const labels = { granted:'ativas', denied:'bloqueadas', default:'desativadas' };
+    return `${item.label}: ${labels[Notification.permission] || 'desativadas'}`;
+  }
+  return item.label;
+}
+
+function applyTheme() {
+  document.body.classList.toggle('dark', darkTheme);
+  localStorage.setItem('fd-theme', darkTheme ? 'dark' : 'light');
+}
+
+function handleProfileAction(action) {
+  if (action === 'appearance') {
+    darkTheme = !darkTheme;
+    applyTheme();
+    renderProfile();
+    showDayToast(darkTheme ? 'Tema escuro' : 'Tema claro');
+    return;
+  }
+
+  if (action === 'notifications') {
+    if (!('Notification' in window)) {
+      showDayToast('Notificacoes indisponiveis');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      showDayToast('Notificacoes ativas');
+      renderProfile();
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      showDayToast('Notificacoes bloqueadas');
+      renderProfile();
+      return;
+    }
+    Notification.requestPermission().then(permission => {
+      showDayToast(permission === 'granted' ? 'Notificacoes ativas' : 'Notificacoes desativadas');
+      renderProfile();
+    });
+    return;
+  }
+
+  if (action === 'account') {
+    window.alert('Ana Rodrigues\nana@email.com');
+    return;
+  }
+
+  if (action === 'logout') {
+    if (!window.confirm('Sair e limpar os dados salvos neste aparelho?')) return;
+    localStorage.removeItem('fd-tasks');
+    localStorage.removeItem('fd-habits');
+    localStorage.removeItem('fd-projects');
+    tasks = [];
+    habits = [];
+    PROJECTS.splice(0, PROJECTS.length);
+    renderAll();
+    showDayToast('Sessao encerrada');
+  }
 }
 
 // ─── TASK DETAIL MODAL ────────────────────────────────────────────────────────
 function openTaskDetail() {
   const task = tasks.find(t=>t.id===selectedTaskId);
   if (!task) return;
+  task.subtasks = task.subtasks || [];
+  task.attachments = task.attachments || [];
   const proj = PROJECTS.find(p=>p.id===task.projectId);
   const pc   = PRIORITY[task.priority];
 
@@ -2223,11 +2681,21 @@ function openTaskDetail() {
   tick.innerHTML = CHECK_SVG;
   tick.onclick = () => { toggleTask(task.id); closeModal('modal-task-detail'); };
 
-  document.getElementById('detail-title').textContent = task.title;
+  const titleEl = document.getElementById('detail-title');
+  titleEl.innerHTML = `<input class="detail-title-input" id="detail-title-input" value="${escapeAttr(task.title)}"/>`;
+  const titleInput = document.getElementById('detail-title-input');
+  titleInput.onchange = () => {
+    const nextTitle = titleInput.value.trim();
+    if (!nextTitle) {
+      titleInput.value = task.title;
+      return;
+    }
+    task.title = nextTitle;
+    renderAll();
+  };
 
   const tags = document.getElementById('detail-tags');
-  const dateIdx = WEEK_DATES.indexOf(task.date);
-  const dateLabel = dateIdx >= 0 ? DATES_MAP[task.date] : task.date;
+  const dateLabel = task.date ? getDateLabel(task.date) : '';
   tags.innerHTML = `
     <span class="tag" style="background:${pc.bg};color:${pc.color}">${pc.label}</span>
     ${proj?`<span class="tag" style="background:${proj.dot}18;color:${proj.dot}">${proj.name}</span>`:''}
@@ -2238,26 +2706,77 @@ function openTaskDetail() {
   `;
 
   const subs = document.getElementById('detail-subtasks');
-  if (task.subtasks?.length) {
-    let subDone = task.subtasks.map(()=>false);
-    subs.innerHTML = `
-      <div class="modal-label" style="margin-bottom:0">Subtarefas</div>
-      ${task.subtasks.map((s,i) => `
-        <div class="subtask-row" id="sr-${i}">
-          <button class="sub-tick" data-sub="${i}">${CHECK_SVG}</button>
-          <span class="sub-title">${s}</span>
-        </div>`).join('')}`;
+  subs.innerHTML = `
+    <div class="modal-label" style="margin-bottom:0">Subtarefas</div>
+    ${task.subtasks.map((s,i) => `
+      <div class="subtask-row">
+        <button class="sub-tick ${s.done?'checked':''}" data-sub-toggle="${i}">${CHECK_SVG}</button>
+        <span class="sub-title">${escapeHTML(s.title || s)}</span>
+      </div>`).join('')}
+    <button class="dotted-add-btn" id="show-subtask-add" type="button">+</button>
+    <div class="detail-add-row collapsed" id="subtask-add-row">
+      <input id="new-subtask-title" placeholder="Nova subtarefa..."/>
+      <button id="add-subtask-btn" type="button">ADD</button>
+    </div>
+    <div class="modal-label" style="margin-top:18px;margin-bottom:0">Anexos</div>
+    ${task.attachments.map((a,i) => `
+      <div class="attachment-row">
+        <span>${escapeHTML(a)}</span>
+        <button data-remove-attachment="${i}" type="button">REMOVER</button>
+      </div>`).join('')}
+    <button class="clip-add-btn" id="show-attachment-add" type="button" aria-label="Adicionar anexo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l9.8-9.8a4 4 0 0 1 5.7 5.7l-9.8 9.8a2 2 0 0 1-2.8-2.8l9.4-9.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="detail-add-row collapsed" id="attachment-add-row">
+      <input id="new-attachment-name" placeholder="Nome ou link do anexo..."/>
+      <button id="add-attachment-btn" type="button">ADD</button>
+    </div>`;
 
-    subs.querySelectorAll('[data-sub]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = parseInt(btn.dataset.sub);
-        subDone[i] = !subDone[i];
-        btn.classList.toggle('checked', subDone[i]);
-      });
+  subs.querySelectorAll('[data-sub-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.subToggle);
+      const raw = task.subtasks[i];
+      if (typeof raw === 'string') task.subtasks[i] = { title: raw, done: true };
+      else raw.done = !raw.done;
+      openTaskDetail();
+      renderAll();
     });
-  } else {
-    subs.innerHTML = '';
-  }
+  });
+  document.getElementById('show-subtask-add').onclick = () => {
+    const row = document.getElementById('subtask-add-row');
+    row.classList.toggle('collapsed');
+    if (!row.classList.contains('collapsed')) document.getElementById('new-subtask-title').focus();
+  };
+  document.getElementById('add-subtask-btn').onclick = () => {
+    const input = document.getElementById('new-subtask-title');
+    const title = input.value.trim();
+    if (!title) return;
+    task.subtasks.push({ title, done:false });
+    openTaskDetail();
+    renderAll();
+  };
+  document.getElementById('show-attachment-add').onclick = () => {
+    const row = document.getElementById('attachment-add-row');
+    row.classList.toggle('collapsed');
+    if (!row.classList.contains('collapsed')) document.getElementById('new-attachment-name').focus();
+  };
+  document.getElementById('add-attachment-btn').onclick = () => {
+    const input = document.getElementById('new-attachment-name');
+    const name = input.value.trim();
+    if (!name) return;
+    task.attachments.push(name);
+    openTaskDetail();
+    renderAll();
+  };
+  subs.querySelectorAll('[data-remove-attachment]').forEach(btn => {
+    btn.onclick = () => {
+      task.attachments.splice(parseInt(btn.dataset.removeAttachment), 1);
+      openTaskDetail();
+      renderAll();
+    };
+  });
 
   document.getElementById('edit-task-btn').onclick = () => {
     startEditTask(task.id);
@@ -2314,16 +2833,23 @@ function openHabitDetail() {
     <div class="detail-week-grid" style="margin-bottom:20px">
       ${h.week.map((day,i) => {
         const isT = i===TODAY_IDX;
+        const clickable = day !== null;
         return `
           <div class="detail-week-cell-wrap">
             <div class="detail-week-cell ${day===true?'done':''} ${isT&&day!==true?'today-cell':''} ${day===null?'future':''}"
-                 style="${day===true?`--habit-color:${h.color}`:''}">
+                 style="${day===true?`--habit-color:${h.color}`:''}"
+                 ${clickable ? `data-habit-detail-day="${h.id}" data-day-idx="${i}"` : ''}>
               ${day===true ? CHECK_SVG_SM : ''}
             </div>
             <span class="detail-week-label ${isT?'today-label':''}">${DAYS_SHORT[i].slice(0,3)}</span>
           </div>`;
       }).join('')}
     </div>`;
+  semanaView.querySelectorAll('[data-habit-detail-day]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      checkHabitDay(parseInt(cell.dataset.habitDetailDay), parseInt(cell.dataset.dayIdx));
+    });
+  });
 
   // heatmap
   const mensalView = document.getElementById('hd-mensal-view');
@@ -2353,64 +2879,108 @@ function openHabitDetail() {
 // ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
 function buildAddTaskModal() {
   const titleLabel = document.getElementById('task-modal-title');
-  if (titleLabel) titleLabel.textContent = editingTaskId ? 'Editar tarefa' : 'Nova tarefa';
-  document.getElementById('submit-task').textContent = editingTaskId ? 'SALVAR' : 'ADICIONAR';
+  const isEditing = editingTaskId !== null;
+  document.getElementById('modal-add-task').classList.toggle('editing', isEditing);
+  if (titleLabel) titleLabel.textContent = isEditing ? 'Editar tarefa' : 'Nova anotacao';
+  document.getElementById('submit-task').textContent = isEditing ? 'SALVAR' : 'CRIAR';
+  const advanced = document.getElementById('task-advanced-fields');
+  if (advanced) advanced.style.display = isEditing ? 'block' : 'none';
+  const timeInput = document.getElementById('task-time-input');
+  if (timeInput) {
+    timeInput.value = newTaskTime || '';
+    timeInput.onchange = () => { newTaskTime = timeInput.value; };
+  }
+  const clearTime = document.getElementById('task-time-clear');
+  if (clearTime) clearTime.onclick = () => {
+    newTaskTime = '';
+    if (timeInput) timeInput.value = '';
+  };
 
   // priority buttons
   const pg = document.getElementById('priority-group');
-  pg.innerHTML = Object.entries(PRIORITY).map(([k,v]) => `
-    <button class="choice-btn ${k===newPriority?'active':''}" data-p="${k}"
-      style="${k===newPriority?`border-color:${v.color};background:${v.bg};color:${v.color}`:''}">
-      ${v.label}
-    </button>`).join('');
-  pg.querySelectorAll('[data-p]').forEach(btn => {
-    btn.onclick = () => {
-      newPriority = btn.dataset.p;
+  if (pg) {
+    const priorityKeys = ['baixa','média','alta'];
+    const priorityIdx = Math.max(0, priorityKeys.indexOf(newPriority));
+    const pc = PRIORITY[newPriority] || PRIORITY['média'];
+    pg.innerHTML = `
+      <div class="priority-grow" style="--priority-color:${pc.color}">
+        <button type="button" id="priority-grow-btn">
+          <div class="priority-meter">
+            ${priorityKeys.map((_,i) => `<span class="${i <= priorityIdx ? 'on' : ''}"></span>`).join('')}
+          </div>
+          <div class="priority-grow-label">
+            <span>${pc.label}</span>
+            <small>toque para aumentar</small>
+          </div>
+        </button>
+      </div>`;
+    const growBtn = document.getElementById('priority-grow-btn');
+    if (growBtn) growBtn.onclick = () => {
+      newPriority = priorityKeys[(priorityIdx + 1) % priorityKeys.length];
       buildAddTaskModal();
     };
-  });
+  }
 
   // project buttons
   const prg = document.getElementById('project-group');
-  prg.innerHTML = PROJECTS.map(p => `
-    <button class="choice-btn" data-proj="${p.id}"
-      style="${p.id===newProjectId?`border-color:${p.dot};background:${p.dot}18;color:${p.dot}`:''}">
-      ${p.name}
-    </button>`).join('');
-  prg.querySelectorAll('[data-proj]').forEach(btn => {
-    btn.onclick = () => { newProjectId = parseInt(btn.dataset.proj); buildAddTaskModal(); };
-  });
+  if (prg) {
+    prg.innerHTML = `
+      <select class="task-select" id="task-project-select">
+        <option value="">Sem projeto</option>
+        ${PROJECTS.map(p => `<option value="${p.id}" ${p.id===newProjectId?'selected':''}>${p.name}</option>`).join('')}
+      </select>`;
+    const select = document.getElementById('task-project-select');
+    if (select) select.onchange = () => {
+      newProjectId = select.value ? parseInt(select.value) : null;
+    };
+  }
 
   const dg = document.getElementById('task-date-group');
-  dg.innerHTML = WEEK_DATES.map((date,i) => `
-    <button class="date-choice ${newTaskDate===date?'active':''}" data-task-date="${date}">
-      <span class="date-day">${DAYS_SHORT[i]}</span>
-      <span class="date-num">${9+i}</span>
-    </button>`).join('') + `
-    <button class="date-choice no-date ${newTaskDate===null?'active':''}" data-task-date="null">
-      <span class="date-day">Sem</span>
-      <span class="date-num">data</span>
-    </button>`;
-  dg.querySelectorAll('[data-task-date]').forEach(btn => {
-    btn.onclick = () => {
-      newTaskDate = btn.dataset.taskDate === 'null' ? null : btn.dataset.taskDate;
-      newHasDate = newTaskDate !== null;
-      buildAddTaskModal();
-    };
-  });
+  dg.className = 'task-date-field';
+  dg.innerHTML = `
+    <div class="task-date-editor">
+      <input type="date" id="task-date-input" value="${newTaskDate || ''}"/>
+      <button class="task-date-clear" id="task-date-clear" type="button">Sem data</button>
+    </div>`;
+  const dateInput = document.getElementById('task-date-input');
+  const clearDate = document.getElementById('task-date-clear');
+  if (dateInput) dateInput.onchange = () => {
+    newTaskDate = dateInput.value || null;
+    newHasDate = newTaskDate !== null;
+    if (newTaskDate) ensureDateInWeek(newTaskDate);
+  };
+  if (clearDate) clearDate.onclick = () => {
+    newTaskDate = null;
+    newHasDate = false;
+    buildAddTaskModal();
+  };
 
   const rg = document.getElementById('repeat-group');
-  rg.innerHTML = REPEAT_OPTIONS.map(opt => `
-    <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}"
-      style="${newRepeat===opt.id?'border-color:#111110;background:#111110;color:#fff':''}">
-      ${opt.label}
-    </button>`).join('');
-  rg.querySelectorAll('[data-repeat]').forEach(btn => {
-    btn.onclick = () => {
-      newRepeat = btn.dataset.repeat;
-      buildAddTaskModal();
-    };
-  });
+  if (rg) {
+    const activeRepeat = REPEAT_OPTIONS.find(opt => opt.id === newRepeat)?.label || 'Unica';
+    rg.innerHTML = `
+      <div class="repeat-section">
+        <button class="repeat-toggle" id="repeat-toggle" type="button">
+          <span>${activeRepeat}</span><span>abrir</span>
+        </button>
+        <div class="repeat-choice-group collapsed" id="repeat-options">
+          ${REPEAT_OPTIONS.map(opt => `
+            <button class="choice-btn ${newRepeat===opt.id?'active':''}" data-repeat="${opt.id}"
+              style="${newRepeat===opt.id?'border-color:#111110;background:#111110;color:#fff':''}">
+              ${opt.label}
+            </button>`).join('')}
+        </div>
+      </div>`;
+    const toggle = document.getElementById('repeat-toggle');
+    const options = document.getElementById('repeat-options');
+    if (toggle && options) toggle.onclick = () => options.classList.toggle('collapsed');
+    rg.querySelectorAll('[data-repeat]').forEach(btn => {
+      btn.onclick = () => {
+        newRepeat = btn.dataset.repeat;
+        buildAddTaskModal();
+      };
+    });
+  }
 
   // submit readiness
   const title = document.getElementById('new-task-title').value.trim();
@@ -2428,37 +2998,24 @@ document.getElementById('submit-task').addEventListener('click', () => {
       t.title = title;
       t.priority = newPriority;
       t.projectId = newProjectId;
+      t.time = newTaskTime;
       t.date = newTaskDate;
       t.repeat = newRepeat;
+      if (newTaskDate) ensureDateInWeek(newTaskDate);
     }
-  } else if (newRepeat === 'diaria' && newTaskDate) {
-    const startIdx = WEEK_DATES.indexOf(newTaskDate);
-    const seriesId = Date.now();
-    WEEK_DATES.slice(Math.max(0,startIdx)).forEach((date, i) => {
-      tasks.push({
-        id: seriesId + i,
-        seriesId,
-        title,
-        done: false,
-        priority: newPriority,
-        projectId: newProjectId,
-        time: '',
-        date,
-        repeat: 'diaria',
-        subtasks: [],
-      });
-    });
   } else {
+    if (newTaskDate) ensureDateInWeek(newTaskDate);
     tasks.push({
       id: Date.now(),
       title,
       done: false,
-      priority: newPriority,
-      projectId: newProjectId,
+      priority: 'média',
+      projectId: null,
       time: '',
       date: newTaskDate,
-      repeat: newRepeat,
+      repeat: 'nenhuma',
       subtasks: [],
+      attachments: [],
     });
   }
   document.getElementById('new-task-title').value = '';
@@ -2473,8 +3030,9 @@ function startEditTask(id) {
   if (!t) return;
   editingTaskId = id;
   newPriority = t.priority;
-  newProjectId = t.projectId;
+  newProjectId = t.projectId ?? null;
   newTaskDate = t.date;
+  newTaskTime = t.time || '';
   newRepeat = t.repeat || 'nenhuma';
   document.getElementById('new-task-title').value = t.title;
   closeModal('modal-task-detail');
@@ -2484,32 +3042,27 @@ function startEditTask(id) {
 
 // ─── ADD HABIT MODAL ──────────────────────────────────────────────────────────
 function buildColorSwatches() {
-  const sw = document.getElementById('color-swatches');
-  sw.innerHTML = COLORS.map(c =>
-    `<div class="color-swatch ${c===newHabitColor?'selected':''}" data-color="${c}"
-          style="background:${c}"></div>`
-  ).join('');
-  sw.querySelectorAll('[data-color]').forEach(el => {
-    el.addEventListener('click', () => {
-      newHabitColor = el.dataset.color;
-      buildColorSwatches();
-    });
-  });
+  const input = document.getElementById('habit-color-input');
+  const value = document.getElementById('habit-color-value');
+  if (!input || !value) return;
+  input.value = newHabitColor;
+  value.textContent = newHabitColor.toUpperCase();
+  input.oninput = () => {
+    newHabitColor = input.value;
+    value.textContent = newHabitColor.toUpperCase();
+  };
 }
 
 function buildProjectColorSwatches() {
-  const sw = document.getElementById('project-color-swatches');
-  if (!sw) return;
-  sw.innerHTML = COLORS.map(c =>
-    `<div class="color-swatch ${c===newProjectColor?'selected':''}" data-project-color="${c}"
-          style="background:${c}"></div>`
-  ).join('');
-  sw.querySelectorAll('[data-project-color]').forEach(el => {
-    el.addEventListener('click', () => {
-      newProjectColor = el.dataset.projectColor;
-      buildProjectColorSwatches();
-    });
-  });
+  const input = document.getElementById('project-color-input');
+  const value = document.getElementById('project-color-value');
+  if (!input || !value) return;
+  input.value = newProjectColor;
+  value.textContent = newProjectColor.toUpperCase();
+  input.oninput = () => {
+    newProjectColor = input.value;
+    value.textContent = newProjectColor.toUpperCase();
+  };
 }
 
 document.getElementById('new-habit-name').addEventListener('input', () => {
@@ -2520,6 +3073,8 @@ document.getElementById('new-habit-name').addEventListener('input', () => {
 document.getElementById('submit-habit').addEventListener('click', () => {
   const name = document.getElementById('new-habit-name').value.trim();
   if (!name) return;
+  const habitColorInput = document.getElementById('habit-color-input');
+  if (habitColorInput) newHabitColor = habitColorInput.value;
   if (editingHabitId) {
     const h = habits.find(h => h.id === editingHabitId);
     if (h) {
@@ -2557,6 +3112,8 @@ document.getElementById('new-project-name').addEventListener('input', () => {
 document.getElementById('submit-project').addEventListener('click', () => {
   const name = document.getElementById('new-project-name').value.trim();
   if (!name) return;
+  const colorInput = document.getElementById('project-color-input');
+  if (colorInput) newProjectColor = colorInput.value;
   PROJECTS.push({
     id: Date.now(),
     name,
@@ -2614,8 +3171,9 @@ function closeModal(id) {
 // ─── FAB ─────────────────────────────────────────────────────────────────────
 document.getElementById('fab').addEventListener('click', () => {
   if (currentNav === 'hoje') {
-    newPriority = 'média'; newProjectId = 1; newHasDate = true;
-    newTaskDate = WEEK_DATES[activeDay];
+    newPriority = 'média'; newProjectId = null; newHasDate = false;
+    newTaskDate = null;
+    newTaskTime = '';
     newRepeat = 'nenhuma';
     editingTaskId = null;
     document.getElementById('new-task-title').value = '';
@@ -2642,13 +3200,13 @@ document.getElementById('fab').addEventListener('click', () => {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 loadState();
+applyTheme();
 buildNav();
 buildWeekStrip();
 buildViewToggle();
 updateHeader();
 buildColorSwatches();
 buildProjectColorSwatches();
-attachDayScrollNavigation();
 renderAll();
 
 if ('serviceWorker' in navigator) {
