@@ -277,11 +277,11 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 22px 20px 20px;
-    margin: 0 -20px 6px;
-    background: var(--deep);
-    border-top: 1px solid var(--rule);
-    border-bottom: 1px solid var(--rule);
+    min-height: 46px;
+    padding: 7px 0;
+    margin: 0;
+    background: transparent;
+    border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 72%, transparent);
   }
   .inline-task-input {
     flex: 1;
@@ -352,17 +352,31 @@
   .screen.active { display: block; }
 
   /* ── TASK LIST ── */
-  .task-list { padding: 0 20px; }
+  .task-list {
+    padding: 0 20px;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 45px,
+        color-mix(in srgb, var(--rule) 58%, transparent) 45px,
+        color-mix(in srgb, var(--rule) 58%, transparent) 46px
+      );
+    background-position: 0 13px;
+  }
   .section-label {
     font-family: var(--serif);
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 400;
     letter-spacing: -0.2px;
     text-transform: none;
     color: var(--ink);
-    margin: 24px 0 4px;
-    padding-bottom: 6px;
-    border-bottom: 1.5px solid var(--ink);
+    margin: 20px 0 0;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border-bottom: 0.5px solid color-mix(in srgb, var(--ink) 34%, transparent);
   }
   .section-label.today { color: var(--ink); }
   .day-empty {
@@ -370,8 +384,11 @@
     font-style: italic;
     font-size: 16px;
     color: var(--ink-faint);
-    padding: 28px 0;
-    text-align: center;
+    min-height: 46px;
+    padding: 12px 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
   }
   .section-label.nodate {
     color: var(--ink-mid);
@@ -383,7 +400,7 @@
   .task-swipe-wrap {
     position: relative;
     overflow: hidden;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: none;
   }
   .task-delete-bg {
     position: absolute;
@@ -446,19 +463,21 @@
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    padding: 14px 0;
+    min-height: 46px;
+    padding: 7px 0;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     position: relative;
     touch-action: pan-y;
     user-select: none;
-    background: var(--bg);
+    background: transparent;
   }
   .task-row.done { opacity: 0.38; }
   .task-row.dragging {
     transition: none;
     z-index: 2;
     border-radius: 12px;
+    background: var(--bg);
     box-shadow: 0 10px 22px rgba(17,17,16,0.1);
   }
   .task-row.deleting {
@@ -490,9 +509,7 @@
   }
   .drag-hint.left { right: 0; background: var(--red); }
   .drag-hint.right { left: 0; background: var(--green); }
-  .task-row.next-hint .drag-hint.right,
   .task-row.gesture-demo .drag-hint.right { opacity: 1; }
-  .task-row.delete-hint .drag-hint.left { opacity: 1; }
   .task-row.gesture-demo {
     animation: taskGestureDemo 0.88s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 2;
@@ -554,13 +571,13 @@
     font-size: 19px;
     font-weight: 400;
     color: var(--ink);
-    line-height: 1.35;
+    line-height: 1.25;
   }
   .task-row.done .task-title { text-decoration: line-through; }
   .task-meta {
     display: flex;
     gap: 10px;
-    margin-top: 5px;
+    margin-top: 2px;
     align-items: center;
     flex-wrap: wrap;
   }
@@ -728,6 +745,19 @@
   }
   .habit-check svg { display: none; }
   .habit-check.done svg { display: block; }
+  .habit-element {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--habit-color) 14%, var(--surface));
+    color: var(--habit-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
   .habit-info { flex: 1; }
   .habit-name {
     font-family: var(--serif);
@@ -873,6 +903,18 @@
     margin-bottom: 14px;
   }
   .habit-month-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .habit-month-element {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--habit-color) 13%, var(--surface));
+    color: var(--habit-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
   .habit-month-name {
     font-family: var(--serif);
     font-size: 15px;
@@ -938,6 +980,7 @@
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 10px;
+    cursor: pointer;
   }
   .project-name-wrap {
     display: flex;
@@ -970,7 +1013,11 @@
     gap: 8px;
     padding: 8px 0;
     border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.12s;
   }
+  .project-task:active { background: var(--deep); }
   .project-task.done { opacity: 0.32; }
   .project-task-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
   .project-task-title {
@@ -1556,6 +1603,28 @@
     font-weight: 700;
     color: var(--ink-mid);
     font-family: var(--mono);
+  }
+  .element-picker {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 22px;
+  }
+  .element-choice {
+    min-width: 0;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-size: 17px;
+    cursor: pointer;
+    font-family: var(--mono);
+  }
+  .element-choice.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
   }
   .modal-checkbox-row {
     display: flex;
@@ -2518,6 +2587,8 @@
       <div class="modal-handle"></div>
       <div class="modal-label">Novo hábito</div>
       <input class="modal-input" id="new-habit-name" placeholder="Nome do hábito..."/>
+      <div class="modal-label">Elemento</div>
+      <div class="element-picker" id="habit-element-picker"></div>
       <div class="modal-label">Onde quero chegar</div>
       <textarea class="modal-textarea" id="new-habit-goal" rows="2" placeholder="Quero ser alguém que aprende todos os dias..."></textarea>
       <div class="modal-label">Gatilho</div>
@@ -2830,6 +2901,7 @@ const PRIORITY = {
   baixa: { label:'Baixa', color:'#2A6E4A', bg:'#E6F0EB' },
 };
 const COLORS = ['#C84B2F','#B07D2A','#2A6E4A','#2A5FA3','#7A4FA3'];
+const HABIT_ELEMENTS = ['◐','✦','◆','●','☀','☾','✓','＋','◇','◎','▵','▣'];
 const REPEAT_OPTIONS = [
   { id:'nenhuma', label:'Unica' },
   { id:'diaria', label:'Diaria' },
@@ -2899,6 +2971,7 @@ function alignHabitWeek(week, offset) {
 }
 function normalizeHabits() {
   habits.forEach(h => {
+    if (!h.element) h.element = HABIT_ELEMENTS[(h.id || 0) % HABIT_ELEMENTS.length] || HABIT_ELEMENTS[0];
     h.week = alignHabitWeek(h.week, 0);
     if (h.weekPages) {
       Object.keys(h.weekPages).forEach(k => {
@@ -2996,6 +3069,7 @@ let newTaskDate = TODAY;
 let newTaskTime = '';
 let newRepeat = 'nenhuma';
 let newHabitColor = '#B07D2A';
+let newHabitElement = '◐';
 let newProjectColor = '#C84B2F';
 let editingProjectId = null;
 let editingTaskId = null;
@@ -3694,6 +3768,31 @@ function wireInlineTaskInput() {
       submit();
     });
   }
+
+}
+
+function wireNotebookAddTap() {
+  const list = document.getElementById('task-list-pending');
+  if (!list) return;
+  if (list._notebookTapBound) return;
+  list._notebookTapBound = true;
+
+  list.addEventListener('click', e => {
+    if (taskDragActive || calendarSwipeActive) return;
+    if (e.target.closest('button,input,textarea,select,.task-row,.task-swipe-wrap,.reschedule-panel')) return;
+    const canFocus = e.target === list || e.target.closest('.day-empty,.section-label,.inline-task-row');
+    if (!canFocus) return;
+
+    const dateTarget = e.target.closest('[data-section-date],[data-empty-date]');
+    const targetDate = dateTarget?.dataset.sectionDate || dateTarget?.dataset.emptyDate;
+    if (targetDate && targetDate !== WEEK_DATES[activeDay]) {
+      navigateToDate(targetDate);
+      window.setTimeout(() => document.getElementById('inline-task-input')?.focus(), 40);
+      return;
+    }
+
+    document.getElementById('inline-task-input')?.focus();
+  });
 }
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
@@ -3712,10 +3811,10 @@ function renderDayList() {
     </div>`;
 
   const label = getDateLabel(dayKey);
-  html += `<div class="section-label${isToday ? ' today' : ''}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+  html += `<div class="section-label${isToday ? ' today' : ''}" data-section-date="${dayKey}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
 
   if (dayTasks.length === 0) {
-    html += `<div class="day-empty">Sem tarefas para este dia.</div>`;
+    html += `<div class="day-empty" data-empty-date="${dayKey}">Sem tarefas para este dia.</div>`;
   } else {
     html += dayTasks.map(t => taskRowHTML(t)).join('');
   }
@@ -3730,6 +3829,7 @@ function renderDayList() {
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
   wireInlineTaskInput();
+  wireNotebookAddTap();
   attachTaskEvents();
 }
 
@@ -3755,10 +3855,10 @@ function renderTaskList() {
     const label = getDateLabel(dateKey);
     const isToday = dateKey === TODAY;
     const cls = `section-label${isToday ? ' today' : ''}`;
-    html += `<div class="${cls}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+    html += `<div class="${cls}" data-section-date="${dateKey}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
     html += group.length
       ? group.map(t => taskRowHTML(t)).join('')
-      : `<div class="day-empty">Sem tarefas para este dia.</div>`;
+      : `<div class="day-empty" data-empty-date="${dateKey}">Sem tarefas para este dia.</div>`;
   });
 
   if (undatedTasks.length) {
@@ -3771,6 +3871,7 @@ function renderTaskList() {
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
   wireInlineTaskInput();
+  wireNotebookAddTap();
   attachTaskEvents();
 }
 
@@ -3793,8 +3894,6 @@ function taskRowHTML(task) {
         </div>
       </div>
       <div class="task-row ${task.done?'done':''}" data-id="${task.id}" ${checkStyle}>
-        <div class="drag-hint left">Solte: apagar</div>
-        <div class="drag-hint right">Solte: proximo dia</div>
         <button class="tick-btn ${task.done?'checked':''}" data-tick="${task.id}" ${checkStyle}>
           ${CHECK_SVG}
         </button>
@@ -3842,7 +3941,8 @@ function attachTaskEvents() {
         row.dataset.suppressClick = 'false';
         return;
       }
-      startEditTask(parseInt(row.dataset.id));
+      selectedTaskId = parseInt(row.dataset.id);
+      openTaskDetail();
     });
     // drag to reschedule
     setupDrag(row);
@@ -3868,28 +3968,18 @@ function attachTaskEvents() {
 }
 
 function runTaskGestureDemo() {
-  if (sessionStorage.getItem('fd-gesture-demo') === '1') return;
-  const row = document.querySelector('#task-list-pending .task-row:not(.done)');
-  if (!row) return;
-  sessionStorage.setItem('fd-gesture-demo', '1');
-  row.dataset.suppressClick = 'true';
-  window.setTimeout(() => {
-    row.classList.add('gesture-demo');
-    window.setTimeout(() => {
-      row.classList.remove('gesture-demo');
-      row.dataset.suppressClick = 'false';
-    }, 950);
-  }, 240);
+  // Intentionally empty: swipe hints were removed to keep task rows feeling like a notebook.
 }
 
 function setupDrag(row) {
-  let startX = 0, startY = 0, offset = 0, dragging = false, ready = false, moved = false, pressed = false, holdTimer = null;
+  let startX = 0, startY = 0, offset = 0, dragging = false, moved = false, pressed = false;
   const id = row.dataset.id;
   const wrap = row.closest('.task-swipe-wrap');
-  const DELETE_LIMIT = 86;
-  const NEXT_DAY_LIMIT = 76;
-  const MAX_PULL = 118;
-  const MAX_RIGHT_PULL = 104;
+  const DELETE_LIMIT = 68;
+  const NEXT_DAY_LIMIT = 62;
+  const MAX_PULL = 104;
+  const MAX_RIGHT_PULL = 92;
+  const START_LIMIT = 10;
 
   const setTrashProgress = (progress) => {
     if (!wrap) return;
@@ -3904,23 +3994,20 @@ function setupDrag(row) {
   };
 
   const resetDrag = () => {
-    clearTimeout(holdTimer);
     pressed = false;
-    ready = false;
     dragging = false;
     taskDragActive = false;
-    row.classList.remove('drag-ready','dragging','next-hint','delete-hint');
+    row.classList.remove('drag-ready','dragging');
     row.style.transform = '';
     clearSwipeClasses();
   };
 
   const animateDelete = () => {
     pressed = false;
-    ready = false;
     dragging = false;
     taskDragActive = false;
     row.dataset.suppressClick = 'true';
-    row.classList.remove('drag-ready','dragging','next-hint','delete-hint');
+    row.classList.remove('drag-ready','dragging');
     row.classList.add('deleting');
     if (wrap) {
       wrap.classList.add('deleting', 'delete-ready');
@@ -3931,30 +4018,24 @@ function setupDrag(row) {
 
   row.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
-    if (row.setPointerCapture) row.setPointerCapture(e.pointerId);
     startX = e.clientX;
     startY = e.clientY;
     offset = 0;
     moved = false;
     pressed = true;
-    clearTimeout(holdTimer);
-    holdTimer = setTimeout(() => {
-      ready = true;
-      taskDragActive = true;
-      row.classList.add('drag-ready');
-    }, 170);
   });
 
   row.addEventListener('pointermove', e => {
     if (!pressed) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx) && !ready) {
-      clearTimeout(holdTimer);
+    if (!dragging && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+      pressed = false;
       return;
     }
-    if (!ready && Math.abs(dx) < 14) return;
-    ready = true;
+    if (!dragging && (Math.abs(dx) < START_LIMIT || Math.abs(dx) < Math.abs(dy) * 1.25)) return;
+    e.preventDefault();
+    if (!dragging && row.setPointerCapture) row.setPointerCapture(e.pointerId);
     dragging = true;
     taskDragActive = true;
     moved = true;
@@ -3963,12 +4044,9 @@ function setupDrag(row) {
     offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
     row.style.transform = `translateX(${offset}px)`;
     setTrashProgress(Math.min(1, Math.abs(Math.min(0, offset)) / MAX_PULL));
-    row.classList.toggle('next-hint', offset > 18);
-    row.classList.toggle('delete-hint', offset < -18);
   });
 
   row.addEventListener('pointerup', () => {
-    clearTimeout(holdTimer);
     if (dragging && offset < -DELETE_LIMIT) {
       row.dataset.suppressClick = 'true';
       animateDelete();
@@ -3980,7 +4058,7 @@ function setupDrag(row) {
       moveTaskByDays(parseInt(id), 1);
       return;
     }
-    if (moved || dragging || ready) row.dataset.suppressClick = 'true';
+    if (moved || dragging) row.dataset.suppressClick = 'true';
     resetDrag();
     offset = 0;
   });
@@ -4150,7 +4228,9 @@ function renderHabitsWeek() {
     document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
     document.getElementById('submit-habit').className = 'modal-submit';
     newHabitColor = '#B07D2A';
+    newHabitElement = HABIT_ELEMENTS[0];
     buildColorSwatches();
+    buildHabitElementPicker();
     openModal('modal-add-habit');
   });
 }
@@ -4179,6 +4259,7 @@ function habitCardHTML(h) {
         <button class="habit-check ${todayDone?'done':''}" data-habit-check="${h.id}">
           ${CHECK_SVG}
         </button>
+        <div class="habit-element" aria-hidden="true">${escapeHTML(h.element || HABIT_ELEMENTS[0])}</div>
         <div class="habit-info">
           <div class="habit-name">${h.name}</div>
           <div class="habit-cue">${h.cue}</div>
@@ -4303,7 +4384,7 @@ function renderHabitsMonth() {
     return `
       <div class="habit-month-card" style="--habit-color:${h.color}">
         <div class="habit-month-header">
-          <div class="habit-month-dot" style="background:${h.color}"></div>
+          <div class="habit-month-element" aria-hidden="true">${escapeHTML(h.element || HABIT_ELEMENTS[0])}</div>
           <div class="habit-month-name">${h.name}</div>
           <button class="habit-month-check ${todayDone?'done':''}" data-month-check="${h.id}" style="color:${h.color}" title="Marcar hoje">${todayDone?'✓':'○'}</button>
         </div>
@@ -4336,7 +4417,7 @@ function renderProjects() {
     const pct = total>0 ? (done/total)*100 : 0;
     return `
       <div class="project-block" style="${idx===PROJECTS.length-1?'border-bottom:none':''}">
-        <div class="project-header">
+        <div class="project-header" data-open-project="${p.id}">
           <div class="project-name-wrap">
             <div class="project-dot" style="background:${p.dot}"></div>
             <div class="project-name">${p.name}</div>
@@ -4350,7 +4431,7 @@ function renderProjects() {
           <div class="project-bar-fill" style="width:${pct}%"></div>
         </div>
         ${projTasks.map(t => `
-          <div class="project-task ${t.done?'done':''}">
+          <div class="project-task ${t.done?'done':''}" data-project-task="${t.id}">
             <div class="project-task-dot" style="background:${t.done?'#D8D7D0':p.dot}"></div>
             <div class="project-task-title">${t.title}</div>
             ${!t.date ? `<div class="project-task-nodate">sem data</div>` : ''}
@@ -4383,6 +4464,28 @@ function renderProjects() {
       document.getElementById('modal-add-project').querySelector('.modal-label').textContent = 'Editar projeto';
       buildProjectColorSwatches();
       openModal('modal-add-project');
+    });
+  });
+
+  view.querySelectorAll('[data-open-project]').forEach(header => {
+    header.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      const p = PROJECTS.find(x => x.id === parseInt(header.dataset.openProject));
+      if (!p) return;
+      editingProjectId = p.id;
+      newProjectColor = p.dot;
+      document.getElementById('new-project-name').value = p.name;
+      document.getElementById('new-project-name').dispatchEvent(new Event('input'));
+      document.getElementById('submit-project').textContent = 'SALVAR';
+      document.getElementById('modal-add-project').querySelector('.modal-label').textContent = 'Editar projeto';
+      buildProjectColorSwatches();
+      openModal('modal-add-project');
+    });
+  });
+
+  view.querySelectorAll('[data-project-task]').forEach(row => {
+    row.addEventListener('click', () => {
+      startEditTask(parseInt(row.dataset.projectTask));
     });
   });
 }
@@ -4758,17 +4861,7 @@ function openTaskDetail() {
   tick.onclick = () => { toggleTask(task.id); closeModal('modal-task-detail'); };
 
   const titleEl = document.getElementById('detail-title');
-  titleEl.innerHTML = `<input class="detail-title-input" id="detail-title-input" value="${escapeAttr(task.title)}"/>`;
-  const titleInput = document.getElementById('detail-title-input');
-  titleInput.onchange = () => {
-    const nextTitle = titleInput.value.trim();
-    if (!nextTitle) {
-      titleInput.value = task.title;
-      return;
-    }
-    task.title = nextTitle;
-    renderAll();
-  };
+  titleEl.textContent = task.title;
 
   const tags = document.getElementById('detail-tags');
   const dateLabel = task.date ? getDateLabel(task.date) : '';
@@ -4881,7 +4974,7 @@ function openHabitDetail() {
   chk.innerHTML = CHECK_SVG;
   chk.onclick = () => checkHabit(h.id);
 
-  document.getElementById('hd-title').textContent = h.name;
+  document.getElementById('hd-title').textContent = `${h.element || HABIT_ELEMENTS[0]} ${h.name}`;
 
   const goalBlock = document.getElementById('hd-goal-block');
   goalBlock.style.cssText = `background:${h.color}12;border-left:2.5px solid ${h.color};border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:20px;margin-left:42px`;
@@ -5250,6 +5343,21 @@ function buildColorSwatches() {
   };
 }
 
+function buildHabitElementPicker() {
+  const picker = document.getElementById('habit-element-picker');
+  if (!picker) return;
+  picker.innerHTML = HABIT_ELEMENTS.map(element => `
+    <button type="button" class="element-choice ${element === newHabitElement ? 'active' : ''}" data-habit-element="${escapeAttr(element)}">
+      ${escapeHTML(element)}
+    </button>`).join('');
+  picker.querySelectorAll('[data-habit-element]').forEach(btn => {
+    btn.onclick = () => {
+      newHabitElement = btn.dataset.habitElement;
+      buildHabitElementPicker();
+    };
+  });
+}
+
 function buildProjectColorSwatches() {
   const input = document.getElementById('project-color-input');
   const value = document.getElementById('project-color-value');
@@ -5280,6 +5388,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
       h.goal = document.getElementById('new-habit-goal').value.trim();
       h.cue = document.getElementById('new-habit-cue').value.trim();
       h.color = newHabitColor;
+      h.element = newHabitElement;
       h.reminderTime = reminderTime || null;
     }
   } else {
@@ -5289,6 +5398,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
       goal: document.getElementById('new-habit-goal').value.trim(),
       cue:  document.getElementById('new-habit-cue').value.trim(),
       color: newHabitColor,
+      element: newHabitElement,
       reminderTime: reminderTime || null,
       streak: 0,
       week: Array(7).fill(null),
@@ -5299,6 +5409,7 @@ document.getElementById('submit-habit').addEventListener('click', () => {
   document.getElementById('new-habit-goal').value = '';
   document.getElementById('new-habit-cue').value  = '';
   document.getElementById('new-habit-reminder').value = '';
+  newHabitElement = HABIT_ELEMENTS[0];
   editingHabitId = null;
   document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
   closeModal('modal-add-habit');
@@ -5335,6 +5446,7 @@ function startEditHabit(id) {
   if (!h) return;
   editingHabitId = id;
   newHabitColor = h.color;
+  newHabitElement = h.element || HABIT_ELEMENTS[0];
   document.getElementById('new-habit-name').value = h.name;
   document.getElementById('new-habit-goal').value = h.goal || '';
   document.getElementById('new-habit-cue').value = h.cue || '';
@@ -5342,6 +5454,7 @@ function startEditHabit(id) {
   document.getElementById('submit-habit').textContent = 'SALVAR';
   document.getElementById('submit-habit').className = 'modal-submit ready';
   buildColorSwatches();
+  buildHabitElementPicker();
   closeModal('modal-habit-detail');
   openModal('modal-add-habit');
 }
@@ -5420,7 +5533,9 @@ document.getElementById('fab').addEventListener('click', () => {
     document.getElementById('submit-habit').textContent = 'CRIAR HÁBITO';
     document.getElementById('submit-habit').className = 'modal-submit';
     newHabitColor = '#B07D2A';
+    newHabitElement = HABIT_ELEMENTS[0];
     buildColorSwatches();
+    buildHabitElementPicker();
     openModal('modal-add-habit');
   } else if (currentNav === 'projetos') {
     newProjectColor = COLORS[PROJECTS.length % COLORS.length];
@@ -5444,6 +5559,7 @@ setupCalendarSwipe();
 setupScrollOverflow();
 setupCommandPalette();
 buildColorSwatches();
+buildHabitElementPicker();
 buildProjectColorSwatches();
 renderAll();
 
