@@ -298,6 +298,16 @@
     color: var(--ink-faint);
     font-style: italic;
   }
+  .inline-task-row.bottom {
+    background: transparent;
+    border-top: none;
+    border-bottom: none;
+    padding: 18px 20px 8px;
+    margin-bottom: 0;
+  }
+  .inline-task-row.bottom .inline-task-input::placeholder {
+    color: var(--ink-ghost);
+  }
   .day-btn {
     flex: 0 0 auto;
     scroll-snap-align: center;
@@ -3795,6 +3805,36 @@ function wireNotebookAddTap() {
   });
 }
 
+function wireBottomInlineInput() {
+  const input = document.getElementById('inline-task-input-bottom');
+  if (!input) return;
+  const tickBtn = input.parentElement.querySelector('.tick-btn');
+
+  const submit = () => {
+    const title = input.value.trim();
+    if (!title) return;
+    tasks.push({ id: Date.now(), title, done: false, priority: 'média',
+                 projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
+    renderAll();
+    const next = document.getElementById('inline-task-input-bottom');
+    if (next) next.focus();
+  };
+
+  const updateTick = () => {
+    if (!tickBtn) return;
+    const hasText = !!input.value.trim();
+    tickBtn.style.opacity = hasText ? '1' : '0.2';
+    tickBtn.style.pointerEvents = hasText ? 'auto' : 'none';
+  };
+
+  input.addEventListener('input', updateTick);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+  });
+  input.addEventListener('change', () => { if (input.value.trim()) submit(); });
+  if (tickBtn) tickBtn.addEventListener('click', e => { e.preventDefault(); submit(); });
+}
+
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
@@ -3866,6 +3906,15 @@ function renderTaskList() {
     html += undatedTasks.map(t => taskRowHTML(t)).join('');
   }
 
+  html += `
+    <div class="inline-task-row bottom">
+      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
+      <input class="inline-task-input" id="inline-task-input-bottom" type="text"
+             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false"
+             enterkeyhint="done">
+    </div>
+    <div style="height:80px"></div>`;
+
   document.getElementById('task-list-pending').innerHTML = html;
   document.getElementById('task-list-done-wrap').style.display = 'none';
   document.getElementById('task-list-undated-wrap').style.display = 'none';
@@ -3873,6 +3922,7 @@ function renderTaskList() {
   wireInlineTaskInput();
   wireNotebookAddTap();
   attachTaskEvents();
+  wireBottomInlineInput();
 }
 
 function taskRowHTML(task) {
