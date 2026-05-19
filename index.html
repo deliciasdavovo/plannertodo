@@ -177,8 +177,8 @@
     transform: scale(1.012);
   }
   .loading-badge-card {
-    width: 176px;
-    height: 156px;
+    width: 88px;
+    height: 78px;
     border-radius: var(--radius-xl);
     background: transparent;
     border: none;
@@ -190,15 +190,15 @@
   }
   .loading-logo {
     position: relative;
-    width: 148px;
-    height: 136px;
+    width: 74px;
+    height: 68px;
     animation: loadingLogoSettle 960ms var(--ease-out) both;
   }
   .loading-logo::after {
     content: '';
     position: absolute;
-    inset: -20px -18px;
-    border-radius: 54px;
+    inset: -10px -9px;
+    border-radius: 27px;
     background: radial-gradient(ellipse at 50% 74%, rgba(17,17,16,.08), transparent 58%);
     opacity: 0;
     transform: scale(.72);
@@ -206,58 +206,58 @@
   }
   .loading-stone {
     position: absolute;
-    height: 25px;
-    border-radius: 9px 11px 8px 10px;
+    height: 12.5px;
+    border-radius: 4.5px 5.5px 4px 5px;
     background: #111110;
-    box-shadow: 0 8px 16px rgba(17,17,16,.10), 0 1px 2px rgba(17,17,16,.10);
+    box-shadow: 0 4px 8px rgba(17,17,16,.10), 0 1px 2px rgba(17,17,16,.10);
     opacity: 0;
     transform-origin: center;
     z-index: 1;
     animation: stoneStack 560ms cubic-bezier(.18,.9,.22,1.16) forwards;
   }
   .loading-stone:nth-child(1) {
-    width: 82px;
-    right: 3px;
+    width: 41px;
+    right: 1.5px;
     top: 0;
-    border-radius: 9px 10px 8px 9px;
-    --stone-x: 14px;
-    --stone-y: 24px;
+    border-radius: 4.5px 5px 4px 4.5px;
+    --stone-x: 7px;
+    --stone-y: 12px;
     --stone-r: 1.2deg;
     --stone-final-r: -1.2deg;
     animation-delay: 360ms;
   }
   .loading-stone:nth-child(2) {
-    width: 120px;
-    right: 32px;
-    top: 38px;
-    height: 28px;
-    border-radius: 10px 11px 9px 10px;
-    --stone-x: -10px;
-    --stone-y: 23px;
+    width: 60px;
+    right: 16px;
+    top: 19px;
+    height: 14px;
+    border-radius: 5px 5.5px 4.5px 5px;
+    --stone-x: -5px;
+    --stone-y: 11.5px;
     --stone-r: -1.1deg;
     --stone-final-r: -1.1deg;
     animation-delay: 260ms;
   }
   .loading-stone:nth-child(3) {
-    width: 112px;
-    left: 17px;
-    top: 72px;
-    height: 27px;
-    border-radius: 10px 9px 9px 10px;
-    --stone-x: 10px;
-    --stone-y: 22px;
+    width: 56px;
+    left: 8.5px;
+    top: 36px;
+    height: 13.5px;
+    border-radius: 5px 4.5px 4.5px 5px;
+    --stone-x: 5px;
+    --stone-y: 11px;
     --stone-r: 1deg;
     --stone-final-r: -1.8deg;
     animation-delay: 160ms;
   }
   .loading-stone:nth-child(4) {
-    width: 148px;
+    width: 74px;
     left: 0;
-    top: 106px;
-    height: 29px;
-    border-radius: 10px 9px 10px 11px;
-    --stone-x: -8px;
-    --stone-y: 22px;
+    top: 53px;
+    height: 14.5px;
+    border-radius: 5px 4.5px 5px 5.5px;
+    --stone-x: -4px;
+    --stone-y: 11px;
     --stone-r: -1.4deg;
     --stone-final-r: 1.4deg;
     animation-delay: 60ms;
