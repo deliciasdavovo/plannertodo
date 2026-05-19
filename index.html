@@ -281,7 +281,7 @@
     padding: 7px 0;
     margin: 0;
     background: transparent;
-    border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 72%, transparent);
+    border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 58%, transparent);
   }
   .inline-task-input {
     flex: 1;
@@ -324,6 +324,7 @@
     transition: background 0.15s;
   }
   .day-btn.active { background: var(--day-selected); }
+  #week-strip.week-mode .day-btn.active { background: transparent; }
   .day-letter {
     font-size: 9px;
     font-weight: 700;
@@ -332,6 +333,7 @@
     color: var(--ink-faint);
   }
   .day-btn.active .day-letter { color: color-mix(in srgb, var(--day-selected-text) 52%, transparent); }
+  #week-strip.week-mode .day-btn.active .day-letter { color: var(--ink-faint); }
   .day-num {
     font-family: var(--serif);
     font-size: 15px;
@@ -339,7 +341,10 @@
   }
   .day-btn.today .day-num { color: var(--ink); }
   .day-btn.active .day-num { color: var(--day-selected-text); }
+  #week-strip.week-mode .day-btn.active .day-num { color: var(--ink-mid); }
+  #week-strip.week-mode .day-btn.today .day-num { color: var(--ink); }
   [data-theme="sol"] .day-btn.active .day-num { color: #F5C430; }
+  [data-theme="sol"] #week-strip.week-mode .day-btn.active .day-num { color: var(--ink-mid); }
   [data-theme="sol"] .nav-btn.active { color: #F5C430 !important; }
   .day-dot {
     width: 3px; height: 3px;
@@ -358,22 +363,15 @@
   #content::-webkit-scrollbar { display: none; }
 
   /* ── SCREENS ── */
-  .screen { display: none; }
+  .screen { display: none; will-change: transform; }
   .screen.active { display: block; }
+  .screen.swipe-anim { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
 
   /* ── TASK LIST ── */
   .task-list {
     padding: 0 20px;
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent 45px,
-        color-mix(in srgb, var(--rule) 58%, transparent) 45px,
-        color-mix(in srgb, var(--rule) 58%, transparent) 46px
-      );
-    background-position: 0 13px;
   }
+  .task-list > :last-child { border-bottom: none; }
   .section-label {
     font-family: var(--serif);
     font-size: 20px;
@@ -481,6 +479,7 @@
     touch-action: pan-y;
     user-select: none;
     background: transparent;
+    border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 58%, transparent);
   }
   .task-row.done { opacity: 0.38; }
   .task-row.dragging {
@@ -489,11 +488,13 @@
     border-radius: 12px;
     background: var(--bg);
     box-shadow: 0 10px 22px rgba(17,17,16,0.1);
+    border-bottom: none;
   }
   .task-row.deleting {
     transition: transform 0.24s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.2s ease;
     transform: translateX(-92px) scale(0.86) !important;
     opacity: 0;
+    border-bottom-color: transparent;
   }
   .task-row.drag-ready {
     transform: scale(0.985);
@@ -3197,36 +3198,141 @@ function setupCalendarSwipe() {
   if (!content) return;
 
   let startX = 0, startY = 0, started = false, blocked = false;
+  let dragging = false, screen = null, width = 0, lastX = 0, lastT = 0, velocity = 0, currentDx = 0;
+  let rafId = 0, pendingDx = 0;
   const BLOCKED_SELECTOR = 'button,input,textarea,select,.task-row,.habit-card,.modal-overlay,[data-heatmap-day],[data-detail-heatmap]';
-  const THRESHOLD = 54;
+
+  const rubber = dx => {
+    const limit = width * 0.6;
+    const ax = Math.abs(dx);
+    if (ax <= limit) return dx;
+    return Math.sign(dx) * (limit + (ax - limit) * 0.35);
+  };
+
+  const applyTransform = () => {
+    rafId = 0;
+    if (screen) screen.style.transform = `translateX(${rubber(pendingDx)}px)`;
+  };
+
+  const clearTransform = el => {
+    if (!el) return;
+    el.classList.remove('swipe-anim');
+    el.style.transform = '';
+  };
+
+  const settleBack = el => {
+    if (!el) return;
+    el.classList.add('swipe-anim');
+    el.style.transform = 'translateX(0px)';
+    const done = ev => {
+      if (ev.propertyName !== 'transform') return;
+      el.removeEventListener('transitionend', done);
+      clearTransform(el);
+    };
+    el.addEventListener('transitionend', done);
+  };
+
+  const commitSwipe = (el, dir) => {
+    if (!el) return;
+    el.classList.add('swipe-anim');
+    el.style.transform = `translateX(${dir * -width}px)`;
+    const done = ev => {
+      if (ev.propertyName !== 'transform') return;
+      el.removeEventListener('transitionend', done);
+      clearTransform(el);
+      shiftTodayView(dir);
+      const next = document.querySelector('.screen.active');
+      if (!next) return;
+      next.style.transform = `translateX(${dir * width}px)`;
+      void next.offsetWidth;
+      next.classList.add('swipe-anim');
+      next.style.transform = 'translateX(0px)';
+      const done2 = ev2 => {
+        if (ev2.propertyName !== 'transform') return;
+        next.removeEventListener('transitionend', done2);
+        clearTransform(next);
+      };
+      next.addEventListener('transitionend', done2);
+    };
+    el.addEventListener('transitionend', done);
+  };
 
   content.addEventListener('pointerdown', e => {
     started = currentNav === 'hoje';
     blocked = !started || !!e.target.closest(BLOCKED_SELECTOR);
     startX = e.clientX;
     startY = e.clientY;
+    lastX = e.clientX;
+    lastT = performance.now();
+    velocity = 0;
+    currentDx = 0;
+    pendingDx = 0;
+    dragging = false;
     calendarSwipeActive = false;
+    if (!blocked) {
+      width = content.clientWidth || window.innerWidth;
+      screen = document.querySelector('.screen.active');
+      if (screen) clearTransform(screen);
+    } else {
+      screen = null;
+    }
   });
 
   content.addEventListener('pointermove', e => {
     if (!started || blocked) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy) * 1.45) {
-      calendarSwipeActive = true;
+    if (!dragging) {
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.45) {
+        dragging = true;
+        calendarSwipeActive = true;
+      } else {
+        return;
+      }
     }
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    velocity = (e.clientX - lastX) / dt;
+    lastX = e.clientX;
+    lastT = now;
+    currentDx = dx;
+    pendingDx = dx;
+    if (!rafId) rafId = requestAnimationFrame(applyTransform);
   }, { passive: true });
 
-  content.addEventListener('pointerup', e => {
-    if (!started || blocked) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    const isSwipe = Math.abs(dx) >= THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.45;
+  const endSwipe = () => {
+    if (!started) return;
     started = false;
+    const wasDragging = dragging;
+    dragging = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (!wasDragging) {
+      calendarSwipeActive = false;
+      return;
+    }
+    const el = screen;
+    screen = null;
+    const threshold = width * 0.25;
+    const fastFlick = Math.abs(velocity) > 0.5 && Math.abs(currentDx) > 24;
+    const commit = Math.abs(currentDx) >= threshold || fastFlick;
+    if (commit) {
+      const dir = currentDx < 0 ? 1 : -1;
+      content.dataset.swiped = 'true';
+      commitSwipe(el, dir);
+    } else {
+      settleBack(el);
+    }
     calendarSwipeActive = false;
-    if (!isSwipe) return;
-    content.dataset.swiped = 'true';
-    shiftTodayView(dx < 0 ? 1 : -1);
+  };
+
+  content.addEventListener('pointerup', endSwipe);
+  content.addEventListener('pointercancel', () => {
+    if (started && dragging && screen) settleBack(screen);
+    started = false;
+    dragging = false;
+    screen = null;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    calendarSwipeActive = false;
   });
 
   content.addEventListener('click', e => {
@@ -3235,11 +3341,6 @@ function setupCalendarSwipe() {
     e.stopPropagation();
     content.dataset.swiped = 'false';
   }, true);
-
-  content.addEventListener('pointercancel', () => {
-    started = false;
-    calendarSwipeActive = false;
-  });
 }
 
 function updateScrollOverflow() {
@@ -3610,11 +3711,12 @@ function buildWeekStrip() {
     btn.addEventListener('click', () => navigateToDate(btn.dataset.date));
   });
 
-  // scroll settle → detect centred day
+  // scroll settle → detect centred day (day view only — week view doesn't have a "selected day")
   let t;
   scrollEl.addEventListener('scroll', () => {
     clearTimeout(t);
     t = setTimeout(() => {
+      if (currentView !== 'dia') return;
       const center = scrollEl.scrollLeft + scrollEl.offsetWidth / 2;
       let best = null, bestDist = Infinity;
       scrollEl.querySelectorAll('.day-btn').forEach(btn => {
@@ -3626,6 +3728,12 @@ function buildWeekStrip() {
       }
     }, 80);
   }, { passive: true });
+}
+
+function syncWeekStripMode() {
+  const strip = document.getElementById('week-strip');
+  if (!strip) return;
+  strip.classList.toggle('week-mode', currentView === 'semana');
 }
 
 function navigateToDate(dateStr, smooth = true) {
@@ -3713,6 +3821,7 @@ function renderAll() {
     renderProfile();
   }
 
+  syncWeekStripMode();
   updateProgress();
   updateTaskCount();
   saveState();
@@ -3740,45 +3849,44 @@ function updateTaskCount() {
   document.getElementById('total-count').textContent = dayTasks.length;
 }
 
-function wireInlineTaskInput() {
-  const inlineInput = document.getElementById('inline-task-input');
-  if (!inlineInput) return;
-  const tickBtn = inlineInput.parentElement.querySelector('.tick-btn');
+let lastFocusedInputDate = null;
 
-  const submit = () => {
-    const title = inlineInput.value.trim();
-    if (!title) return;
-    tasks.push({ id: Date.now(), title, done: false, priority: 'média',
-                 projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
-    renderAll();
-    const next = document.getElementById('inline-task-input');
-    if (next) next.focus();
-  };
+function wireSectionInlineInputs() {
+  const rows = document.querySelectorAll('#task-list-pending .inline-task-row.inline');
+  rows.forEach(row => {
+    const date = row.dataset.inputDate || '';
+    const input = row.querySelector('.inline-task-input');
+    const tickBtn = row.querySelector('.tick-btn');
+    if (!input) return;
 
-  const updateTick = () => {
-    if (!tickBtn) return;
-    const hasText = !!inlineInput.value.trim();
-    tickBtn.style.opacity = hasText ? '1' : '0.2';
-    tickBtn.style.pointerEvents = hasText ? 'auto' : 'none';
-  };
+    const updateTick = () => {
+      if (!tickBtn) return;
+      const hasText = !!input.value.trim();
+      tickBtn.style.opacity = hasText ? '1' : '0.2';
+      tickBtn.style.pointerEvents = hasText ? 'auto' : 'none';
+    };
 
-  inlineInput.addEventListener('input', updateTick);
-  inlineInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submit();
-    }
-  });
-  inlineInput.addEventListener('change', () => {
-    if (inlineInput.value.trim()) submit();
-  });
-  if (tickBtn) {
-    tickBtn.addEventListener('click', e => {
-      e.preventDefault();
-      submit();
+    const submit = () => {
+      const title = input.value.trim();
+      if (!title) return;
+      tasks.push({ id: Date.now(), title, done: false, priority: 'média',
+                   projectId: null, time: '', date: date || null, subtasks: [] });
+      lastFocusedInputDate = date;
+      renderAll();
+      const sel = date
+        ? `.inline-task-row.inline[data-input-date="${date}"] .inline-task-input`
+        : `.inline-task-row.inline[data-input-date=""] .inline-task-input`;
+      document.querySelector(sel)?.focus();
+    };
+
+    input.addEventListener('focus', () => { lastFocusedInputDate = date; });
+    input.addEventListener('input', updateTick);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
     });
-  }
-
+    input.addEventListener('change', () => { if (input.value.trim()) submit(); });
+    if (tickBtn) tickBtn.addEventListener('click', e => { e.preventDefault(); submit(); });
+  });
 }
 
 function wireNotebookAddTap() {
@@ -3787,55 +3895,63 @@ function wireNotebookAddTap() {
   if (list._notebookTapBound) return;
   list._notebookTapBound = true;
 
+  const focusDate = date => {
+    if (!date) return false;
+    const input = list.querySelector(`.inline-task-row.inline[data-input-date="${date}"] .inline-task-input`);
+    if (!input) return false;
+    input.focus();
+    return true;
+  };
+
   list.addEventListener('click', e => {
     if (taskDragActive || calendarSwipeActive) return;
-    if (e.target.closest('button,input,textarea,select,.task-row,.task-swipe-wrap,.reschedule-panel')) return;
-    const canFocus = e.target === list || e.target.closest('.day-empty,.section-label,.inline-task-row');
-    if (!canFocus) return;
+    if (e.target.closest('.task-row,.task-swipe-wrap,.reschedule-panel')) return;
+    if (e.target.closest('button,textarea,select')) return;
+    if (e.target.tagName === 'INPUT') return;
 
-    const dateTarget = e.target.closest('[data-section-date],[data-empty-date]');
-    const targetDate = dateTarget?.dataset.sectionDate || dateTarget?.dataset.emptyDate;
-    if (targetDate && targetDate !== WEEK_DATES[activeDay]) {
-      navigateToDate(targetDate);
-      window.setTimeout(() => document.getElementById('inline-task-input')?.focus(), 40);
+    const inlineRow = e.target.closest('.inline-task-row.inline');
+    if (inlineRow) {
+      focusDate(inlineRow.dataset.inputDate);
       return;
     }
 
-    document.getElementById('inline-task-input')?.focus();
+    const sectionLabel = e.target.closest('.section-label[data-section-date]');
+    if (sectionLabel) {
+      focusDate(sectionLabel.dataset.sectionDate);
+      return;
+    }
+
+    const clickY = e.clientY;
+    const sections = list.querySelectorAll('.section-label[data-section-date]');
+    let best = null;
+    for (const sec of sections) {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= clickY) best = sec; else break;
+    }
+    if (!best) {
+      const inlineRows = list.querySelectorAll('.inline-task-row.inline[data-input-date]');
+      for (const row of inlineRows) {
+        const rect = row.getBoundingClientRect();
+        if (rect.top <= clickY) { focusDate(row.dataset.inputDate); return; }
+      }
+      return;
+    }
+    focusDate(best.dataset.sectionDate);
   });
-}
-
-function wireBottomInlineInput() {
-  const input = document.getElementById('inline-task-input-bottom');
-  if (!input) return;
-  const tickBtn = input.parentElement.querySelector('.tick-btn');
-
-  const submit = () => {
-    const title = input.value.trim();
-    if (!title) return;
-    tasks.push({ id: Date.now(), title, done: false, priority: 'média',
-                 projectId: null, time: '', date: WEEK_DATES[activeDay], subtasks: [] });
-    renderAll();
-    const next = document.getElementById('inline-task-input-bottom');
-    if (next) next.focus();
-  };
-
-  const updateTick = () => {
-    if (!tickBtn) return;
-    const hasText = !!input.value.trim();
-    tickBtn.style.opacity = hasText ? '1' : '0.2';
-    tickBtn.style.pointerEvents = hasText ? 'auto' : 'none';
-  };
-
-  input.addEventListener('input', updateTick);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); submit(); }
-  });
-  input.addEventListener('change', () => { if (input.value.trim()) submit(); });
-  if (tickBtn) tickBtn.addEventListener('click', e => { e.preventDefault(); submit(); });
 }
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
+function inlineRowHTML(dateKey, placeholder) {
+  const ph = placeholder || 'Nova tarefa…';
+  return `
+    <div class="inline-task-row inline" data-input-date="${dateKey}">
+      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
+      <input class="inline-task-input" type="text"
+             placeholder="${ph}" autocomplete="off" spellcheck="false"
+             enterkeyhint="done">
+    </div>`;
+}
+
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
   const dayTasks = tasks.filter(t => t.date === dayKey)
@@ -3845,7 +3961,6 @@ function renderDayList() {
 
   let html = '';
 
-  // undated tasks pinned at top
   if (undatedTasks.length) {
     html += `<div class="section-label nodate">Sem data</div>`;
     html += undatedTasks.map(t => taskRowHTML(t)).join('');
@@ -3858,21 +3973,14 @@ function renderDayList() {
     html += dayTasks.map(t => taskRowHTML(t)).join('');
   }
 
-  // inline input at bottom — like a notepad line
-  html += `
-    <div class="inline-task-row bottom">
-      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input" type="text"
-             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false"
-             enterkeyhint="done">
-    </div>
-    <div style="height:100px"></div>`;
+  html += inlineRowHTML(dayKey, dayTasks.length ? 'Nova tarefa…' : 'Adicionar tarefa…');
+  html += `<div style="height:100px"></div>`;
 
   document.getElementById('task-list-pending').innerHTML = html;
   document.getElementById('task-list-done-wrap').style.display = 'none';
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
-  wireInlineTaskInput();
+  wireSectionInlineInputs();
   wireNotebookAddTap();
   attachTaskEvents();
 }
@@ -3886,13 +3994,7 @@ function renderTaskList() {
   }, {});
   const undatedTasks = tasks.filter(t => !t.date);
 
-  let html = `
-    <div class="inline-task-row top">
-      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input" type="text"
-             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false"
-             enterkeyhint="done">
-    </div>`;
+  let html = '';
 
   WEEK_DATES.forEach(dateKey => {
     const group = tasksByDate[dateKey];
@@ -3900,9 +4002,10 @@ function renderTaskList() {
     const isToday = dateKey === TODAY;
     const cls = `section-label${isToday ? ' today' : ''}`;
     html += `<div class="${cls}" data-section-date="${dateKey}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
-    html += group.length
-      ? group.map(t => taskRowHTML(t)).join('')
-      : `<div class="day-empty" data-empty-date="${dateKey}">Sem tarefas para este dia.</div>`;
+    if (group.length) {
+      html += group.map(t => taskRowHTML(t)).join('');
+    }
+    html += inlineRowHTML(dateKey, group.length ? 'Adicionar…' : 'Sem tarefas — adicione…');
   });
 
   if (undatedTasks.length) {
@@ -3910,23 +4013,15 @@ function renderTaskList() {
     html += undatedTasks.map(t => taskRowHTML(t)).join('');
   }
 
-  html += `
-    <div class="inline-task-row bottom">
-      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input-bottom" type="text"
-             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false"
-             enterkeyhint="done">
-    </div>
-    <div style="height:80px"></div>`;
+  html += `<div style="height:80px"></div>`;
 
   document.getElementById('task-list-pending').innerHTML = html;
   document.getElementById('task-list-done-wrap').style.display = 'none';
   document.getElementById('task-list-undated-wrap').style.display = 'none';
 
-  wireInlineTaskInput();
+  wireSectionInlineInputs();
   wireNotebookAddTap();
   attachTaskEvents();
-  wireBottomInlineInput();
 }
 
 function taskRowHTML(task) {
