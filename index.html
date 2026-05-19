@@ -98,30 +98,13 @@
   }
 
   body.dark {
-    --shadow-xs: 0 1px 2px rgba(0,0,0,.20);
-    --shadow-sm: 0 2px 8px rgba(0,0,0,.24);
-    --shadow-md: 0 8px 22px rgba(0,0,0,.30), 0 2px 6px rgba(0,0,0,.20);
-    --shadow-lg: 0 18px 42px rgba(0,0,0,.36), 0 4px 12px rgba(0,0,0,.24);
-    --shadow-fab: 0 10px 24px rgba(0,0,0,.34), 0 2px 8px rgba(0,0,0,.24);
-    --shadow-sheet: 0 -10px 30px rgba(0,0,0,.30);
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.30);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.34);
+    --shadow-md: 0 8px 22px rgba(0,0,0,.42), 0 2px 6px rgba(0,0,0,.28);
+    --shadow-lg: 0 18px 42px rgba(0,0,0,.48), 0 4px 12px rgba(0,0,0,.32);
+    --shadow-fab: 0 10px 24px rgba(0,0,0,.48), 0 2px 8px rgba(0,0,0,.32);
+    --shadow-sheet: 0 -10px 30px rgba(0,0,0,.40);
     background: #050505;
-  }
-  body.dark .page-title,
-  body.dark .count-num,
-  body.dark .task-title,
-  body.dark .habit-name,
-  body.dark .habit-month-name,
-  body.dark .project-name,
-  body.dark .detail-title,
-  body.dark .habit-detail-title,
-  body.dark .profile-name {
-    color: var(--ink);
-  }
-  body.dark .profile-item,
-  body.dark .project-task-title,
-  body.dark .meta-proj,
-  body.dark .day-btn.today .day-num {
-    color: var(--ink-mid);
   }
 
   html, body {
@@ -892,57 +875,31 @@
   }
   .priority-dot { width: 4px; height: 4px; border-radius: 50%; }
 
-  /* ── RESCHEDULE ── */
-  .reschedule-panel {
-    background: var(--deep);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    margin: 0 0 var(--space-2) 38px;
-    border: 1px solid color-mix(in srgb, var(--rule) 48%, transparent);
-    box-shadow: var(--shadow-sm);
+  /* ── REORDER LIFT ── */
+  .task-swipe-wrap.lifted {
+    z-index: 60;
+    overflow: visible;
   }
-  .reschedule-panel .panel-label {
-    font-size: var(--text-micro);
-    font-weight: 700;
-    letter-spacing: var(--tr-micro);
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin-bottom: var(--space-2);
-  }
-  .reschedule-dates {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-  .reschedule-dates button {
-    min-height: 36px;
-    padding: 0 var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--rule);
+  .task-swipe-wrap.lifted .task-row {
     background: var(--surface);
-    color: var(--ink-mid);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--mono);
-    transition: border-color var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transform: scale(1.02);
+    border-bottom-color: transparent;
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast);
   }
-  .reschedule-dates button:active { transform: scale(0.97); }
-  @media (hover: hover) {
-    .reschedule-dates button:hover {
-      border-color: var(--ink);
-      color: var(--ink);
-    }
+  .task-swipe-wrap.lifted .task-delete-bg { display: none; }
+  .task-swipe-wrap.reorder-slot {
+    transition: transform var(--dur-base) var(--ease-out);
+    will-change: transform;
   }
-  .reschedule-dates button.cancel {
-    background: transparent;
-    color: var(--ink-faint);
-    border-color: var(--rule);
-  }
-  .reschedule-dates button.current {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: var(--accent-text);
+  .reorder-placeholder {
+    height: var(--placeholder-h, 52px);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1.5px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+    margin: 0;
+    transition: opacity var(--dur-fast);
   }
 
   /* ── MONTH CALENDAR ── */
@@ -1633,6 +1590,10 @@
     position: relative;
     z-index: 10;
   }
+  body.dark #bottom-nav {
+    box-shadow: 0 -10px 28px rgba(0,0,0,.42);
+    border-top-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
   .nav-btn {
     min-width: 0;
     display: flex;
@@ -1654,6 +1615,15 @@
     background: color-mix(in srgb, var(--tabbar-text) 13%, transparent);
     color: var(--tabbar-text);
   }
+  body.dark .nav-btn.active {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+    color: var(--accent);
+  }
+  body.dark #fab {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  body.dark #fab svg path { stroke: var(--bg); }
   .nav-icon {
     width: 18px;
     height: 18px;
@@ -3421,19 +3391,26 @@ const PROFILE_TIPS = [
 ];
 const APPEARANCE_PRESETS = [
   { id:'brejo', name:'Brejo', title:"'Instrument Serif', serif", body:"'DM Mono', monospace",
-    colors:{ bg:'#F1EFE8', primary:'#1A1A1A', secondary:'#9B9690', divider:'#DAD7CE', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' } },
+    colors:{ bg:'#F1EFE8', primary:'#1A1A1A', secondary:'#9B9690', divider:'#DAD7CE', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' },
+    dark:  { bg:'#14140F', surface:'#1C1C17', tab:'#0C0C09', accent:'#D9D2BC', ink:'#ECE6D2', rule:'#2D2D26', alta:'#D9624A', media:'#D8B964', baixa:'#5BAA82' } },
   { id:'sol', name:'Sol', title:"'Nunito', sans-serif", body:"'Inter', sans-serif",
-    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' } },
+    colors:{ bg:'#FFFBF0', primary:'#1A1200', secondary:'#9B8A5A', divider:'#E8DFB8', day:'#F5C842', tab:'#1A1200', alta:'#E05A2B', media:'#F5C842', baixa:'#6B9E5E' },
+    dark:  { bg:'#171304', surface:'#221C0A', tab:'#0E0B02', accent:'#F2C955', ink:'#F5E9C2', rule:'#33291A', alta:'#F0784F', media:'#F2C955', baixa:'#8FB877' } },
   { id:'nevoa', name:'Névoa', title:"'Spectral', serif", body:"'Lato', sans-serif",
-    colors:{ bg:'#F0F2F7', primary:'#1B2A4A', secondary:'#7B8FA8', divider:'#D4DAE8', day:'#1B2A4A', tab:'#1B2A4A', alta:'#C87941', media:'#7B9EC0', baixa:'#5C8A7A' } },
+    colors:{ bg:'#F0F2F7', primary:'#1B2A4A', secondary:'#7B8FA8', divider:'#D4DAE8', day:'#1B2A4A', tab:'#1B2A4A', alta:'#C87941', media:'#7B9EC0', baixa:'#5C8A7A' },
+    dark:  { bg:'#0E141C', surface:'#161E2B', tab:'#080C12', accent:'#8FA8C8', ink:'#DCE3F0', rule:'#26303F', alta:'#D8946B', media:'#9DBCDB', baixa:'#7BAD9C' } },
   { id:'terra', name:'Terra', title:"'Cormorant Garamond', serif", body:"'Josefin Sans', sans-serif",
-    colors:{ bg:'#FBF6F0', primary:'#1E0E06', secondary:'#A07860', divider:'#E8DDD0', day:'#C4593A', tab:'#1E0E06', alta:'#C4593A', media:'#C8A84B', baixa:'#5A7A4A' } },
+    colors:{ bg:'#FBF6F0', primary:'#1E0E06', secondary:'#A07860', divider:'#E8DDD0', day:'#C4593A', tab:'#1E0E06', alta:'#C4593A', media:'#C8A84B', baixa:'#5A7A4A' },
+    dark:  { bg:'#150D08', surface:'#1F140D', tab:'#0D0805', accent:'#D8775A', ink:'#EBD9C5', rule:'#332419', alta:'#D8775A', media:'#D8BA64', baixa:'#8AA476' } },
   { id:'floresta', name:'Floresta', title:"'Josefin Sans', sans-serif", body:"'DM Sans', sans-serif",
-    colors:{ bg:'#F0EAD6', primary:'#1A2A1A', secondary:'#5A6B4A', divider:'#C0C8A8', day:'#3D5A3E', tab:'#3D5A3E', alta:'#C0392B', media:'#C8A84B', baixa:'#3D5A3E' } },
+    colors:{ bg:'#F0EAD6', primary:'#1A2A1A', secondary:'#5A6B4A', divider:'#C0C8A8', day:'#3D5A3E', tab:'#3D5A3E', alta:'#C0392B', media:'#C8A84B', baixa:'#3D5A3E' },
+    dark:  { bg:'#0E140C', surface:'#162018', tab:'#080C07', accent:'#6FA274', ink:'#DCE5C8', rule:'#243025', alta:'#D9624A', media:'#D5B864', baixa:'#6FA274' } },
   { id:'bistro', name:'Bistrô', title:"'Times New Roman MT', 'Times New Roman', Times, serif", body:"'DM Sans', sans-serif",
-    colors:{ bg:'#F5EDD6', primary:'#1A0800', secondary:'#A0724A', divider:'#D8C0A0', day:'#7B3F1E', tab:'#7B3F1E', alta:'#C0392B', media:'#C8A84B', baixa:'#6B8A5A' } },
+    colors:{ bg:'#F5EDD6', primary:'#1A0800', secondary:'#A0724A', divider:'#D8C0A0', day:'#7B3F1E', tab:'#7B3F1E', alta:'#C0392B', media:'#C8A84B', baixa:'#6B8A5A' },
+    dark:  { bg:'#150904', surface:'#20120A', tab:'#0D0502', accent:'#C97A4F', ink:'#EAD8B7', rule:'#33231A', alta:'#D9624A', media:'#D8B964', baixa:'#9BB888' } },
   { id:'pomar', name:'Pomar', title:"'Helios Extended', 'Libre Caslon Display', serif", body:"'Courier Prime', monospace",
-    colors:{ bg:'#F5F0E0', primary:'#2C2800', secondary:'#6B5E1A', divider:'#C8B86A', day:'#C9A82C', tab:'#C9A82C', alta:'#C0392B', media:'#C9A82C', baixa:'#4A4A1E' } },
+    colors:{ bg:'#F5F0E0', primary:'#2C2800', secondary:'#6B5E1A', divider:'#C8B86A', day:'#C9A82C', tab:'#C9A82C', alta:'#C0392B', media:'#C9A82C', baixa:'#4A4A1E' },
+    dark:  { bg:'#15140A', surface:'#201E10', tab:'#0E0D06', accent:'#D9B83E', ink:'#EFE6BD', rule:'#33301E', alta:'#D9624A', media:'#D9B83E', baixa:'#A6A858' } },
 ];
 const FONT_OPTIONS = [
   { id:'instrument', name:'Instrument Serif', value:"'Instrument Serif', serif" },
@@ -3459,13 +3436,32 @@ const FONT_OPTIONS = [
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let tasks = [
-  { id:1, title:'Reunião com equipe de design', done:false, priority:'alta',  projectId:1, time:'10:00', date:TODAY,        subtasks:['Preparar apresentação','Revisar wireframes'] },
-  { id:2, title:'Finalizar relatório mensal',   done:false, priority:'alta',  projectId:1, time:'14:00', date:TODAY,        subtasks:[] },
-  { id:3, title:'Treino de força',              done:true,  priority:'média', projectId:3, time:'07:00', date:TODAY,        subtasks:[] },
-  { id:4, title:'Ler 30 páginas',               done:false, priority:'baixa', projectId:2, time:'',      date:null,         subtasks:[] },
-  { id:5, title:'Revisar pull requests',         done:false, priority:'média', projectId:1, time:'',      date:'2026-05-13', subtasks:['Frontend PR #42','Backend PR #38'] },
-  { id:6, title:'Planejar viagem de julho',      done:false, priority:'baixa', projectId:2, time:'',      date:null,         subtasks:['Pesquisar voos','Reservar hotel'] },
+  { id:1, title:'Reunião com equipe de design', done:false, priority:'alta',  projectId:1, time:'10:00', date:TODAY,        position:1000, subtasks:['Preparar apresentação','Revisar wireframes'] },
+  { id:2, title:'Finalizar relatório mensal',   done:false, priority:'alta',  projectId:1, time:'14:00', date:TODAY,        position:2000, subtasks:[] },
+  { id:3, title:'Treino de força',              done:true,  priority:'média', projectId:3, time:'07:00', date:TODAY,        position:3000, subtasks:[] },
+  { id:4, title:'Ler 30 páginas',               done:false, priority:'baixa', projectId:2, time:'',      date:null,         position:1000, subtasks:[] },
+  { id:5, title:'Revisar pull requests',         done:false, priority:'média', projectId:1, time:'',      date:'2026-05-13', position:1000, subtasks:['Frontend PR #42','Backend PR #38'] },
+  { id:6, title:'Planejar viagem de julho',      done:false, priority:'baixa', projectId:2, time:'',      date:null,         position:2000, subtasks:['Pesquisar voos','Reservar hotel'] },
 ];
+
+function nextTaskPosition(dateKey) {
+  const targetDate = dateKey || null;
+  let max = 0;
+  for (const t of tasks) {
+    if ((t.date || null) !== targetDate) continue;
+    if (typeof t.position === 'number' && t.position > max) max = t.position;
+  }
+  return max + 1000;
+}
+
+function compareTasks(a, b) {
+  const pa = typeof a.position === 'number' ? a.position : null;
+  const pb = typeof b.position === 'number' ? b.position : null;
+  if (pa !== null && pb !== null && pa !== pb) return pa - pb;
+  if (pa !== null && pb === null) return -1;
+  if (pa === null && pb !== null) return 1;
+  return (a.time || '99:99').localeCompare(b.time || '99:99');
+}
 
 function makeHeatmap(pct) {
   return Array.from({length:35},(_,i)=>i<32?Math.random()<pct:null);
@@ -4410,7 +4406,7 @@ function wireSectionInlineInputs() {
       const title = input.value.trim();
       if (!title) return;
       tasks.push({ id: Date.now(), title, done: false, priority: 'média',
-                   projectId: null, time: '', date: date || null, subtasks: [] });
+                   projectId: null, time: '', date: date || null, position: nextTaskPosition(date || null), subtasks: [] });
       lastFocusedInputDate = date;
       renderAll();
       const sel = date
@@ -4445,7 +4441,7 @@ function wireNotebookAddTap() {
 
   list.addEventListener('click', e => {
     if (taskDragActive || calendarSwipeActive) return;
-    if (e.target.closest('.task-row,.task-swipe-wrap,.reschedule-panel')) return;
+    if (e.target.closest('.task-row,.task-swipe-wrap')) return;
     if (e.target.closest('button,textarea,select')) return;
     if (e.target.tagName === 'INPUT') return;
 
@@ -4492,9 +4488,8 @@ function inlineRowHTML(dateKey) {
 
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
-  const dayTasks = tasks.filter(t => t.date === dayKey)
-    .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-  const undatedTasks = tasks.filter(t => !t.date);
+  const dayTasks = tasks.filter(t => t.date === dayKey).sort(compareTasks);
+  const undatedTasks = tasks.filter(t => !t.date).sort(compareTasks);
   const isToday = dayKey === TODAY;
 
   let html = '';
@@ -4526,12 +4521,10 @@ function renderDayList() {
 
 function renderTaskList() {
   const tasksByDate = WEEK_DATES.reduce((acc, dateKey) => {
-    acc[dateKey] = tasks
-      .filter(t => t.date === dateKey)
-      .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+    acc[dateKey] = tasks.filter(t => t.date === dateKey).sort(compareTasks);
     return acc;
   }, {});
-  const undatedTasks = tasks.filter(t => !t.date);
+  const undatedTasks = tasks.filter(t => !t.date).sort(compareTasks);
 
   let html = '';
 
@@ -4562,17 +4555,6 @@ function renderTaskList() {
   wireSectionInlineInputs();
   wireNotebookAddTap();
   attachTaskEvents();
-}
-
-function rescheduleOptionsHTML(task) {
-  const options = WEEK_DATES.map(dateKey => {
-    const current = task.date === dateKey;
-    const label = dateKey === TODAY ? 'Hoje' : getDateLabel(dateKey);
-    return `<button class="${current ? 'current' : ''}" data-move="${task.id}" data-date="${dateKey}">${label}</button>`;
-  }).join('');
-  return `${options}
-    <button class="${!task.date ? 'current' : ''}" data-move="${task.id}" data-date="null">Sem data</button>
-    <button class="cancel" data-cancel="${task.id}">Cancelar</button>`;
 }
 
 function taskRowHTML(task) {
@@ -4615,12 +4597,6 @@ function taskRowHTML(task) {
           <span class="priority-dot" style="background:${pc.color}"></span>${pc.label}
         </span>
       </div>
-    </div>
-    <div class="reschedule-panel" id="rp-${task.id}" style="display:none">
-      <div class="panel-label">Mover para</div>
-      <div class="reschedule-dates">
-        ${rescheduleOptionsHTML(task)}
-      </div>
     </div>`;
 }
 
@@ -4648,23 +4624,6 @@ function attachTaskEvents() {
     setupDrag(row);
   });
 
-  // reschedule buttons
-  document.querySelectorAll('[data-move]').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const id = parseInt(btn.dataset.move);
-      const date = btn.dataset.date === 'null' ? null : btn.dataset.date;
-      rescheduleTask(id, date);
-    });
-  });
-  document.querySelectorAll('[data-cancel]').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const id = btn.dataset.cancel;
-      document.getElementById(`rp-${id}`).style.display = 'none';
-      document.querySelector(`.task-row[data-id="${id}"]`)?.classList.remove('drag-ready');
-    });
-  });
   runTaskGestureDemo();
 }
 
@@ -4672,28 +4631,28 @@ function runTaskGestureDemo() {
   // Intentionally empty: swipe hints were removed to keep task rows feeling like a notebook.
 }
 
-function openTaskMovePanel(id, row) {
-  document.querySelectorAll('.reschedule-panel').forEach(panel => {
-    panel.style.display = panel.id === `rp-${id}` ? 'block' : 'none';
-  });
-  row.dataset.suppressClick = 'true';
-  row.classList.remove('dragging');
-  row.classList.add('drag-ready');
-  const panel = document.getElementById(`rp-${id}`);
-  if (panel) {
-    window.setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 20);
-  }
-}
-
 function setupDrag(row) {
-  let startX = 0, startY = 0, offset = 0, dragging = false, moved = false, pressed = false, holdTimer = null, movePanelOpen = false;
+  // MODES: 'idle' | 'swipe' | 'reorder'
+  let mode = 'idle';
+  let startX = 0, startY = 0, offset = 0;
+  let pressed = false, moved = false;
+  let holdTimer = null;
   const id = row.dataset.id;
   const wrap = row.closest('.task-swipe-wrap');
   const DELETE_LIMIT = 68;
   const NEXT_DAY_LIMIT = 62;
   const MAX_PULL = 104;
   const MAX_RIGHT_PULL = 92;
-  const START_LIMIT = 10;
+  const SWIPE_START = 10;
+  const HOLD_MS = 320;
+
+  // Reorder state
+  let rowHeight = 0;
+  let others = [];          // [{wrap, midY}] visible siblings (not self) at their ORIGINAL positions
+  let initialOthersIdx = 0; // insertion index in others array that represents self's original slot
+  let currentInsertIdx = 0; // current insertion idx in others (0..others.length)
+  let placeholder = null;
+  let pointerOffsetY = 0;
 
   const setTrashProgress = (progress) => {
     if (!wrap) return;
@@ -4707,21 +4666,45 @@ function setupDrag(row) {
     wrap.classList.remove('swiping', 'delete-mid', 'delete-ready', 'deleting', 'trash-capture');
   };
 
-  const resetDrag = () => {
+  const cleanupReorderVisuals = () => {
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+    others.forEach(o => {
+      o.wrap.classList.remove('reorder-slot');
+      o.wrap.style.transform = '';
+    });
+    others = [];
+    if (wrap) {
+      wrap.classList.remove('lifted');
+      wrap.style.transition = '';
+      wrap.style.transform = '';
+      wrap.style.position = '';
+      wrap.style.left = '';
+      wrap.style.top = '';
+      wrap.style.width = '';
+      wrap.style.pointerEvents = '';
+    }
+    row.style.transform = '';
+  };
+
+  const resetAll = () => {
     clearTimeout(holdTimer);
     pressed = false;
-    dragging = false;
+    moved = false;
     taskDragActive = false;
-    if (!movePanelOpen) row.classList.remove('drag-ready');
-    row.classList.remove('dragging');
+    row.classList.remove('dragging', 'drag-ready');
     row.style.transform = '';
     clearSwipeClasses();
+    cleanupReorderVisuals();
+    mode = 'idle';
+    offset = 0;
   };
 
   const animateDelete = () => {
     clearTimeout(holdTimer);
     pressed = false;
-    dragging = false;
     taskDragActive = false;
     row.dataset.suppressClick = 'true';
     row.classList.remove('drag-ready','dragging');
@@ -4733,72 +4716,198 @@ function setupDrag(row) {
     window.setTimeout(() => deleteTask(parseInt(id), false), 280);
   };
 
+  const enterReorderMode = (clientY) => {
+    if (!wrap || !wrap.parentNode) return;
+    mode = 'reorder';
+    taskDragActive = true;
+    moved = true;
+    row.dataset.suppressClick = 'true';
+
+    const rect = wrap.getBoundingClientRect();
+    rowHeight = rect.height;
+    pointerOffsetY = clientY - rect.top;
+
+    // Walk section: stop at section-label boundaries
+    others = [];
+    let initialIdx = 0;
+    let node = wrap.previousElementSibling;
+    while (node && !node.classList.contains('section-label')) {
+      if (node.classList.contains('task-swipe-wrap')) {
+        const r = node.getBoundingClientRect();
+        others.unshift({ wrap: node, midY: r.top + r.height / 2 });
+        initialIdx++;
+      }
+      node = node.previousElementSibling;
+    }
+    node = wrap.nextElementSibling;
+    while (node && !node.classList.contains('section-label')) {
+      if (node.classList.contains('task-swipe-wrap')) {
+        const r = node.getBoundingClientRect();
+        others.push({ wrap: node, midY: r.top + r.height / 2 });
+      } else if (node.classList.contains('inline-task-row')) {
+        break;
+      }
+      node = node.nextElementSibling;
+    }
+    initialOthersIdx = initialIdx;
+    currentInsertIdx = initialIdx;
+    others.forEach(o => o.wrap.classList.add('reorder-slot'));
+
+    // Placeholder where self used to live
+    placeholder = document.createElement('div');
+    placeholder.className = 'reorder-placeholder';
+    placeholder.style.setProperty('--placeholder-h', `${rowHeight}px`);
+    wrap.parentNode.insertBefore(placeholder, wrap);
+
+    // Lift wrap into fixed overlay
+    wrap.classList.add('lifted');
+    wrap.style.position = 'fixed';
+    wrap.style.left = `${rect.left}px`;
+    wrap.style.top = `${rect.top}px`;
+    wrap.style.width = `${rect.width}px`;
+    wrap.style.pointerEvents = 'none';
+  };
+
+  const updateReorderPosition = (clientY) => {
+    if (!wrap || mode !== 'reorder') return;
+    wrap.style.top = `${clientY - pointerOffsetY}px`;
+
+    // Find insertion index in others: first others[i].midY > clientY
+    let insertIdx = others.length;
+    for (let i = 0; i < others.length; i++) {
+      if (clientY < others[i].midY) { insertIdx = i; break; }
+    }
+    if (insertIdx === currentInsertIdx) return;
+    currentInsertIdx = insertIdx;
+
+    // Shift siblings to create gap at insertIdx
+    others.forEach((o, i) => {
+      // Original positions: others[0..initialOthersIdx-1] are ABOVE self's slot,
+      // others[initialOthersIdx..] are BELOW self's slot.
+      let dy = 0;
+      if (i < initialOthersIdx && i >= insertIdx) dy = rowHeight;       // pushed down
+      else if (i >= initialOthersIdx && i < insertIdx) dy = -rowHeight; // pulled up
+      o.wrap.style.transform = dy ? `translateY(${dy}px)` : '';
+    });
+  };
+
+  const commitReorder = () => {
+    if (mode !== 'reorder') { resetAll(); return; }
+    const insertIdx = currentInsertIdx;
+
+    if (insertIdx !== initialOthersIdx) {
+      const orderedIds = others.map(o => parseInt(o.wrap.dataset.swipeId));
+      const selfId = parseInt(id);
+      orderedIds.splice(insertIdx, 0, selfId);
+      let base = 1000;
+      orderedIds.forEach(tid => {
+        const t = tasks.find(x => x.id === tid);
+        if (t) { t.position = base; base += 1000; }
+      });
+      // Snap lifted wrap to its final slot before re-render to avoid a jump
+      if (placeholder) {
+        const targetTop = insertIdx < initialOthersIdx
+          ? others[insertIdx].midY - rowHeight / 2
+          : insertIdx >= others.length
+            ? (others.length ? others[others.length - 1].midY + rowHeight / 2 : placeholder.getBoundingClientRect().top)
+            : others[insertIdx].midY - rowHeight / 2;
+        wrap.style.transition = 'top var(--dur-fast) var(--ease-out)';
+        wrap.style.top = `${targetTop}px`;
+      }
+      window.setTimeout(() => { renderAll(); }, 90);
+    } else {
+      cleanupReorderVisuals();
+    }
+    pressed = false;
+    moved = false;
+    taskDragActive = false;
+    mode = 'idle';
+    clearSwipeClasses();
+  };
+
   row.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     startX = e.clientX;
     startY = e.clientY;
     offset = 0;
     moved = false;
-    movePanelOpen = false;
     pressed = true;
+    mode = 'idle';
     clearTimeout(holdTimer);
+    row.classList.add('drag-ready');
     holdTimer = window.setTimeout(() => {
-      if (!pressed || dragging || moved) return;
-      movePanelOpen = true;
-      taskDragActive = true;
-      openTaskMovePanel(id, row);
-    }, 420);
+      if (!pressed || mode !== 'idle' || moved) return;
+      row.classList.remove('drag-ready');
+      try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
+      enterReorderMode(startY);
+      updateReorderPosition(startY);
+    }, HOLD_MS);
   });
 
   row.addEventListener('pointermove', e => {
     if (!pressed) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) clearTimeout(holdTimer);
-    if (movePanelOpen) return;
-    if (!dragging && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+
+    if (mode === 'reorder') {
+      e.preventDefault();
+      updateReorderPosition(e.clientY);
+      return;
+    }
+
+    if (mode === 'idle' && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      clearTimeout(holdTimer);
+      row.classList.remove('drag-ready');
+    }
+
+    if (mode === 'idle' && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
       pressed = false;
       return;
     }
-    if (!dragging && (Math.abs(dx) < START_LIMIT || Math.abs(dx) < Math.abs(dy) * 1.25)) return;
-    e.preventDefault();
-    if (!dragging && row.setPointerCapture) row.setPointerCapture(e.pointerId);
-    dragging = true;
-    taskDragActive = true;
-    moved = true;
-    row.classList.remove('drag-ready');
-    row.classList.add('dragging');
-    offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
-    row.style.transform = `translateX(${offset}px)`;
-    setTrashProgress(Math.min(1, Math.abs(Math.min(0, offset)) / MAX_PULL));
+
+    if (mode === 'idle' && Math.abs(dx) >= SWIPE_START && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      mode = 'swipe';
+      taskDragActive = true;
+      moved = true;
+      try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
+      row.classList.add('dragging');
+    }
+
+    if (mode === 'swipe') {
+      e.preventDefault();
+      offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
+      row.style.transform = `translateX(${offset}px)`;
+      setTrashProgress(Math.min(1, Math.abs(Math.min(0, offset)) / MAX_PULL));
+    }
   });
 
   row.addEventListener('pointerup', () => {
     clearTimeout(holdTimer);
-    if (movePanelOpen) {
-      pressed = false;
-      taskDragActive = false;
+    if (mode === 'reorder') {
+      commitReorder();
       return;
     }
-    if (dragging && offset < -DELETE_LIMIT) {
+    if (mode === 'swipe' && offset < -DELETE_LIMIT) {
       row.dataset.suppressClick = 'true';
       animateDelete();
       return;
     }
-    if (dragging && offset > NEXT_DAY_LIMIT) {
+    if (mode === 'swipe' && offset > NEXT_DAY_LIMIT) {
       row.dataset.suppressClick = 'true';
-      resetDrag();
+      resetAll();
       moveTaskByDays(parseInt(id), 1);
       return;
     }
-    if (moved || dragging) row.dataset.suppressClick = 'true';
-    resetDrag();
-    offset = 0;
+    if (moved || mode === 'swipe') row.dataset.suppressClick = 'true';
+    resetAll();
   });
 
   row.addEventListener('pointercancel', () => {
-    movePanelOpen = false;
-    resetDrag();
+    if (mode === 'reorder') {
+      cleanupReorderVisuals();
+    }
+    resetAll();
   });
 }
 
@@ -5470,36 +5579,73 @@ function applyTheme() {
   const selectedPreset = APPEARANCE_PRESETS.find(preset => preset.id === fontMode) || APPEARANCE_PRESETS[0];
   fontMode = selectedPreset.id;
   const light = lightColor || selectedPreset.colors.bg;
-  const dark  = darkColor  || selectedPreset.colors.primary;
-  const bg  = darkTheme ? dark  : light;
-  const ink = darkTheme ? light : dark;
+  const darkPrimary = darkColor || selectedPreset.colors.primary;
+
+  let bg, surface, ink, inkMid, inkFaint, inkGhost, rule, deep, accent, accentText, tabbar, tabbarText, daySel, daySelText;
+  let priorityColors;
+
+  if (darkTheme) {
+    const d = selectedPreset.dark || { bg:'#101010', surface:'#1A1A1A', tab:'#080808', accent:'#D9D2BC', ink:'#ECE6D2', rule:'#2A2A2A', alta:'#D9624A', media:'#D8B964', baixa:'#5BAA82' };
+    bg         = d.bg;
+    surface    = d.surface;
+    ink        = d.ink;
+    inkMid     = `color-mix(in srgb, ${ink} 72%, ${bg})`;
+    inkFaint   = `color-mix(in srgb, ${ink} 46%, ${bg})`;
+    inkGhost   = `color-mix(in srgb, ${ink} 24%, ${bg})`;
+    rule       = d.rule;
+    deep       = `color-mix(in srgb, ${surface} 78%, ${ink} 14%)`;
+    accent     = d.accent;
+    accentText = getAccentTextColor(d.accent);
+    tabbar     = d.tab;
+    tabbarText = `color-mix(in srgb, ${ink} 88%, transparent)`;
+    daySel     = d.accent;
+    daySelText = getAccentTextColor(d.accent);
+    priorityColors = { alta: d.alta, media: d.media, baixa: d.baixa };
+  } else {
+    bg         = light;
+    surface    = `color-mix(in srgb, ${bg} 85%, ${light})`;
+    ink        = darkPrimary;
+    inkMid     = `color-mix(in srgb, ${ink} 60%, ${bg})`;
+    inkFaint   = `color-mix(in srgb, ${ink} 40%, ${bg})`;
+    inkGhost   = `color-mix(in srgb, ${ink} 18%, ${bg})`;
+    rule       = `color-mix(in srgb, ${ink} 18%, ${bg})`;
+    deep       = `color-mix(in srgb, ${bg} 88%, ${ink})`;
+    accent     = ink;
+    accentText = getAccentTextColor(ink);
+    tabbar     = ink;
+    tabbarText = getAccentTextColor(ink);
+    daySel     = ink;
+    daySelText = getAccentTextColor(ink);
+    priorityColors = {
+      alta:  selectedPreset.colors.alta,
+      media: selectedPreset.colors.media,
+      baixa: selectedPreset.colors.baixa,
+    };
+  }
+
   setThemeVar('--bg', bg);
-  setThemeVar('--surface', `color-mix(in srgb, ${bg} 85%, ${light})`);
+  setThemeVar('--surface', surface);
   setThemeVar('--ink', ink);
-  setThemeVar('--ink-mid',   `color-mix(in srgb, ${ink} 60%, ${bg})`);
-  setThemeVar('--ink-faint', `color-mix(in srgb, ${ink} 40%, ${bg})`);
-  setThemeVar('--ink-ghost', `color-mix(in srgb, ${ink} 18%, ${bg})`);
-  setThemeVar('--rule',      `color-mix(in srgb, ${ink} 18%, ${bg})`);
-  setThemeVar('--deep',      `color-mix(in srgb, ${bg} 88%, ${ink})`);
-  setThemeVar('--accent', ink);
-  setThemeVar('--accent-text', getAccentTextColor(ink));
-  setThemeVar('--day-selected', ink);
-  setThemeVar('--day-selected-text', getAccentTextColor(ink));
-  setThemeVar('--tabbar', ink);
-  setThemeVar('--tabbar-text', getAccentTextColor(ink));
-  const priorityColors = {
-    alta:  selectedPreset.colors.alta,
-    media: selectedPreset.colors.media,
-    baixa: selectedPreset.colors.baixa,
-  };
+  setThemeVar('--ink-mid', inkMid);
+  setThemeVar('--ink-faint', inkFaint);
+  setThemeVar('--ink-ghost', inkGhost);
+  setThemeVar('--rule', rule);
+  setThemeVar('--deep', deep);
+  setThemeVar('--accent', accent);
+  setThemeVar('--accent-text', accentText);
+  setThemeVar('--day-selected', daySel);
+  setThemeVar('--day-selected-text', daySelText);
+  setThemeVar('--tabbar', tabbar);
+  setThemeVar('--tabbar-text', tabbarText);
+  const softBase = darkTheme ? bg : light;
   setThemeVar('--red',     priorityColors.alta);
-  setThemeVar('--red-soft', softColor(priorityColors.alta, light));
+  setThemeVar('--red-soft', softColor(priorityColors.alta, softBase));
   setThemeVar('--amber',   priorityColors.media);
-  setThemeVar('--amb-soft', softColor(priorityColors.media, light));
+  setThemeVar('--amb-soft', softColor(priorityColors.media, softBase));
   setThemeVar('--green',   priorityColors.baixa);
-  setThemeVar('--grn-soft', softColor(priorityColors.baixa, light));
+  setThemeVar('--grn-soft', softColor(priorityColors.baixa, softBase));
   updatePriorityPalette(priorityColors);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', ink);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', darkTheme ? tabbar : ink);
   document.documentElement.style.setProperty('--serif', titleFont || selectedPreset.title);
   document.documentElement.style.setProperty('--mono', bodyFont || selectedPreset.body);
   document.getElementById('app').dataset.theme = fontMode;
@@ -6093,6 +6239,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
       projectId: newProjectId,
       time: newTaskTime,
       date: newTaskDate,
+      position: nextTaskPosition(newTaskDate),
       repeat: newRepeat,
       subtasks: newSubtasks,
       attachments: [],
