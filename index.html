@@ -3838,31 +3838,35 @@ function wireBottomInlineInput() {
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
-  const dayTasks = tasks.filter(t => t.date === dayKey);
+  const dayTasks = tasks.filter(t => t.date === dayKey)
+    .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
   const undatedTasks = tasks.filter(t => !t.date);
   const isToday = dayKey === TODAY;
 
-  let html = `
-    <div class="inline-task-row top">
-      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
-      <input class="inline-task-input" id="inline-task-input" type="text"
-             placeholder="Anotar nova tarefa…" autocomplete="off" spellcheck="false"
-             enterkeyhint="done">
-    </div>`;
+  let html = '';
 
-  const label = getDateLabel(dayKey);
-  html += `<div class="section-label${isToday ? ' today' : ''}" data-section-date="${dayKey}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
-
-  if (dayTasks.length === 0) {
-    html += `<div class="day-empty" data-empty-date="${dayKey}">Sem tarefas para este dia.</div>`;
-  } else {
-    html += dayTasks.map(t => taskRowHTML(t)).join('');
-  }
-
+  // undated tasks pinned at top
   if (undatedTasks.length) {
     html += `<div class="section-label nodate">Sem data</div>`;
     html += undatedTasks.map(t => taskRowHTML(t)).join('');
   }
+
+  const label = getDateLabel(dayKey);
+  html += `<div class="section-label${isToday ? ' today' : ''}" data-section-date="${dayKey}">${isToday ? '● Hoje — ' : ''}${label}</div>`;
+
+  if (dayTasks.length) {
+    html += dayTasks.map(t => taskRowHTML(t)).join('');
+  }
+
+  // inline input at bottom — like a notepad line
+  html += `
+    <div class="inline-task-row bottom">
+      <button class="tick-btn" style="opacity:0.2;pointer-events:none" tabindex="-1">${CHECK_SVG}</button>
+      <input class="inline-task-input" id="inline-task-input" type="text"
+             placeholder="Nova tarefa…" autocomplete="off" spellcheck="false"
+             enterkeyhint="done">
+    </div>
+    <div style="height:100px"></div>`;
 
   document.getElementById('task-list-pending').innerHTML = html;
   document.getElementById('task-list-done-wrap').style.display = 'none';
