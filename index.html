@@ -324,6 +324,7 @@
     transition: background 0.15s;
   }
   .day-btn.active { background: var(--day-selected); }
+  #week-strip.week-mode .day-btn.active { background: transparent; }
   .day-letter {
     font-size: 9px;
     font-weight: 700;
@@ -332,6 +333,7 @@
     color: var(--ink-faint);
   }
   .day-btn.active .day-letter { color: color-mix(in srgb, var(--day-selected-text) 52%, transparent); }
+  #week-strip.week-mode .day-btn.active .day-letter { color: var(--ink-faint); }
   .day-num {
     font-family: var(--serif);
     font-size: 15px;
@@ -339,7 +341,10 @@
   }
   .day-btn.today .day-num { color: var(--ink); }
   .day-btn.active .day-num { color: var(--day-selected-text); }
+  #week-strip.week-mode .day-btn.active .day-num { color: var(--ink-mid); }
+  #week-strip.week-mode .day-btn.today .day-num { color: var(--ink); }
   [data-theme="sol"] .day-btn.active .day-num { color: #F5C430; }
+  [data-theme="sol"] #week-strip.week-mode .day-btn.active .day-num { color: var(--ink-mid); }
   [data-theme="sol"] .nav-btn.active { color: #F5C430 !important; }
   .day-dot {
     width: 3px; height: 3px;
@@ -3706,11 +3711,12 @@ function buildWeekStrip() {
     btn.addEventListener('click', () => navigateToDate(btn.dataset.date));
   });
 
-  // scroll settle → detect centred day
+  // scroll settle → detect centred day (day view only — week view doesn't have a "selected day")
   let t;
   scrollEl.addEventListener('scroll', () => {
     clearTimeout(t);
     t = setTimeout(() => {
+      if (currentView !== 'dia') return;
       const center = scrollEl.scrollLeft + scrollEl.offsetWidth / 2;
       let best = null, bestDist = Infinity;
       scrollEl.querySelectorAll('.day-btn').forEach(btn => {
@@ -3722,6 +3728,12 @@ function buildWeekStrip() {
       }
     }, 80);
   }, { passive: true });
+}
+
+function syncWeekStripMode() {
+  const strip = document.getElementById('week-strip');
+  if (!strip) return;
+  strip.classList.toggle('week-mode', currentView === 'semana');
 }
 
 function navigateToDate(dateStr, smooth = true) {
@@ -3809,6 +3821,7 @@ function renderAll() {
     renderProfile();
   }
 
+  syncWeekStripMode();
   updateProgress();
   updateTaskCount();
   saveState();
