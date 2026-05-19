@@ -4032,6 +4032,8 @@ function updateHeader() {
 }
 
 // ─── WEEK STRIP CAROUSEL ─────────────────────────────────────────────────────
+let weekStripProgrammaticScroll = false;
+let weekStripProgrammaticTimer = null;
 function buildWeekStrip() {
   const strip = document.getElementById('week-strip');
   const activeDateStr = WEEK_DATES[activeDay];
@@ -4088,6 +4090,11 @@ function buildWeekStrip() {
     clearTimeout(t);
     t = setTimeout(() => {
       if (currentView !== 'dia') return;
+      if (weekStripProgrammaticScroll) {
+        weekStripProgrammaticScroll = false;
+        clearTimeout(weekStripProgrammaticTimer);
+        return;
+      }
       const center = scrollEl.scrollLeft + scrollEl.offsetWidth / 2;
       let best = null, bestDist = Infinity;
       scrollEl.querySelectorAll('.day-btn').forEach(btn => {
@@ -4120,7 +4127,14 @@ function navigateToDate(dateStr, smooth = true) {
       b.classList.toggle('active', b.dataset.date === dateStr);
       b.classList.toggle('today', b.dataset.date === TODAY && b.dataset.date !== dateStr);
     });
-    if (smooth) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    if (smooth) {
+      weekStripProgrammaticScroll = true;
+      clearTimeout(weekStripProgrammaticTimer);
+      weekStripProgrammaticTimer = setTimeout(() => {
+        weekStripProgrammaticScroll = false;
+      }, 1000);
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   } else {
     buildWeekStrip();
   }
