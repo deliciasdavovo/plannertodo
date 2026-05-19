@@ -3882,14 +3882,48 @@ function wireNotebookAddTap() {
   if (list._notebookTapBound) return;
   list._notebookTapBound = true;
 
+  const focusDate = date => {
+    if (!date) return false;
+    const input = list.querySelector(`.inline-task-row.inline[data-input-date="${date}"] .inline-task-input`);
+    if (!input) return false;
+    input.focus();
+    return true;
+  };
+
   list.addEventListener('click', e => {
     if (taskDragActive || calendarSwipeActive) return;
-    if (e.target.closest('button,input,textarea,select,.task-row,.task-swipe-wrap,.reschedule-panel,.inline-task-row')) return;
+    if (e.target.closest('.task-row,.task-swipe-wrap,.reschedule-panel')) return;
+    if (e.target.closest('button,textarea,select')) return;
+    if (e.target.tagName === 'INPUT') return;
+
+    const inlineRow = e.target.closest('.inline-task-row.inline');
+    if (inlineRow) {
+      focusDate(inlineRow.dataset.inputDate);
+      return;
+    }
+
     const sectionLabel = e.target.closest('.section-label[data-section-date]');
-    if (!sectionLabel) return;
-    const targetDate = sectionLabel.dataset.sectionDate;
-    const targetInput = list.querySelector(`.inline-task-row.inline[data-input-date="${targetDate}"] .inline-task-input`);
-    targetInput?.focus();
+    if (sectionLabel) {
+      focusDate(sectionLabel.dataset.sectionDate);
+      return;
+    }
+
+    const clickY = e.clientY;
+    const sections = list.querySelectorAll('.section-label[data-section-date]');
+    let best = null;
+    for (const sec of sections) {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= clickY) best = sec; else break;
+    }
+    if (!best) {
+      const inlineRows = list.querySelectorAll('.inline-task-row.inline[data-input-date]');
+      for (const row of inlineRows) {
+        const rect = row.getBoundingClientRect();
+        if (rect.top <= clickY) { focusDate(row.dataset.inputDate); return; }
+      }
+      return;
+    }
+    focusDate(best.dataset.sectionDate);
   });
 }
 
