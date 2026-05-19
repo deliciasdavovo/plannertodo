@@ -183,6 +183,86 @@
   }
   #app.has-scroll-more::after { opacity: 1; }
 
+  .loading-badge {
+    position: absolute;
+    inset: 0;
+    z-index: 260;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(10px);
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity var(--dur-slow) ease, transform var(--dur-slow) var(--ease-out);
+  }
+  .loading-badge.done {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  .loading-badge-card {
+    width: 86px;
+    height: 86px;
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface) 86%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .loading-logo {
+    position: relative;
+    width: 46px;
+    height: 42px;
+  }
+  .loading-stone {
+    position: absolute;
+    height: 10px;
+    border-radius: var(--radius-xs);
+    background: var(--ink);
+    opacity: 0;
+    transform: translateY(-30px) rotate(-2deg);
+    animation: stoneStack var(--dur-slow) var(--ease-spring) forwards;
+  }
+  .loading-stone:nth-child(1) {
+    width: 18px;
+    right: 0;
+    top: 0;
+    animation-delay: 80ms;
+  }
+  .loading-stone:nth-child(2) {
+    width: 30px;
+    right: 5px;
+    top: 10px;
+    animation-delay: 220ms;
+  }
+  .loading-stone:nth-child(3) {
+    width: 34px;
+    left: 6px;
+    top: 21px;
+    animation-delay: 360ms;
+  }
+  .loading-stone:nth-child(4) {
+    width: 42px;
+    left: 0;
+    top: 32px;
+    animation-delay: 500ms;
+  }
+  @keyframes stoneStack {
+    0% { opacity: 0; transform: translateY(-28px) translateX(8px) rotate(-8deg) scale(0.92); }
+    72% { opacity: 1; transform: translateY(2px) translateX(0) rotate(1deg) scale(1.03); }
+    100% { opacity: 1; transform: translateY(0) translateX(0) rotate(-2deg) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loading-stone {
+      animation: none;
+      opacity: 1;
+      transform: translateY(0) rotate(-2deg);
+    }
+  }
+
   /* ── HEADER ── */
   #header {
     padding: var(--space-4) var(--space-5) 0;
@@ -2633,6 +2713,16 @@
 <body>
 
 <div id="app">
+  <div class="loading-badge" id="loading-badge" aria-label="Carregando" role="status">
+    <div class="loading-badge-card" aria-hidden="true">
+      <div class="loading-logo">
+        <span class="loading-stone"></span>
+        <span class="loading-stone"></span>
+        <span class="loading-stone"></span>
+        <span class="loading-stone"></span>
+      </div>
+    </div>
+  </div>
 
   <!-- HEADER -->
   <div id="header">
@@ -5811,6 +5901,21 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
+function vibrateSoft(pattern = [8]) {
+  if (!('vibrate' in navigator)) return;
+  try { navigator.vibrate(pattern); } catch(e) {}
+}
+
+function finishLoadingBadge() {
+  const badge = document.getElementById('loading-badge');
+  if (!badge) return;
+  window.setTimeout(() => vibrateSoft([8, 28, 10]), 520);
+  window.setTimeout(() => {
+    badge.classList.add('done');
+    window.setTimeout(() => badge.remove(), 280);
+  }, 980);
+}
+
 // close on overlay click
 ['modal-add-task','modal-add-habit','modal-task-detail','modal-habit-detail','modal-add-project'].forEach(id => {
   const overlay = document.getElementById(id);
@@ -5892,6 +5997,7 @@ setupCommandPalette();
 buildColorSwatches();
 buildProjectColorSwatches();
 renderAll();
+finishLoadingBadge();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
