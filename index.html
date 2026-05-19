@@ -98,14 +98,6 @@
   }
 
   body.dark {
-    --bg:       #111110;
-    --surface:  #1C1C1A;
-    --ink:      #F5F4F0;
-    --ink-mid:  #C7C5BD;
-    --ink-faint:#9C9A92;
-    --ink-ghost:#4A4945;
-    --rule:     #2A2926;
-    --deep:     #181816;
     --shadow-xs: 0 1px 2px rgba(0,0,0,.20);
     --shadow-sm: 0 2px 8px rgba(0,0,0,.24);
     --shadow-md: 0 8px 22px rgba(0,0,0,.30), 0 2px 6px rgba(0,0,0,.20);
@@ -1530,17 +1522,6 @@
   #app[data-theme="terra"] .project-name { font-style: italic; font-weight: 400; }
   #app[data-theme="terra"] .day-btn { border-radius: var(--radius-xs); border: 1px solid #E8DDD0; }
   #app[data-theme="terra"] .day-btn.active { border-color: #C4593A; }
-
-  body.dark #app {
-    --bg: #111110;
-    --surface: #1C1C1A;
-    --ink: #F5F4F0;
-    --ink-mid: #C7C5BD;
-    --ink-faint: #9C9A92;
-    --ink-ghost: #4A4945;
-    --rule: #2A2926;
-    --deep: #181816;
-  }
 
   /* ── FAB ── */
   #fab {
@@ -3430,8 +3411,8 @@ let appearanceOpen = false;
 let appearanceSnapshot = null;
 let profileTipDismissed = localStorage.getItem('fd-profile-tip-dismissed') === '1';
 let fontMode     = localStorage.getItem('fd-font-mode') || 'brejo';
-let accentColor  = localStorage.getItem('fd-accent') || (APPEARANCE_PRESETS.find(preset => preset.id === fontMode)?.colors.primary || '#1A1A1A');
-let customBgColor = localStorage.getItem('fd-bg-color') || '';
+let darkColor   = localStorage.getItem('fd-dark-color')  || localStorage.getItem('fd-accent')   || (APPEARANCE_PRESETS.find(preset => preset.id === fontMode)?.colors.primary || '#1A1A1A');
+let lightColor  = localStorage.getItem('fd-light-color') || localStorage.getItem('fd-bg-color') || (APPEARANCE_PRESETS.find(preset => preset.id === fontMode)?.colors.bg || '#EDEBE6');
 let titleFont = localStorage.getItem('fd-title-font') || '';
 let bodyFont = localStorage.getItem('fd-body-font') || '';
 let selectedTaskId  = null;
@@ -3972,8 +3953,8 @@ function applyAppearancePreset(id, keepPanelOpen = false) {
   const preset = APPEARANCE_PRESETS.find(item => item.id === id);
   if (!preset) return;
   fontMode = preset.id;
-  accentColor = preset.colors.primary;
-  customBgColor = preset.colors.bg;
+  darkColor = preset.colors.primary;
+  lightColor = preset.colors.bg;
   titleFont = preset.title;
   bodyFont = preset.body;
   applyTheme();
@@ -3985,7 +3966,7 @@ function openAppearanceSettings() {
   currentNav = 'perfil';
   currentView = 'semana';
   appearanceOpen = true;
-  appearanceSnapshot = { darkTheme, fontMode, accentColor, customBgColor, titleFont, bodyFont };
+  appearanceSnapshot = { darkTheme, fontMode, darkColor, lightColor, titleFont, bodyFont };
   buildNav();
   buildViewToggle();
   updateHeader();
@@ -5064,7 +5045,8 @@ function appearancePanelHTML() {
   const selectedPreset = APPEARANCE_PRESETS.find(preset => preset.id === fontMode) || APPEARANCE_PRESETS[0];
   const selectedTitleFont = titleFont || selectedPreset.title;
   const selectedBodyFont = bodyFont || selectedPreset.body;
-  const bgValue = customBgColor || selectedPreset.colors.bg;
+  const darkValue = darkColor || selectedPreset.colors.primary;
+  const lightValue = lightColor || selectedPreset.colors.bg;
   return `
     <div class="appearance-panel">
       <div class="appearance-row">
@@ -5097,11 +5079,11 @@ function appearancePanelHTML() {
       <div class="appearance-row">
         <div class="appearance-label">Personalizar cores</div>
         <div class="appearance-color">
-          <input type="color" id="appearance-color" value="${accentColor}">
-          <input type="color" id="appearance-bg-color" value="${bgValue}">
+          <input type="color" id="appearance-dark-color" value="${darkValue}" title="Cor escura">
+          <input type="color" id="appearance-light-color" value="${lightValue}" title="Cor clara">
           <div class="appearance-preview">
             <strong>FlowDo</strong>
-            <span>Principal e fundo</span>
+            <span>Escura e clara</span>
           </div>
         </div>
       </div>
@@ -5113,19 +5095,19 @@ function appearancePanelHTML() {
 }
 
 function attachAppearanceEvents(root) {
-  const colorInput = root.querySelector('#appearance-color');
-  if (colorInput) {
-    colorInput.addEventListener('input', (e) => {
+  const darkInput = root.querySelector('#appearance-dark-color');
+  if (darkInput) {
+    darkInput.addEventListener('input', (e) => {
       e.stopPropagation();
-      accentColor = colorInput.value;
+      darkColor = darkInput.value;
       applyTheme();
     });
   }
-  const bgInput = root.querySelector('#appearance-bg-color');
-  if (bgInput) {
-    bgInput.addEventListener('input', (e) => {
+  const lightInput = root.querySelector('#appearance-light-color');
+  if (lightInput) {
+    lightInput.addEventListener('input', (e) => {
       e.stopPropagation();
-      customBgColor = bgInput.value;
+      lightColor = lightInput.value;
       applyTheme();
     });
   }
@@ -5160,8 +5142,8 @@ function attachAppearanceEvents(root) {
       fontMode = btn.dataset.fontMode;
       const preset = APPEARANCE_PRESETS.find(item => item.id === fontMode);
       if (preset) {
-        accentColor = preset.colors.primary;
-        customBgColor = preset.colors.bg;
+        darkColor = preset.colors.primary;
+        lightColor = preset.colors.bg;
         titleFont = preset.title;
         bodyFont = preset.body;
       }
@@ -5186,8 +5168,8 @@ function attachAppearanceEvents(root) {
       if (appearanceSnapshot) {
         darkTheme = appearanceSnapshot.darkTheme;
         fontMode = appearanceSnapshot.fontMode;
-        accentColor = appearanceSnapshot.accentColor;
-        customBgColor = appearanceSnapshot.customBgColor;
+        darkColor = appearanceSnapshot.darkColor;
+        lightColor = appearanceSnapshot.lightColor;
         titleFont = appearanceSnapshot.titleFont;
         bodyFont = appearanceSnapshot.bodyFont;
         applyTheme();
@@ -5205,8 +5187,8 @@ function setThemeVar(name, value) {
   document.body.style.setProperty(name, value);
 }
 
-function softColor(color) {
-  return `color-mix(in srgb, ${color} 13%, #ffffff)`;
+function softColor(color, lightRef) {
+  return `color-mix(in srgb, ${color} 13%, ${lightRef || lightColor || '#ffffff'})`;
 }
 
 function updatePriorityPalette(colors) {
@@ -5248,41 +5230,44 @@ function applyTheme() {
   document.body.classList.toggle('dark', darkTheme);
   const selectedPreset = APPEARANCE_PRESETS.find(preset => preset.id === fontMode) || APPEARANCE_PRESETS[0];
   fontMode = selectedPreset.id;
-  const colors = {
-    ...selectedPreset.colors,
-    bg: customBgColor || selectedPreset.colors.bg,
-    primary: accentColor || selectedPreset.colors.primary,
+  const light = lightColor || selectedPreset.colors.bg;
+  const dark  = darkColor  || selectedPreset.colors.primary;
+  const bg  = darkTheme ? dark  : light;
+  const ink = darkTheme ? light : dark;
+  setThemeVar('--bg', bg);
+  setThemeVar('--surface', `color-mix(in srgb, ${bg} 85%, ${light})`);
+  setThemeVar('--ink', ink);
+  setThemeVar('--ink-mid',   `color-mix(in srgb, ${ink} 60%, ${bg})`);
+  setThemeVar('--ink-faint', `color-mix(in srgb, ${ink} 40%, ${bg})`);
+  setThemeVar('--ink-ghost', `color-mix(in srgb, ${ink} 18%, ${bg})`);
+  setThemeVar('--rule',      `color-mix(in srgb, ${ink} 18%, ${bg})`);
+  setThemeVar('--deep',      `color-mix(in srgb, ${bg} 88%, ${ink})`);
+  setThemeVar('--accent', ink);
+  setThemeVar('--accent-text', getAccentTextColor(ink));
+  setThemeVar('--day-selected', ink);
+  setThemeVar('--day-selected-text', getAccentTextColor(ink));
+  setThemeVar('--tabbar', ink);
+  setThemeVar('--tabbar-text', getAccentTextColor(ink));
+  const priorityColors = {
+    alta:  selectedPreset.colors.alta,
+    media: selectedPreset.colors.media,
+    baixa: selectedPreset.colors.baixa,
   };
-  const accentText = getAccentTextColor(colors.primary);
-  setThemeVar('--bg', colors.bg);
-  setThemeVar('--surface', `color-mix(in srgb, ${colors.bg} 36%, #ffffff)`);
-  setThemeVar('--ink', colors.primary);
-  setThemeVar('--ink-mid', colors.secondary);
-  setThemeVar('--ink-faint', colors.secondary);
-  setThemeVar('--ink-ghost', colors.divider);
-  setThemeVar('--rule', colors.divider);
-  setThemeVar('--deep', `color-mix(in srgb, ${colors.bg} 82%, ${colors.divider})`);
-  setThemeVar('--accent', colors.primary);
-  setThemeVar('--accent-text', accentText);
-  setThemeVar('--day-selected', colors.day);
-  setThemeVar('--day-selected-text', getAccentTextColor(colors.day));
-  setThemeVar('--tabbar', colors.tab);
-  setThemeVar('--tabbar-text', getAccentTextColor(colors.tab));
-  setThemeVar('--red', colors.alta);
-  setThemeVar('--red-soft', softColor(colors.alta));
-  setThemeVar('--amber', colors.media);
-  setThemeVar('--amb-soft', softColor(colors.media));
-  setThemeVar('--green', colors.baixa);
-  setThemeVar('--grn-soft', softColor(colors.baixa));
-  updatePriorityPalette(colors);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colors.tab);
+  setThemeVar('--red',     priorityColors.alta);
+  setThemeVar('--red-soft', softColor(priorityColors.alta, light));
+  setThemeVar('--amber',   priorityColors.media);
+  setThemeVar('--amb-soft', softColor(priorityColors.media, light));
+  setThemeVar('--green',   priorityColors.baixa);
+  setThemeVar('--grn-soft', softColor(priorityColors.baixa, light));
+  updatePriorityPalette(priorityColors);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', ink);
   document.documentElement.style.setProperty('--serif', titleFont || selectedPreset.title);
   document.documentElement.style.setProperty('--mono', bodyFont || selectedPreset.body);
   document.getElementById('app').dataset.theme = fontMode;
   localStorage.setItem('fd-theme', darkTheme ? 'dark' : 'light');
-  localStorage.setItem('fd-accent', accentColor);
+  localStorage.setItem('fd-dark-color', darkColor);
+  localStorage.setItem('fd-light-color', lightColor);
   localStorage.setItem('fd-font-mode', fontMode);
-  localStorage.setItem('fd-bg-color', customBgColor);
   localStorage.setItem('fd-title-font', titleFont);
   localStorage.setItem('fd-body-font', bodyFont);
 }
@@ -5291,7 +5276,7 @@ function handleProfileAction(action) {
   if (action === 'appearance') {
     appearanceOpen = !appearanceOpen;
     if (appearanceOpen) {
-      appearanceSnapshot = { darkTheme, fontMode, accentColor, customBgColor, titleFont, bodyFont };
+      appearanceSnapshot = { darkTheme, fontMode, darkColor, lightColor, titleFont, bodyFont };
     } else if (appearanceSnapshot) {
       appearanceSnapshot = null;
     }
