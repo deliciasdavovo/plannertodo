@@ -1,4 +1,4 @@
-const CACHE = 'flowdo-v5';
+const CACHE = 'flowdo-v8';
 const LOCAL = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
