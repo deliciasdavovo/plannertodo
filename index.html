@@ -224,7 +224,7 @@
   .loading-stone {
     position: absolute;
     height: 11px;
-    border-radius: 9px;
+    border-radius: 4px 5px 4px 5px;
     background: #111110;
     box-shadow: 0 4px 10px rgba(17,17,16,.10);
     opacity: 0;
@@ -544,8 +544,8 @@
   .day-letter {
     font-family: var(--serif);
     font-size: var(--text-micro);
-    font-weight: 700;
-    letter-spacing: var(--tr-micro);
+    font-weight: 400;
+    letter-spacing: 0;
     text-transform: uppercase;
     color: var(--ink-faint);
   }
@@ -554,6 +554,8 @@
   .day-num {
     font-family: var(--serif);
     font-size: var(--text-base);
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--ink-mid);
   }
   .day-btn.today .day-num { color: var(--ink); }
@@ -562,7 +564,6 @@
   #week-strip.week-mode .day-btn.today .day-num { color: var(--ink); }
   [data-theme="sol"] .day-btn.active .day-num { color: #F5C430; }
   [data-theme="sol"] #week-strip.week-mode .day-btn.active .day-num { color: var(--ink-mid); }
-  [data-theme="sol"] .nav-btn.active { color: #F5C430 !important; }
   .day-dot {
     width: 4px; height: 4px;
     border-radius: 50%;
@@ -597,10 +598,10 @@
   }
   .task-list > :last-child { border-bottom: none; }
   .section-label {
-    font-family: var(--mono);
+    font-family: var(--serif);
     font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: var(--tr-xs);
+    font-weight: 400;
+    letter-spacing: 0;
     text-transform: uppercase;
     color: var(--ink-faint);
     margin: var(--space-5) 0 0;
@@ -1488,7 +1489,6 @@
     --rule: #C8C5BE;
   }
 
-  #app[data-theme="nevoa"] .nav-btn.active { color: #7B9EC0 !important; }
   #app[data-theme="nevoa"] .day-btn.active .day-num { color: #7B9EC0; }
   #app[data-theme="nevoa"] {
     --ink-mid: #5C6F88;
@@ -1505,8 +1505,6 @@
   }
 
   #app[data-theme="terra"] #bottom-nav { border-top-color: color-mix(in srgb, #C4593A 22%, transparent); }
-  #app[data-theme="terra"] .nav-btn.active { color: #C4593A !important; }
-  #app[data-theme="terra"] .nav-indicator  { background: #C4593A; }
   #app[data-theme="terra"] {
     --ink-mid: #7F5945;
     --ink-faint: #7F5945;
@@ -1548,11 +1546,11 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-1);
-    background: color-mix(in srgb, var(--surface) 92%, var(--tabbar));
-    border-top: 0.5px solid color-mix(in srgb, var(--rule) 78%, transparent);
+    background: var(--tabbar);
+    border-top: 0.5px solid color-mix(in srgb, var(--tabbar-text) 14%, transparent);
     padding: var(--space-2) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
     flex-shrink: 0;
-    box-shadow: 0 -4px 18px rgba(17,17,16,.045);
+    box-shadow: 0 -10px 28px rgba(17,17,16,.16);
     position: relative;
     z-index: 10;
   }
@@ -1569,13 +1567,13 @@
     min-height: 52px;
     padding: var(--space-2) 0;
     border-radius: var(--radius-md);
-    color: var(--ink-faint);
+    color: color-mix(in srgb, var(--tabbar-text) 58%, transparent);
     transition: background var(--dur-base), color var(--dur-base), transform var(--dur-base) var(--ease-out);
   }
   .nav-btn:active { transform: scale(0.985); }
   .nav-btn.active {
-    background: color-mix(in srgb, var(--tabbar) 9%, transparent);
-    color: var(--tabbar);
+    background: color-mix(in srgb, var(--tabbar-text) 13%, transparent);
+    color: var(--tabbar-text);
   }
   .nav-icon {
     width: 18px;
@@ -3947,7 +3945,7 @@ function markActiveDayDone() {
     if (task.date === WEEK_DATES[activeDay]) task.done = true;
   });
   renderAll();
-  showDayToast('Dia concluido');
+  showDayToast('Dia concluído');
 }
 
 function applyAppearancePreset(id, keepPanelOpen = false) {
@@ -4424,11 +4422,11 @@ function taskRowHTML(task) {
           ${CHECK_SVG}
         </button>
         <div class="task-body">
-          <div class="task-title">${task.title}</div>
+          <div class="task-title">${escapeHTML(task.title)}</div>
           <div class="task-meta">
-            ${proj ? `<span class="meta-proj"><span class="proj-dot" style="background:${proj.dot}"></span>${proj.name}</span>` : ''}
-            ${task.time ? `<span class="meta-time">${task.time}</span>` : ''}
-            ${task.repeat && task.repeat !== 'nenhuma' ? `<span class="meta-sub">recorrente: ${task.repeat}</span>` : ''}
+            ${proj ? `<span class="meta-proj"><span class="proj-dot" style="background:${proj.dot}"></span>${escapeHTML(proj.name)}</span>` : ''}
+            ${task.time ? `<span class="meta-time">${escapeHTML(task.time)}</span>` : ''}
+            ${task.repeat && task.repeat !== 'nenhuma' ? `<span class="meta-sub">recorrente: ${escapeHTML(task.repeat)}</span>` : ''}
             ${task.subtasks?.length ? `<span class="meta-sub">${task.subtasks.length} subtarefas</span>` : ''}
           </div>
         </div>
@@ -4604,7 +4602,7 @@ function deleteTask(id, ask = true) {
   tasks = tasks.filter(task => task.id !== id);
   closeModal('modal-task-detail');
   renderAll();
-  showDayToast('Tarefa excluida');
+  showDayToast('Tarefa excluída');
 }
 
 function rescheduleTask(id, date) {
@@ -4783,8 +4781,8 @@ function habitCardHTML(h) {
           ${CHECK_SVG}
         </button>
         <div class="habit-info">
-          <div class="habit-name">${h.name}</div>
-          <div class="habit-cue">${h.cue}</div>
+          <div class="habit-name">${escapeHTML(h.name)}</div>
+          <div class="habit-cue">${escapeHTML(h.cue)}</div>
         </div>
         <div class="habit-streak">
           <div class="streak-num" style="color:${h.color}">${h.streak}</div>
@@ -4906,7 +4904,7 @@ function renderHabitsMonth() {
     return `
       <div class="habit-month-card" style="--habit-color:${h.color}">
         <div class="habit-month-header">
-          <div class="habit-month-name">${h.name}</div>
+          <div class="habit-month-name">${escapeHTML(h.name)}</div>
           <button class="habit-month-check ${todayDone?'done':''}" data-month-check="${h.id}" style="color:${h.color}" title="Marcar hoje">${todayDone?'✓':'○'}</button>
         </div>
         ${heatmapHTML}
@@ -4941,7 +4939,7 @@ function renderProjects() {
         <div class="project-header" data-open-project="${p.id}">
           <div class="project-name-wrap">
             <div class="project-dot" style="background:${p.dot}"></div>
-            <div class="project-name">${p.name}</div>
+            <div class="project-name">${escapeHTML(p.name)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <div class="project-count">${done}/${total}</div>
@@ -4954,7 +4952,7 @@ function renderProjects() {
         ${projTasks.map(t => `
           <div class="project-task ${t.done?'done':''}" data-project-task="${t.id}">
             <div class="project-task-dot" style="background:${t.done?'#D8D7D0':p.dot}"></div>
-            <div class="project-task-title">${t.title}</div>
+            <div class="project-task-title">${escapeHTML(t.title)}</div>
             ${!t.date ? `<div class="project-task-nodate">sem data</div>` : ''}
           </div>`).join('')}
       </div>`;
@@ -5173,7 +5171,7 @@ function attachAppearanceEvents(root) {
       appearanceSnapshot = null;
       appearanceOpen = false;
       renderProfile();
-      showDayToast('Aparencia salva');
+      showDayToast('Aparência salva');
     });
   }
   const cancelBtn = root.querySelector('[data-appearance-cancel]');
@@ -5192,7 +5190,7 @@ function attachAppearanceEvents(root) {
       appearanceSnapshot = null;
       appearanceOpen = false;
       renderAll();
-      showDayToast('Aparencia restaurada');
+      showDayToast('Aparência restaurada');
     });
   }
 }
@@ -5301,22 +5299,22 @@ function handleProfileAction(action) {
 
   if (action === 'notifications') {
     if (!('Notification' in window)) {
-      showDayToast('Notificacoes indisponiveis');
+      showDayToast('Notificações indisponíveis');
       return;
     }
     if (Notification.permission === 'granted') {
-      showDayToast('Notificacoes ativas');
+      showDayToast('Notificações ativas');
       scheduleNotifications();
       renderProfile();
       return;
     }
     if (Notification.permission === 'denied') {
-      showDayToast('Notificacoes bloqueadas');
+      showDayToast('Notificações bloqueadas');
       renderProfile();
       return;
     }
     Notification.requestPermission().then(permission => {
-      showDayToast(permission === 'granted' ? 'Notificacoes ativas' : 'Notificacoes desativadas');
+      showDayToast(permission === 'granted' ? 'Notificações ativas' : 'Notificações desativadas');
       scheduleNotifications();
       renderProfile();
     });
@@ -5366,7 +5364,7 @@ function handleProfileAction(action) {
     habits = [];
     PROJECTS.splice(0, PROJECTS.length);
     renderAll();
-    showDayToast('Sessao encerrada');
+    showDayToast('Sessão encerrada');
   }
 }
 
@@ -5392,10 +5390,10 @@ function openTaskDetail() {
   const dateLabel = task.date ? getDateLabel(task.date) : '';
   tags.innerHTML = `
     <span class="tag" style="background:${pc.bg};color:${pc.color}">${pc.label}</span>
-    ${proj?`<span class="tag" style="background:${proj.dot}18;color:${proj.dot}">${proj.name}</span>`:''}
-    ${task.time?`<span class="tag" style="background:#EDECE8;color:#5A5A55">${task.time}</span>`:''}
+    ${proj?`<span class="tag" style="background:${proj.dot}18;color:${proj.dot}">${escapeHTML(proj.name)}</span>`:''}
+    ${task.time?`<span class="tag" style="background:#EDECE8;color:#5A5A55">${escapeHTML(task.time)}</span>`:''}
     ${task.date?`<span class="tag" style="background:#EDECE8;color:#5A5A55">${dateLabel}</span>`:''}
-    ${task.repeat && task.repeat !== 'nenhuma'?`<span class="tag" style="background:#E6F0EB;color:#2A6E4A">${task.repeat}</span>`:''}
+    ${task.repeat && task.repeat !== 'nenhuma'?`<span class="tag" style="background:#E6F0EB;color:#2A6E4A">${escapeHTML(task.repeat)}</span>`:''}
     ${!task.date?`<span class="tag" style="background:#EDECE8;color:#B0AFA8">Sem data</span>`:''}
   `;
 
@@ -5749,7 +5747,7 @@ function buildSubpanel() {
     panel.innerHTML = `<div class="tsp-project">
       <select id="tsp-project-select">
         <option value="">Sem projeto</option>
-        ${PROJECTS.map(p=>`<option value="${p.id}" ${p.id===newProjectId?'selected':''}>${p.name}</option>`).join('')}
+        ${PROJECTS.map(p=>`<option value="${p.id}" ${p.id===newProjectId?'selected':''}>${escapeHTML(p.name)}</option>`).join('')}
       </select></div>`;
     panel.querySelector('#tsp-project-select').onchange = e => {
       newProjectId = e.target.value ? parseInt(e.target.value) : null;
@@ -5975,7 +5973,7 @@ function deleteHabit(id, ask = true) {
   closeModal('modal-habit-detail');
   saveState();
   renderAll();
-  showDayToast('Habito excluido');
+  showDayToast('Hábito excluído');
 }
 
 // ─── MODAL HELPERS ────────────────────────────────────────────────────────────
@@ -5995,7 +5993,10 @@ function vibrateSoft(pattern = [8]) {
 function finishLoadingBadge() {
   const badge = document.getElementById('loading-badge');
   if (!badge) return;
-  window.setTimeout(() => vibrateSoft([4]), 980);
+  [370, 470, 560, 650].forEach(delay => {
+    window.setTimeout(() => vibrateSoft([5]), delay);
+  });
+  window.setTimeout(() => vibrateSoft([8]), 980);
   window.setTimeout(() => {
     badge.classList.add('done');
     window.setTimeout(() => badge.remove(), 560);
