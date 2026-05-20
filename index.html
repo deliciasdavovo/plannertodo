@@ -2225,13 +2225,12 @@
     box-shadow: var(--shadow-sheet);
   }
   #modal-add-task.open .task-sheet { transform: translateY(0); }
-  .task-sheet-body[data-hl] {
+  .task-sheet-title[data-hl] {
     background: linear-gradient(
       to top,
-      color-mix(in srgb, var(--hl) 45%, transparent) 0 38%,
-      transparent 38% 100%
+      color-mix(in srgb, var(--hl) 50%, transparent) 0 32%,
+      transparent 32% 100%
     );
-    border-radius: var(--radius-sm);
   }
   .task-sheet-head {
     display: flex;
@@ -6247,15 +6246,15 @@ function buildAddTaskModal() {
     dateLabelEl.onclick = () => { activeSubpanel = activeSubpanel === 'datetime' ? null : 'datetime'; buildAddTaskModal(); };
   }
 
-  // apply highlight color to title body area (like the list view highlight effect)
-  const titleBody = document.querySelector('.task-sheet-body');
-  if (titleBody) {
+  // apply highlight color directly on the title textarea
+  const titleEl2 = document.getElementById('new-task-title');
+  if (titleEl2) {
     if (newTaskHighlight) {
-      titleBody.style.setProperty('--hl', newTaskHighlight);
-      titleBody.dataset.hl = '1';
+      titleEl2.style.setProperty('--hl', newTaskHighlight);
+      titleEl2.dataset.hl = '1';
     } else {
-      titleBody.style.removeProperty('--hl');
-      delete titleBody.dataset.hl;
+      titleEl2.style.removeProperty('--hl');
+      delete titleEl2.dataset.hl;
     }
   }
 
