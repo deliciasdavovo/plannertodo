@@ -2225,12 +2225,17 @@
     box-shadow: var(--shadow-sheet);
   }
   #modal-add-task.open .task-sheet { transform: translateY(0); }
-  .task-sheet-title[data-hl] {
+  .task-title-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+  .task-title-wrap[data-hl] {
     background: linear-gradient(
       to top,
       color-mix(in srgb, var(--hl) 50%, transparent) 0 32%,
       transparent 32% 100%
     );
+    border-radius: var(--radius-xs);
   }
   .task-sheet-head {
     display: flex;
@@ -2273,7 +2278,7 @@
     flex-shrink: 0;
   }
   .task-sheet-title {
-    flex: 1;
+    width: 100%;
     font-family: var(--serif);
     font-size: var(--text-xl);
     font-weight: 400;
@@ -2316,6 +2321,7 @@
     inset: -6px;
   }
   .task-sheet-check-btn:active { transform: scale(0.94); }
+  .task-sheet-check-btn svg { width: 15px; height: 13px; }
   .task-sheet-check-btn.done {
     border-color: var(--accent);
     background: var(--accent);
@@ -3206,7 +3212,9 @@
       </div>
       <div class="task-priority-bar" id="task-priority-bar"></div>
       <div class="task-sheet-body">
-        <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
+        <div class="task-title-wrap" id="task-title-wrap">
+          <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
+        </div>
         <button class="task-sheet-check-btn" id="task-sheet-check-btn" type="button"></button>
       </div>
       <textarea class="task-sheet-notes" id="task-notes-input" placeholder="Adicionar notas..."></textarea>
@@ -6247,15 +6255,15 @@ function buildAddTaskModal() {
     dateLabelEl.onclick = () => { activeSubpanel = activeSubpanel === 'datetime' ? null : 'datetime'; buildAddTaskModal(); };
   }
 
-  // apply highlight color directly on the title textarea
-  const titleEl2 = document.getElementById('new-task-title');
-  if (titleEl2) {
+  // apply highlight color on the wrapper div (avoids iOS textarea background-clip bug)
+  const titleWrap = document.getElementById('task-title-wrap');
+  if (titleWrap) {
     if (newTaskHighlight) {
-      titleEl2.style.setProperty('--hl', newTaskHighlight);
-      titleEl2.dataset.hl = '1';
+      titleWrap.style.setProperty('--hl', newTaskHighlight);
+      titleWrap.dataset.hl = '1';
     } else {
-      titleEl2.style.removeProperty('--hl');
-      delete titleEl2.dataset.hl;
+      titleWrap.style.removeProperty('--hl');
+      delete titleWrap.dataset.hl;
     }
   }
 
@@ -6266,7 +6274,7 @@ function buildAddTaskModal() {
       const t = tasks.find(t => t.id === editingTaskId);
       const isDone = t?.done || false;
       checkBtn.className = 'task-sheet-check-btn' + (isDone ? ' done' : '');
-      checkBtn.textContent = isDone ? '✓' : '';
+      checkBtn.innerHTML = isDone ? CHECK_SVG : '';
       checkBtn.style.display = '';
       checkBtn.onclick = () => { if (t) { t.done = !t.done; buildAddTaskModal(); } };
     } else {
