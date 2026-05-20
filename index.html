@@ -2295,7 +2295,7 @@
     color: var(--accent-text);
   }
   .task-sheet-notes {
-    padding: var(--space-2) var(--space-5) var(--space-3);
+    padding: 2px var(--space-5) var(--space-2);
     font-family: var(--sans);
     font-size: var(--text-base);
     color: var(--ink-mid);
@@ -2424,31 +2424,23 @@
   }
   .tbr-delete-header:active { background: var(--red-soft); }
   .task-sheet-toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
     padding: var(--space-3) var(--space-4) var(--space-5);
     border-top: 0.5px solid color-mix(in srgb, var(--rule) 78%, transparent);
     flex-shrink: 0;
   }
   .task-chips-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
+  .task-chip {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    flex: 1;
-    min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .task-chips-row::-webkit-scrollbar { display: none; }
-  .task-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 32px;
-    padding: 0 var(--space-3);
-    border-radius: 999px;
+    justify-content: center;
+    gap: 6px;
+    height: 42px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
     border: 1.5px solid color-mix(in srgb, var(--rule) 95%, transparent);
     background: var(--deep);
     color: var(--ink-mid);
@@ -2457,7 +2449,6 @@
     font-weight: 700;
     white-space: nowrap;
     cursor: pointer;
-    flex-shrink: 0;
     touch-action: manipulation;
     transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
   }
@@ -3159,7 +3150,6 @@
           <button type="button" class="tbr-delete-header" id="tbr-delete" style="display:none" title="Excluir tarefa">
             <svg width="17" height="17" viewBox="0 0 19 19" fill="none"><path d="M3.5 5h12M8 5V3.5h3V5M7.5 8v6M11.5 8v6M4.5 5l1 10h8l1-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <button class="task-sheet-close" id="task-sheet-close-btn">✕</button>
         </div>
       </div>
       <div class="task-sheet-body">
@@ -3176,8 +3166,8 @@
       <div class="task-sheet-subpanel" id="task-sheet-subpanel"></div>
       <div class="task-sheet-toolbar">
         <div class="task-chips-row" id="task-chips-row"></div>
-        <button class="task-sheet-submit" id="submit-task">SALVAR</button>
       </div>
+      <button class="task-sheet-submit" id="submit-task" style="display:none" aria-hidden="true"></button>
     </div>
   </div>
 
@@ -6465,7 +6455,7 @@ function setupTaskSheetEvents() {
   const close = document.getElementById('task-sheet-close-btn');
   if (close && !close._bound) {
     close._bound = true;
-    close.onclick = () => { activeSubpanel = null; closeModal('modal-add-task'); };
+    close.onclick = () => saveAndCloseTaskSheet();
   }
   const titleEl = document.getElementById('new-task-title');
   if (titleEl && !titleEl._bound) {
@@ -6474,26 +6464,27 @@ function setupTaskSheetEvents() {
   }
 }
 
-document.getElementById('submit-task').addEventListener('click', () => {
+function saveAndCloseTaskSheet() {
   const title = document.getElementById('new-task-title').value.trim();
-  if (!title) return;
   let changedTask = null;
   if (editingTaskId) {
     const t = tasks.find(t => t.id === editingTaskId);
     if (t) {
-      t.title = title;
-      t.notes = newTaskNotes;
-      t.priority = newPriority;
-      t.projectId = newProjectId;
-      t.time = newTaskTime;
-      t.date = newTaskDate;
-      t.repeat = newRepeat;
-      t.subtasks = newSubtasks;
-      t.highlight = newTaskHighlight;
-      if (newTaskDate) ensureDateInWeek(newTaskDate);
-      changedTask = t;
+      if (title) {
+        t.title = title;
+        t.notes = newTaskNotes;
+        t.priority = newPriority;
+        t.projectId = newProjectId;
+        t.time = newTaskTime;
+        t.date = newTaskDate;
+        t.repeat = newRepeat;
+        t.subtasks = newSubtasks;
+        t.highlight = newTaskHighlight;
+        if (newTaskDate) ensureDateInWeek(newTaskDate);
+        changedTask = t;
+      }
     }
-  } else {
+  } else if (title) {
     if (newTaskDate) ensureDateInWeek(newTaskDate);
     changedTask = {
       id: Date.now(),
@@ -6508,7 +6499,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
       repeat: newRepeat,
       subtasks: newSubtasks,
       attachments: [],
-      highlight: '',
+      highlight: newTaskHighlight,
     };
     tasks.push(changedTask);
   }
@@ -6525,7 +6516,9 @@ document.getElementById('submit-task').addEventListener('click', () => {
   saveState();
   renderAll();
   if (changedTask) requestNotificationsForTask(changedTask);
-});
+}
+
+document.getElementById('submit-task').addEventListener('click', saveAndCloseTaskSheet);
 
 function startEditTask(id) {
   const t = tasks.find(t => t.id === id);
@@ -6704,9 +6697,8 @@ function finishLoadingBadge() {
       return;
     }
     if (id === 'modal-add-task') {
-      const title = document.getElementById('new-task-title').value.trim();
-      if (title) { document.getElementById('submit-task').click(); return; }
-      activeSubpanel = null;
+      saveAndCloseTaskSheet();
+      return;
     }
     closeModal(id);
   });
