@@ -847,8 +847,8 @@
   }
   .tick-btn:active { transform: scale(0.94); }
   .tick-btn.checked {
-    border-color: var(--check-color, var(--ink));
-    background: var(--check-color, var(--ink));
+    border-color: var(--check-color, var(--accent));
+    background: var(--check-color, var(--accent));
   }
   .tick-btn svg { display: none; }
   .tick-btn.checked svg { display: block; }
@@ -2296,7 +2296,7 @@
   .task-sheet-check-btn {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     border: 1.5px solid var(--ink-ghost);
     background: none;
     cursor: pointer;
@@ -2748,8 +2748,8 @@
   }
   .detail-tick:active { transform: scale(0.94); }
   .detail-tick.checked {
-    border-color: var(--check-color, var(--ink));
-    background: var(--check-color, var(--ink));
+    border-color: var(--check-color, var(--accent));
+    background: var(--check-color, var(--accent));
   }
   .detail-tick svg { display: none; }
   .detail-tick.checked svg { display: block; }
@@ -5813,20 +5813,21 @@ function applyTheme() {
     daySelText = getAccentTextColor(d.accent);
     priorityColors = { alta: d.alta, media: d.media, baixa: d.baixa };
   } else {
+    const presetInk = selectedPreset.colors.primary;
     bg         = light;
     surface    = `color-mix(in srgb, ${bg} 85%, ${light})`;
-    ink        = darkPrimary;
+    ink        = presetInk;
     inkMid     = `color-mix(in srgb, ${ink} 60%, ${bg})`;
     inkFaint   = `color-mix(in srgb, ${ink} 40%, ${bg})`;
     inkGhost   = `color-mix(in srgb, ${ink} 18%, ${bg})`;
     rule       = `color-mix(in srgb, ${ink} 18%, ${bg})`;
     deep       = `color-mix(in srgb, ${bg} 88%, ${ink})`;
-    accent     = ink;
-    accentText = getAccentTextColor(ink);
-    tabbar     = ink;
-    tabbarText = getAccentTextColor(ink);
-    daySel     = ink;
-    daySelText = getAccentTextColor(ink);
+    accent     = darkPrimary;
+    accentText = getAccentTextColor(darkPrimary);
+    tabbar     = darkPrimary;
+    tabbarText = getAccentTextColor(darkPrimary);
+    daySel     = darkPrimary;
+    daySelText = getAccentTextColor(darkPrimary);
     priorityColors = {
       alta:  selectedPreset.colors.alta,
       media: selectedPreset.colors.media,
