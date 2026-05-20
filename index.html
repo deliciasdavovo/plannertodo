@@ -3046,6 +3046,10 @@
           <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M2 5h15v11a1 1 0 01-1 1H3a1 1 0 01-1-1V5z" stroke="currentColor" stroke-width="1.5"/><path d="M2 5l2-3h11l2 3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
           <span class="tbr-label" id="tbr-project-label">Projeto</span>
         </button>
+        <button type="button" class="toolbar-icon-btn" id="tbr-highlight" title="Grifo">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M4 14h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 11l5-8 4 2.5-5 8H6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 11l1.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span class="tbr-label" id="tbr-highlight-label">Grifo</span>
+        </button>
         <button class="task-sheet-submit" id="submit-task">SALVAR</button>
       </div>
     </div>
@@ -3598,6 +3602,7 @@ let newProjectColor = '#C84B2F';
 let editingProjectId = null;
 let editingTaskId = null;
 let newSubtasks = [];
+let newTaskHighlight = '';
 let editingHabitId = null;
 
 function clampDay(day) {
@@ -6148,10 +6153,13 @@ function buildAddTaskModal() {
   if (el('tbr-project-label')) el('tbr-project-label').textContent = proj ? proj.name : 'Projeto';
 
   // active toolbar states
-  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project'].forEach(id => {
+  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project','tbr-highlight'].forEach(id => {
     const b = el(id);
     if (b) b.classList.toggle('active', activeSubpanel === id.replace('tbr-',''));
   });
+  if (el('tbr-highlight')) {
+    el('tbr-highlight').style.setProperty('--tbr-highlight-dot', newTaskHighlight || 'transparent');
+  }
 
   // submit button
   const titleVal = document.getElementById('new-task-title').value.trim();
@@ -6225,6 +6233,28 @@ function buildSubpanel() {
       buildAddTaskModal();
     };
   }
+  else if (activeSubpanel === 'highlight') {
+    panel.innerHTML = `<div class="highlight-picker" style="padding:4px 0 8px">
+      ${HIGHLIGHT_COLORS.map(color => `
+        <button class="highlight-swatch ${normalizeHighlightColor(newTaskHighlight) === color ? 'active' : ''}"
+                type="button"
+                data-tsp-highlight="${color}"
+                style="--highlight-color:${color}"
+                aria-label="Grifar com ${color}"></button>`).join('')}
+      <button class="highlight-swatch clear ${!newTaskHighlight ? 'active' : ''}"
+              type="button"
+              data-tsp-highlight=""
+              style="--highlight-color:transparent"
+              aria-label="Remover grifo"></button>
+    </div>`;
+    panel.querySelectorAll('[data-tsp-highlight]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const color = btn.dataset.tspHighlight;
+        newTaskHighlight = isHighlightColor(color) ? normalizeHighlightColor(color) : '';
+        buildAddTaskModal();
+      });
+    });
+  }
 }
 
 function setupTaskSheetEvents() {
@@ -6233,7 +6263,7 @@ function setupTaskSheetEvents() {
     close._bound = true;
     close.onclick = () => { activeSubpanel = null; closeModal('modal-add-task'); };
   }
-  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project'].forEach(id => {
+  ['tbr-datetime','tbr-priority','tbr-repeat','tbr-project','tbr-highlight'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn && !btn._bound) {
       btn._bound = true;
@@ -6271,6 +6301,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
       t.date = newTaskDate;
       t.repeat = newRepeat;
       t.subtasks = newSubtasks;
+      t.highlight = newTaskHighlight;
       if (newTaskDate) ensureDateInWeek(newTaskDate);
       changedTask = t;
     }
@@ -6300,6 +6331,7 @@ document.getElementById('submit-task').addEventListener('click', () => {
   newRepeat = 'nenhuma';
   newSubtasks = [];
   newTaskNotes = '';
+  newTaskHighlight = '';
   closeModal('modal-add-task');
   saveState();
   renderAll();
@@ -6317,6 +6349,7 @@ function startEditTask(id) {
   newRepeat = t.repeat || 'nenhuma';
   newSubtasks = (t.subtasks || []).map(s => typeof s === 'string' ? { title: s, done: false } : { ...s });
   newTaskNotes = t.notes || '';
+  newTaskHighlight = isHighlightColor(t.highlight) ? normalizeHighlightColor(t.highlight) : '';
   activeSubpanel = null;
   document.getElementById('new-task-title').value = t.title;
   const notesEl = document.getElementById('task-notes-input');
@@ -6506,6 +6539,7 @@ function openNewTaskSheet() {
   newRepeat = 'nenhuma';
   newSubtasks = [];
   newTaskNotes = '';
+  newTaskHighlight = '';
   activeSubpanel = null;
   editingTaskId = null;
   document.getElementById('new-task-title').value = '';
