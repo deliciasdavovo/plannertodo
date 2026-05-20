@@ -119,7 +119,7 @@
 
   :where(button, [role="button"], input, textarea, select):focus-visible {
     outline: none;
-    box-shadow: var(--focus-ring);
+    box-shadow: none;
     border-radius: inherit;
   }
 
@@ -2222,6 +2222,8 @@
     font-weight: 700;
     color: var(--ink-faint);
     letter-spacing: 0.2px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
   .task-sheet-close {
     width: var(--tap-min);
@@ -2240,7 +2242,7 @@
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
-    padding: var(--space-5) var(--space-5) var(--space-1);
+    padding: var(--space-5) var(--space-5) 0;
     flex-shrink: 0;
   }
   .task-sheet-title {
@@ -2293,7 +2295,7 @@
     color: var(--accent-text);
   }
   .task-sheet-notes {
-    padding: var(--space-3) var(--space-5);
+    padding: var(--space-2) var(--space-5) var(--space-3);
     font-family: var(--sans);
     font-size: var(--text-base);
     color: var(--ink-mid);
@@ -6198,6 +6200,10 @@ function buildAddTaskModal() {
       dateText.textContent = 'Sem data';
     }
   }
+  const dateLabelEl = document.getElementById('task-sheet-date-label');
+  if (dateLabelEl) {
+    dateLabelEl.onclick = () => { activeSubpanel = activeSubpanel === 'datetime' ? null : 'datetime'; buildAddTaskModal(); };
+  }
 
   // done check button
   const checkBtn = document.getElementById('task-sheet-check-btn');
@@ -6297,26 +6303,27 @@ function buildAddTaskModal() {
     }
 
     // priority chip (always visible, cycles on tap)
-    const priorityChip = `<button class="task-chip priority-chip" id="chip-priority" type="button" style="--chip-color:${pc.color}"><span class="chip-dot"></span>${pc.label}</button>`;
+    const prioritySymbol = { alta: '!!!', média: '!!', baixa: '!' }[newPriority] || '!';
+    const priorityChip = `<button class="task-chip priority-chip" id="chip-priority" type="button" style="--chip-color:${pc.color}"><span class="chip-dot"></span>${prioritySymbol}</button>`;
 
     // repeat chip
     const repeatSet = newRepeat && newRepeat !== 'nenhuma';
     const repeatChip = repeatSet
-      ? `<button class="task-chip set" id="chip-repeat" type="button">↺ ${repeatLabel}</button>`
-      : `<button class="task-chip ghost" id="chip-repeat" type="button">+ Repete</button>`;
+      ? `<button class="task-chip set" id="chip-repeat" type="button">↻</button>`
+      : `<button class="task-chip ghost" id="chip-repeat" type="button">↻</button>`;
 
     // project chip
     let projChip;
     if (proj) {
       projChip = `<button class="task-chip set" id="chip-project" type="button"><span class="chip-dot" style="background:${proj.dot};color:${proj.dot}"></span>${escapeHTML(proj.name)}</button>`;
     } else {
-      projChip = `<button class="task-chip ghost" id="chip-project" type="button">+ Projeto</button>`;
+      projChip = `<button class="task-chip ghost" id="chip-project" type="button">#</button>`;
     }
 
     // highlight chip
     const highlightChip = newTaskHighlight
-      ? `<button class="task-chip set" id="chip-highlight" type="button"><span class="chip-dot" style="background:${newTaskHighlight}"></span>Grifo</button>`
-      : `<button class="task-chip ghost" id="chip-highlight" type="button">+ Grifo</button>`;
+      ? `<button class="task-chip set" id="chip-highlight" type="button"><span class="chip-dot" style="background:${newTaskHighlight}"></span></button>`
+      : `<button class="task-chip ghost" id="chip-highlight" type="button">A&#x0332;</button>`;
 
     chipsRow.innerHTML = dateChip + priorityChip + repeatChip + projChip + highlightChip;
 
