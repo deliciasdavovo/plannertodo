@@ -2424,61 +2424,102 @@
   }
   .tbr-delete-header:active { background: var(--red-soft); }
   .task-sheet-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     padding: var(--space-3) var(--space-4) var(--space-5);
     border-top: 0.5px solid color-mix(in srgb, var(--rule) 78%, transparent);
     flex-shrink: 0;
   }
   .task-chips-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-2);
-  }
-  .task-chip {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 42px;
-    padding: 0 var(--space-2);
-    border-radius: var(--radius-sm);
-    border: 1.5px solid color-mix(in srgb, var(--rule) 95%, transparent);
-    background: var(--deep);
-    color: var(--ink-mid);
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .task-chips-row::-webkit-scrollbar { display: none; }
+  .task-priority-bar {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-5) 0;
+    min-height: 0;
+  }
+  .task-priority-bar:empty { display: none; }
+  .task-priority-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 30px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    border: none;
+    background: color-mix(in srgb, var(--pc) 14%, var(--bg));
+    color: var(--pc);
     font-family: var(--mono);
     font-size: var(--text-xs);
     font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+  }
+  .task-priority-btn:active { transform: scale(0.95); }
+  .task-priority-pips {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .task-priority-pips span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pc) 30%, transparent);
+  }
+  .task-priority-pips span.on { background: var(--pc); }
+  .task-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 48px;
+    height: 48px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--deep);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+    transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
   }
   .task-chip:active { transform: scale(0.95); }
   .task-chip.ghost {
-    background: transparent;
-    border-style: dashed;
+    background: var(--deep);
     color: var(--ink-ghost);
   }
   .task-chip.set {
-    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
-    border-color: color-mix(in srgb, var(--accent) 30%, var(--rule));
+    background: color-mix(in srgb, var(--accent) 13%, var(--bg));
     color: var(--ink);
   }
-  .task-chip.priority-chip {
-    background: color-mix(in srgb, var(--chip-color) 12%, var(--bg));
-    border-color: color-mix(in srgb, var(--chip-color) 28%, var(--rule));
-    color: var(--chip-color);
-  }
   .task-chip .chip-dot {
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: currentColor;
     flex-shrink: 0;
   }
   .task-chip .chip-clear {
-    font-size: 11px;
-    opacity: 0.6;
-    margin-left: 1px;
+    font-size: 13px;
+    opacity: 0.5;
+    margin-left: 2px;
   }
   .task-sheet-submit {
     flex-shrink: 0;
@@ -3152,6 +3193,7 @@
           </button>
         </div>
       </div>
+      <div class="task-priority-bar" id="task-priority-bar"></div>
       <div class="task-sheet-body">
         <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
         <button class="task-sheet-check-btn" id="task-sheet-check-btn" type="button"></button>
@@ -6274,12 +6316,20 @@ function buildAddTaskModal() {
     subAdd.addEventListener('click', addSubtaskFromInput);
   }
 
+  // priority badge above title
+  const priorityBar = document.getElementById('task-priority-bar');
+  if (priorityBar) {
+    const pc = PRIORITY[newPriority] || PRIORITY.baixa;
+    const level = priorityLevel(newPriority);
+    const pips = [1,2,3].map(i => `<span class="${i <= level ? 'on' : ''}"></span>`).join('');
+    priorityBar.innerHTML = `<button class="task-priority-btn" id="priority-badge-btn" type="button" style="--pc:${pc.color}"><span class="task-priority-pips">${pips}</span>${pc.label}</button>`;
+    document.getElementById('priority-badge-btn').addEventListener('click', () => { activeSubpanel = null; cyclePriority(); });
+  }
+
   // chips row
   const chipsRow = document.getElementById('task-chips-row');
   if (chipsRow) {
-    const pc = PRIORITY[newPriority] || PRIORITY.baixa;
     const proj = PROJECTS.find(p => p.id === newProjectId);
-    const repeatLabel = REPEAT_OPTIONS.find(o => o.id === newRepeat)?.label;
 
     // date chip
     let dateChip;
@@ -6287,35 +6337,31 @@ function buildAddTaskModal() {
       const d = parseDateKey(newTaskDate);
       const dateStr = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       const timeStr = newTaskTime ? ` · ${newTaskTime}` : '';
-      dateChip = `<button class="task-chip set" id="chip-date" type="button"><span class="chip-dot"></span>${dateStr}${timeStr}<span class="chip-clear" data-clear-date>×</span></button>`;
+      dateChip = `<button class="task-chip set" id="chip-date" type="button"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>${dateStr}${timeStr}<span class="chip-clear" data-clear-date>×</span></button>`;
     } else {
-      dateChip = `<button class="task-chip ghost" id="chip-date" type="button">+ Data</button>`;
+      dateChip = `<button class="task-chip ghost" id="chip-date" type="button"><svg width="18" height="18" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>`;
     }
-
-    // priority chip (always visible, cycles on tap)
-    const prioritySymbol = { alta: '!!!', média: '!!', baixa: '!' }[newPriority] || '!';
-    const priorityChip = `<button class="task-chip priority-chip" id="chip-priority" type="button" style="--chip-color:${pc.color}"><span class="chip-dot"></span>${prioritySymbol}</button>`;
 
     // repeat chip
     const repeatSet = newRepeat && newRepeat !== 'nenhuma';
     const repeatChip = repeatSet
-      ? `<button class="task-chip set" id="chip-repeat" type="button">↻</button>`
-      : `<button class="task-chip ghost" id="chip-repeat" type="button">↻</button>`;
+      ? `<button class="task-chip set" id="chip-repeat" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`
+      : `<button class="task-chip ghost" id="chip-repeat" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
 
     // project chip
     let projChip;
     if (proj) {
-      projChip = `<button class="task-chip set" id="chip-project" type="button"><span class="chip-dot" style="background:${proj.dot};color:${proj.dot}"></span>${escapeHTML(proj.name)}</button>`;
+      projChip = `<button class="task-chip set" id="chip-project" type="button"><span class="chip-dot" style="background:${proj.dot}"></span>${escapeHTML(proj.name)}</button>`;
     } else {
-      projChip = `<button class="task-chip ghost" id="chip-project" type="button">#</button>`;
+      projChip = `<button class="task-chip ghost" id="chip-project" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
     }
 
     // highlight chip
     const highlightChip = newTaskHighlight
       ? `<button class="task-chip set" id="chip-highlight" type="button"><span class="chip-dot" style="background:${newTaskHighlight}"></span></button>`
-      : `<button class="task-chip ghost" id="chip-highlight" type="button">A&#x0332;</button>`;
+      : `<button class="task-chip ghost" id="chip-highlight" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.376 3.622a1 1 0 0 1 1.414 0l2.588 2.588a1 1 0 0 1 0 1.414l-9.192 9.192a4 4 0 0 1-2.275 1.137l-2.877.41.41-2.877a4 4 0 0 1 1.137-2.275z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>`;
 
-    chipsRow.innerHTML = dateChip + priorityChip + repeatChip + projChip + highlightChip;
+    chipsRow.innerHTML = dateChip + repeatChip + projChip + highlightChip;
 
     const chipDate = document.getElementById('chip-date');
     if (chipDate) chipDate.addEventListener('click', e => {
@@ -6327,8 +6373,6 @@ function buildAddTaskModal() {
       }
       buildAddTaskModal();
     });
-    const chipPriority = document.getElementById('chip-priority');
-    if (chipPriority) chipPriority.addEventListener('click', () => { activeSubpanel = null; cyclePriority(); });
     const chipRepeat = document.getElementById('chip-repeat');
     if (chipRepeat) chipRepeat.addEventListener('click', () => { activeSubpanel = activeSubpanel === 'repeat' ? null : 'repeat'; buildAddTaskModal(); });
     const chipProject = document.getElementById('chip-project');
