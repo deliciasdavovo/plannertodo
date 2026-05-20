@@ -942,7 +942,7 @@
   }
 
   /* ── MONTH CALENDAR ── */
-  .month-view { padding: 0 var(--space-5); }
+  .month-view { padding: 0 var(--space-4); }
   .month-day-headers {
     display: flex;
     gap: var(--space-1);
@@ -955,44 +955,64 @@
     font-weight: 700;
     color: var(--ink-faint);
   }
-  .month-week { display: flex; gap: var(--space-1); margin-bottom: var(--space-1); }
+  .month-week { display: flex; gap: 3px; margin-bottom: 3px; }
   .month-cell {
     flex: 1;
-    aspect-ratio: 1;
-    border-radius: var(--radius-sm);
+    min-height: 74px;
+    border-radius: var(--radius-xs);
     background: var(--deep);
-    border: 1px solid color-mix(in srgb, var(--rule) 72%, transparent);
+    border: none;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    padding: 4px 3px 3px;
     gap: 2px;
+    overflow: hidden;
+    cursor: pointer;
   }
-  .month-cell.empty { background: transparent; border-color: transparent; }
-  .month-cell.today { background: var(--day-selected); border-color: var(--day-selected); }
+  .month-cell.empty { background: transparent; pointer-events: none; }
+  .month-cell.today { background: var(--day-selected); }
   .month-cell .cell-num {
     font-size: var(--text-micro);
-    font-weight: 400;
+    font-weight: 500;
     color: var(--ink-mid);
     line-height: 1;
+    padding: 0 2px;
+    margin-bottom: 1px;
+    flex-shrink: 0;
   }
   .month-cell.today .cell-num { color: var(--day-selected-text); font-weight: 700; }
-  .cell-dots { display: flex; gap: 2px; }
-  .cell-dot { width: 4px; height: 4px; border-radius: 50%; }
-  .month-legend {
-    display: flex;
-    gap: var(--space-4);
-    margin-top: var(--space-3);
-    justify-content: flex-end;
+  .cell-task-item {
+    width: 100%;
+    font-size: 9px;
+    font-weight: 500;
+    font-family: var(--sans);
+    line-height: 1.3;
+    color: var(--ink-mid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: color-mix(in srgb, var(--rule) 50%, transparent);
+    border-radius: 3px;
+    padding: 1px 3px;
+    flex-shrink: 0;
+    box-sizing: border-box;
   }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    font-size: var(--text-micro);
-    color: var(--ink-faint);
+  .cell-task-item.done-task {
+    opacity: 0.45;
+    text-decoration: line-through;
   }
-  .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .month-cell.today .cell-task-item {
+    background: rgba(255,255,255,0.18);
+    color: var(--day-selected-text);
+  }
+  .cell-task-more {
+    font-size: 8px;
+    color: var(--ink-ghost);
+    padding: 0 2px;
+    line-height: 1;
+  }
+  .month-cell.today .cell-task-more { color: color-mix(in srgb, var(--day-selected-text) 60%, transparent); }
 
   /* ── HABITS ── */
   .habits-list { padding: 0 var(--space-4); }
@@ -4333,8 +4353,8 @@ function updateHeader() {
   document.getElementById('main-progress').style.display =
     (isHoje || isHabitos) ? 'block' : 'none';
 
-  // week strip
-  document.getElementById('week-strip').style.display = isHoje ? 'flex' : 'none';
+  // week strip — only visible in semana view
+  document.getElementById('week-strip').style.display = (isHoje && currentView === 'semana') ? 'flex' : 'none';
 
   // view toggle
   document.getElementById('view-toggle').style.display =
@@ -5171,31 +5191,29 @@ function renderMonthView() {
       ${['D','S','T','Q','Q','S','S'].map(d=>`<span>${d}</span>`).join('')}
     </div>`;
 
+  const MAX_CELL_TASKS = 3;
   for (let w = 0; w * 7 < totalCells; w++) {
     html += `<div class="month-week">`;
     for (let d = 0; d < 7; d++) {
       const dayNum = w * 7 + d - firstWeekday + 1;
       if (dayNum < 1 || dayNum > daysInMonth) { html += `<div class="month-cell empty"></div>`; continue; }
       const ds = `${year}-${pad(month+1)}-${pad(dayNum)}`;
-      const dt = tasks.filter(t => t.date === ds);
-      const hasDone = dt.some(t => t.done), hasPending = dt.some(t => !t.done);
+      const dayTasks = tasks.filter(t => t.date === ds).sort((a,b) => a.done - b.done);
       const isToday = year === todayParsed.getFullYear() && month === todayParsed.getMonth() && dayNum === todayParsed.getDate();
+      const shown = dayTasks.slice(0, MAX_CELL_TASKS);
+      const moreCount = dayTasks.length - shown.length;
+      const taskItems = shown.map(t =>
+        `<div class="cell-task-item${t.done?' done-task':''}">${escapeHTML(t.title)}</div>`
+      ).join('');
+      const moreEl = moreCount > 0 ? `<div class="cell-task-more">+${moreCount}</div>` : '';
       html += `
         <div class="month-cell ${isToday?'today':''}" data-month-date="${ds}">
           <span class="cell-num">${dayNum}</span>
-          ${(hasDone||hasPending) ? `<div class="cell-dots">
-            ${hasPending?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.7)':PRIORITY.alta.color}"></div>`:''}
-            ${hasDone?`<div class="cell-dot" style="background:${isToday?'rgba(255,255,255,0.5)':PRIORITY.baixa.color}"></div>`:''}
-          </div>` : ''}
+          ${taskItems}${moreEl}
         </div>`;
     }
     html += `</div>`;
   }
-  html += `
-    <div class="month-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:${PRIORITY.alta.color}"></div>Pendente</div>
-      <div class="legend-item"><div class="legend-dot" style="background:${PRIORITY.baixa.color}"></div>Concluída</div>
-    </div>`;
   mv.innerHTML = html;
 
   mv.querySelectorAll('[data-month-dir]').forEach(btn => {
