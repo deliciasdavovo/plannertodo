@@ -631,21 +631,8 @@
   }
   .section-label.nodate {
     color: var(--ink-faint);
-    border-bottom: none;
+    border-bottom: 2px dotted var(--ink-ghost);
     font-style: normal;
-    position: relative;
-    padding-bottom: 14px;
-  }
-  .section-label.nodate::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 12px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M0,6 L3,2 L5,8 L8,3 L10,9 L13,4 L16,1 L19,7 L22,3 L24,8 L27,2 L30,6 L33,9 L36,4 L38,1 L41,7 L44,3 L47,9 L50,5 L53,2 L56,8 L59,4 L62,10 L65,5 L68,2 L71,8 L74,3 L77,9 L80,5 L83,1 L86,7 L89,4 L92,10 L95,5 L98,2 L101,8 L104,3 L107,9 L110,5 L113,2 L116,8 L119,4 L120,6' stroke='%23C7C3BA' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: repeat-x;
-    background-size: 120px 12px;
   }
 
   .task-swipe-wrap {
