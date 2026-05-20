@@ -2225,17 +2225,9 @@
     box-shadow: var(--shadow-sheet);
   }
   #modal-add-task.open .task-sheet { transform: translateY(0); }
-  .task-title-wrap {
-    flex: 1;
-    min-width: 0;
-  }
-  .task-title-wrap[data-hl] {
-    background: linear-gradient(
-      to top,
-      color-mix(in srgb, var(--hl) 50%, transparent) 0 32%,
-      transparent 32% 100%
-    );
-    border-radius: var(--radius-xs);
+  .task-sheet-title[data-hl] {
+    box-shadow: inset 0 -13px 0 color-mix(in srgb, var(--hl) 55%, transparent);
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
   }
   .task-sheet-head {
     display: flex;
@@ -2406,7 +2398,7 @@
     font-size: var(--text-base);
     font-weight: 500;
     color: var(--ink);
-    background: var(--rule);
+    background: var(--surface);
     border: none;
     outline: none;
   }
@@ -2507,7 +2499,7 @@
     padding: 0 var(--space-3);
     border-radius: var(--radius-sm);
     border: none;
-    background: var(--rule);
+    background: var(--surface);
     color: var(--ink-mid);
     font-family: var(--mono);
     font-size: var(--text-sm);
@@ -2519,11 +2511,11 @@
   }
   .task-chip:active { transform: scale(0.95); }
   .task-chip.ghost {
-    background: var(--rule);
+    background: var(--surface);
     color: var(--ink-faint);
   }
   .task-chip.set {
-    background: color-mix(in srgb, var(--accent) 20%, var(--rule));
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
     color: var(--ink);
   }
   .task-chip .chip-dot {
@@ -2557,61 +2549,110 @@
   .task-sheet-submit:active { transform: scale(0.97); }
   .task-sheet-submit.ready { background: var(--accent); color: var(--accent-text); }
   /* Sub-panel inner layouts */
-  .tsp-date-shortcuts {
-    display: flex;
+  .tsp-shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-2);
-    flex-wrap: wrap;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
   }
-  .tsp-date-shortcut {
-    height: 32px;
-    padding: 0 var(--space-3);
-    border-radius: 999px;
+  .tsp-shortcut-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 52px;
+    border-radius: var(--radius-sm);
     border: 1.5px solid var(--rule);
-    background: transparent;
+    background: var(--surface);
     color: var(--ink-mid);
     font-family: var(--mono);
     font-size: var(--text-xs);
     font-weight: 700;
     cursor: pointer;
     touch-action: manipulation;
-    white-space: nowrap;
     transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
   }
-  .tsp-date-shortcut:active { background: var(--deep); }
-  .tsp-date-shortcut.active { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
-  .tsp-datetime { display: flex; flex-direction: column; gap: var(--space-2); }
-  .tsp-datetime .tsp-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); align-items: center; }
-  .tsp-datetime input[type="date"],
-  .tsp-datetime input[type="time"] {
-    height: 40px;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--deep);
-    color: var(--ink-mid);
-    font-family: var(--mono);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    padding: 0 12px;
+  .tsp-shortcut-card:active { background: var(--deep); }
+  .tsp-shortcut-card.active { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+  .tsp-no-date-btn {
+    display: block;
     width: 100%;
-    box-sizing: border-box;
-    -webkit-appearance: none;
-    appearance: none;
-    color-scheme: light;
-  }
-  .tsp-clear-btn {
-    height: 40px;
+    height: 32px;
     border: none;
-    border-radius: var(--radius-sm);
-    background: var(--deep);
+    background: transparent;
     color: var(--ink-faint);
     font-family: var(--mono);
     font-size: var(--text-xs);
     font-weight: 700;
-    padding: 0 13px;
     cursor: pointer;
-    white-space: nowrap;
     touch-action: manipulation;
+    margin-bottom: var(--space-2);
+    text-align: center;
+    transition: color var(--dur-fast);
+  }
+  .tsp-no-date-btn.active { color: var(--accent); }
+  .tsp-date-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 44px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink-faint);
+    margin-bottom: var(--space-2);
+  }
+  .tsp-date-field input[type="date"] {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    -webkit-appearance: none;
+    appearance: none;
+    color-scheme: light;
+    outline: none;
+  }
+  .tsp-time-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    height: 44px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--surface);
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-sizing: border-box;
+  }
+  .tsp-time-toggle.has-time { color: var(--ink-mid); }
+  .tsp-time-input {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 0 var(--space-3);
+    margin-top: var(--space-2);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    -webkit-appearance: none;
+    appearance: none;
+    color-scheme: light;
+    outline: none;
+    box-sizing: border-box;
   }
   .tsp-priority { display: flex; gap: var(--space-2); }
   .priority-stepper {
@@ -2693,37 +2734,66 @@
   }
   .tsp-repeat-btn:active { transform: scale(0.97); }
   .tsp-repeat-btn.active { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
-  .tsp-project-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    max-height: 220px;
-    overflow-y: auto;
-  }
-  .tsp-proj-opt {
+  .tsp-custom-repeat {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    height: 40px;
-    padding: 0 var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1.5px solid transparent;
-    background: var(--deep);
-    color: var(--ink-mid);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 0.5px solid var(--rule);
     font-family: var(--mono);
     font-size: var(--text-sm);
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-    touch-action: manipulation;
-    transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+    font-weight: 700;
+    color: var(--ink-mid);
   }
-  .tsp-proj-opt:active { transform: scale(0.98); }
-  .tsp-proj-opt.active {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  .tsp-custom-repeat button {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+    color: var(--ink-mid);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #custom-days-val {
+    min-width: 28px;
+    text-align: center;
+    font-size: var(--text-md);
     color: var(--ink);
   }
+  .tsp-project-row {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px 0 4px;
+  }
+  .tsp-project-row::-webkit-scrollbar { display: none; }
+  .tsp-proj-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
+  }
+  .tsp-proj-chip.active { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+  .tsp-proj-chip .tsp-proj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .tsp-proj-dot {
     width: 10px;
     height: 10px;
@@ -3574,9 +3644,12 @@ const HIGHLIGHT_COLOR_MIGRATIONS = {
   '#E1D0FF':'#A58BBE',
 };
 const REPEAT_OPTIONS = [
-  { id:'nenhuma', label:'Unica' },
-  { id:'diaria', label:'Diaria' },
-  { id:'semanal', label:'Semanal' },
+  { id:'nenhuma',  label:'Nunca' },
+  { id:'diaria',   label:'Diária' },
+  { id:'semanal',  label:'Semanal' },
+  { id:'mensal',   label:'Mensal' },
+  { id:'anual',    label:'Anual' },
+  { id:'custom',   label:'Personalizado' },
 ];
 const PROFILE_ITEMS = [
   { id:'appearance', label:'Aparência' },
@@ -3780,6 +3853,7 @@ let editingProjectId = null;
 let editingTaskId = null;
 let newSubtasks = [];
 let newTaskHighlight = '';
+let newRepeatCustomDays = 15;
 let editingHabitId = null;
 
 function clampDay(day) {
@@ -6433,19 +6507,26 @@ function buildSubpanel() {
     const nextWeekDate = new Date(todayDate); nextWeekDate.setDate(todayDate.getDate() + 7);
     const tomorrowKey = tomorrowDate.toISOString().slice(0, 10);
     const nextWeekKey = nextWeekDate.toISOString().slice(0, 10);
+    const calSVG = `<svg width="16" height="16" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+    const sunSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+    const fwdSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const clkSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const timeLabel = newTaskTime || 'Adicionar horário';
     panel.innerHTML = `
-      <div class="tsp-date-shortcuts">
-        <button class="tsp-date-shortcut ${newTaskDate === TODAY ? 'active' : ''}" data-shortcut="${TODAY}">Hoje</button>
-        <button class="tsp-date-shortcut ${newTaskDate === tomorrowKey ? 'active' : ''}" data-shortcut="${tomorrowKey}">Amanhã</button>
-        <button class="tsp-date-shortcut ${newTaskDate === nextWeekKey ? 'active' : ''}" data-shortcut="${nextWeekKey}">Próx. semana</button>
-        <button class="tsp-date-shortcut ${!newTaskDate ? 'active' : ''}" data-shortcut="">Sem data</button>
+      <div class="tsp-shortcuts-grid">
+        <button class="tsp-shortcut-card ${newTaskDate === TODAY ? 'active' : ''}" data-shortcut="${TODAY}">${calSVG}Hoje</button>
+        <button class="tsp-shortcut-card ${newTaskDate === tomorrowKey ? 'active' : ''}" data-shortcut="${tomorrowKey}">${sunSVG}Amanhã</button>
+        <button class="tsp-shortcut-card ${newTaskDate === nextWeekKey ? 'active' : ''}" data-shortcut="${nextWeekKey}">${fwdSVG}Próx. sem.</button>
       </div>
-      <div class="tsp-datetime">
-        <div class="tsp-row">
-          <input type="date" id="tsp-date-input" value="${newTaskDate || ''}"/>
-          <input type="time" id="tsp-time-input" value="${newTaskTime || ''}" placeholder="Hora"/>
-        </div>
-      </div>`;
+      <button class="tsp-no-date-btn ${!newTaskDate ? 'active' : ''}" data-shortcut="">Sem data</button>
+      <div class="tsp-date-field">
+        ${calSVG}
+        <input type="date" id="tsp-date-input" value="${newTaskDate || ''}"/>
+      </div>
+      <button class="tsp-time-toggle ${newTaskTime ? 'has-time' : ''}" id="tsp-time-toggle" type="button">
+        ${clkSVG}<span>${timeLabel}</span>
+      </button>
+      ${newTaskTime ? `<input type="time" id="tsp-time-input" class="tsp-time-input" value="${newTaskTime}"/>` : ''}`;
     panel.querySelectorAll('[data-shortcut]').forEach(btn => {
       btn.addEventListener('click', () => {
         newTaskDate = btn.dataset.shortcut || null;
@@ -6460,7 +6541,22 @@ function buildSubpanel() {
       if (newTaskDate) ensureDateInWeek(newTaskDate);
       buildAddTaskModal();
     };
-    panel.querySelector('#tsp-time-input').onchange = e => { newTaskTime = e.target.value; buildAddTaskModal(); };
+    panel.querySelector('#tsp-time-toggle').onclick = () => {
+      if (newTaskTime) {
+        newTaskTime = '';
+        buildAddTaskModal();
+      } else {
+        const inp = document.createElement('input');
+        inp.type = 'time';
+        inp.className = 'tsp-time-input';
+        inp.style.display = 'block';
+        panel.querySelector('#tsp-time-toggle').after(inp);
+        inp.focus();
+        inp.onchange = e => { newTaskTime = e.target.value; buildAddTaskModal(); };
+      }
+    };
+    const timeInp = panel.querySelector('#tsp-time-input');
+    if (timeInp) timeInp.onchange = e => { newTaskTime = e.target.value; buildAddTaskModal(); };
   }
   else if (activeSubpanel === 'priority') {
     const pc = PRIORITY[newPriority] || PRIORITY.baixa;
@@ -6478,18 +6574,32 @@ function buildSubpanel() {
     panel.querySelector('#priority-stepper').onclick = cyclePriority;
   }
   else if (activeSubpanel === 'repeat') {
+    const customStepper = newRepeat === 'custom' ? `
+      <div class="tsp-custom-repeat">
+        <span>A cada</span>
+        <button type="button" data-step="-1">−</button>
+        <span id="custom-days-val">${newRepeatCustomDays}</span>
+        <button type="button" data-step="1">+</button>
+        <span>dias</span>
+      </div>` : '';
     panel.innerHTML = `<div class="tsp-repeat">${REPEAT_OPTIONS.map(o => `
       <button class="tsp-repeat-btn ${newRepeat===o.id?'active':''}" data-r="${o.id}">${o.label}</button>
-    `).join('')}</div>`;
+    `).join('')}</div>${customStepper}`;
     panel.querySelectorAll('[data-r]').forEach(btn => {
-      btn.onclick = () => { newRepeat = btn.dataset.r; buildAddTaskModal(); };
+      btn.onclick = () => { newRepeat = btn.dataset.r; buildSubpanel(); buildAddTaskModal(); };
+    });
+    panel.querySelectorAll('[data-step]').forEach(btn => {
+      btn.onclick = () => {
+        newRepeatCustomDays = Math.max(1, newRepeatCustomDays + parseInt(btn.dataset.step));
+        document.getElementById('custom-days-val').textContent = newRepeatCustomDays;
+      };
     });
   }
   else if (activeSubpanel === 'project') {
-    panel.innerHTML = `<div class="tsp-project-list">
-      <button class="tsp-proj-opt ${!newProjectId ? 'active' : ''}" type="button" data-pid="">Sem projeto</button>
+    panel.innerHTML = `<div class="tsp-project-row">
+      <button class="tsp-proj-chip ${!newProjectId ? 'active' : ''}" type="button" data-pid="">Nenhum</button>
       ${PROJECTS.map(p => `
-        <button class="tsp-proj-opt ${p.id === newProjectId ? 'active' : ''}" type="button" data-pid="${p.id}">
+        <button class="tsp-proj-chip ${p.id === newProjectId ? 'active' : ''}" type="button" data-pid="${p.id}">
           <span class="tsp-proj-dot" style="background:${p.dot}"></span>${escapeHTML(p.name)}
         </button>`).join('')}
     </div>`;
@@ -6583,6 +6693,7 @@ function saveAndCloseTaskSheet() {
   activeSubpanel = null;
   editingTaskId = null;
   newRepeat = 'nenhuma';
+  newRepeatCustomDays = 15;
   newSubtasks = [];
   newTaskNotes = '';
   newTaskHighlight = '';
@@ -6792,6 +6903,7 @@ function openNewTaskSheet() {
   newTaskDate = null;
   newTaskTime = '';
   newRepeat = 'nenhuma';
+  newRepeatCustomDays = 15;
   newSubtasks = [];
   newTaskNotes = '';
   newTaskHighlight = '';
