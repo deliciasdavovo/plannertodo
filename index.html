@@ -2400,7 +2400,7 @@
     font-size: var(--text-base);
     font-weight: 500;
     color: var(--ink);
-    background: var(--deep);
+    background: var(--rule);
     border: none;
     outline: none;
   }
@@ -2501,7 +2501,7 @@
     padding: 0 var(--space-3);
     border-radius: var(--radius-sm);
     border: none;
-    background: var(--deep);
+    background: var(--rule);
     color: var(--ink-mid);
     font-family: var(--mono);
     font-size: var(--text-sm);
@@ -2513,11 +2513,11 @@
   }
   .task-chip:active { transform: scale(0.95); }
   .task-chip.ghost {
-    background: var(--deep);
-    color: var(--ink-ghost);
+    background: var(--rule);
+    color: var(--ink-faint);
   }
   .task-chip.set {
-    background: color-mix(in srgb, var(--accent) 13%, var(--bg));
+    background: color-mix(in srgb, var(--accent) 20%, var(--rule));
     color: var(--ink);
   }
   .task-chip .chip-dot {
