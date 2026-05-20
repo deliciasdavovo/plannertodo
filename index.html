@@ -2225,9 +2225,13 @@
     box-shadow: var(--shadow-sheet);
   }
   #modal-add-task.open .task-sheet { transform: translateY(0); }
-  #modal-add-task-sheet[data-highlighted] {
-    background: color-mix(in srgb, var(--sheet-hl) 13%, var(--bg));
-    transition: background var(--dur-base);
+  .task-sheet-body[data-hl] {
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--hl) 45%, transparent) 0 38%,
+      transparent 38% 100%
+    );
+    border-radius: var(--radius-sm);
   }
   .task-sheet-head {
     display: flex;
@@ -6243,15 +6247,15 @@ function buildAddTaskModal() {
     dateLabelEl.onclick = () => { activeSubpanel = activeSubpanel === 'datetime' ? null : 'datetime'; buildAddTaskModal(); };
   }
 
-  // apply highlight color to sheet background
-  const sheet = document.getElementById('modal-add-task-sheet');
-  if (sheet) {
+  // apply highlight color to title body area (like the list view highlight effect)
+  const titleBody = document.querySelector('.task-sheet-body');
+  if (titleBody) {
     if (newTaskHighlight) {
-      sheet.style.setProperty('--sheet-hl', newTaskHighlight);
-      sheet.dataset.highlighted = '1';
+      titleBody.style.setProperty('--hl', newTaskHighlight);
+      titleBody.dataset.hl = '1';
     } else {
-      sheet.style.removeProperty('--sheet-hl');
-      delete sheet.dataset.highlighted;
+      titleBody.style.removeProperty('--hl');
+      delete titleBody.dataset.hl;
     }
   }
 
