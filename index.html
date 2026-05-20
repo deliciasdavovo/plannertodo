@@ -696,6 +696,45 @@
     0% { transform: translateY(-6px) rotate(-22deg); }
     100% { transform: translateY(0) rotate(0); }
   }
+  .task-snooze-bg {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 112px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: color-mix(in srgb, var(--green) 10%, var(--bg));
+    opacity: 0;
+    transition: opacity var(--dur-base) ease;
+    pointer-events: none;
+  }
+  .task-swipe-wrap.snooze-swiping .task-snooze-bg,
+  .task-swipe-wrap.snooze-ready .task-snooze-bg {
+    opacity: 1;
+  }
+  .snooze-icon {
+    width: 26px;
+    height: 26px;
+    color: color-mix(in srgb, var(--ink) 80%, var(--green));
+    transition: color var(--dur-fast) ease, transform var(--dur-fast) ease;
+    transform: scale(0.9);
+  }
+  .task-swipe-wrap.snooze-ready .snooze-icon {
+    color: var(--green);
+    transform: scale(1);
+  }
+  .snooze-icon svg { width: 26px; height: 26px; }
+  .snooze-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--ink) 80%, var(--green));
+    transition: color var(--dur-fast) ease;
+  }
+  .task-swipe-wrap.snooze-ready .snooze-label { color: var(--green); }
 
   .task-row {
     display: flex;
@@ -2208,7 +2247,7 @@
     flex: 1;
     font-family: var(--serif);
     font-size: var(--text-xl);
-    font-weight: 700;
+    font-weight: 400;
     color: var(--ink);
     border: none;
     background: none;
@@ -4590,6 +4629,14 @@ function taskRowHTML(task) {
   const checkStyle = proj ? `style="--check-color:${proj.dot}"` : '';
   return `
     <div class="task-swipe-wrap" data-swipe-id="${task.id}">
+      <div class="task-snooze-bg" aria-hidden="true">
+        <div class="snooze-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="snooze-label">Adiar</span>
+      </div>
       <div class="task-delete-bg" aria-hidden="true">
         <div class="trash-can">
           <svg viewBox="0 0 32 34" fill="none">
@@ -4683,9 +4730,15 @@ function setupDrag(row) {
     wrap.classList.toggle('delete-ready', progress >= 0.7);
   };
 
+  const setSnoozeProgress = (progress) => {
+    if (!wrap) return;
+    wrap.classList.toggle('snooze-swiping', progress > 0.05);
+    wrap.classList.toggle('snooze-ready', progress >= 1.0);
+  };
+
   const clearSwipeClasses = () => {
     if (!wrap) return;
-    wrap.classList.remove('swiping', 'delete-mid', 'delete-ready', 'deleting', 'trash-capture');
+    wrap.classList.remove('swiping', 'delete-mid', 'delete-ready', 'deleting', 'trash-capture', 'snooze-swiping', 'snooze-ready');
   };
 
   const cleanupReorderVisuals = () => {
@@ -4901,6 +4954,7 @@ function setupDrag(row) {
       offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
       row.style.transform = `translateX(${offset}px)`;
       setTrashProgress(Math.min(1, Math.abs(Math.min(0, offset)) / MAX_PULL));
+      setSnoozeProgress(Math.min(1, Math.max(0, offset) / NEXT_DAY_LIMIT));
     }
   });
 
