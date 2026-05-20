@@ -2218,7 +2218,12 @@
     letter-spacing: var(--tr-xl);
     padding: 0;
     min-height: 32px;
+    -webkit-appearance: none;
+    appearance: none;
+    caret-color: var(--accent);
+    box-shadow: none;
   }
+  .task-sheet-title:focus { outline: none; box-shadow: none; border: none; }
   .task-sheet-title::placeholder { color: var(--ink-ghost); font-weight: 400; }
   .task-sheet-check-btn {
     width: 36px;
@@ -2299,6 +2304,18 @@
     font-weight: 700;
     padding: 0 8px;
   }
+  .task-sheet-sub-list .task-sub-bullet.done {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .task-sheet-sub-list .task-sub-title.done {
+    text-decoration: line-through;
+    color: var(--ink-ghost);
+  }
+  .task-sheet-sub-list .task-sub-bullet {
+    cursor: pointer;
+    transition: background var(--dur-base), border-color var(--dur-base);
+  }
   .task-sheet-sub-row {
     display: flex;
     align-items: center;
@@ -2370,6 +2387,7 @@
   }
   .toolbar-icon-btn:active { background: var(--deep); transform: scale(0.97); }
   .toolbar-icon-btn.active { color: var(--accent); }
+  .toolbar-delete-btn { color: var(--danger, #C0392B); }
   .tbr-label {
     font-size: var(--text-micro);
     font-family: var(--mono);
@@ -3008,6 +3026,10 @@
       </div>
       <div class="task-sheet-subpanel" id="task-sheet-subpanel"></div>
       <div class="task-sheet-toolbar">
+        <button type="button" class="toolbar-icon-btn toolbar-delete-btn" id="tbr-delete" title="Excluir tarefa" style="display:none">
+          <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M3.5 5h12M8 5V3.5h3V5M7.5 8v6M11.5 8v6M4.5 5l1 10h8l1-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="tbr-label">Excluir</span>
+        </button>
         <button type="button" class="toolbar-icon-btn" id="tbr-datetime" title="Data e hora">
           <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><rect x="1.5" y="2.5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h16" stroke="currentColor" stroke-width="1.5"/><path d="M6 1v3M13 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span class="tbr-label" id="tbr-datetime-label">Data</span>
@@ -4610,7 +4632,7 @@ function attachTaskEvents() {
     });
   });
 
-  // task row click (open detail)
+  // task row click (open edit directly)
   document.querySelectorAll('.task-row').forEach(row => {
     row.addEventListener('click', () => {
       if (row.dataset.suppressClick === 'true') {
@@ -4618,7 +4640,7 @@ function attachTaskEvents() {
         return;
       }
       selectedTaskId = parseInt(row.dataset.id);
-      openTaskDetail();
+      startEditTask(selectedTaskId);
     });
     // drag to reschedule
     setupDrag(row);
@@ -4922,7 +4944,9 @@ function deleteTask(id, ask = true) {
   if (!t) return;
   if (ask && !confirmDelete(`a tarefa "${t.title}"`)) return;
   tasks = tasks.filter(task => task.id !== id);
+  editingTaskId = null;
   closeModal('modal-task-detail');
+  closeModal('modal-add-task');
   renderAll();
   showDayToast('Tarefa excluída');
 }
@@ -6046,6 +6070,16 @@ function buildAddTaskModal() {
     }
   }
 
+  // delete button (only in edit mode)
+  const deleteBtn = document.getElementById('tbr-delete');
+  if (deleteBtn) {
+    deleteBtn.style.display = isEditing ? '' : 'none';
+    if (isEditing && !deleteBtn._bound) {
+      deleteBtn._bound = true;
+      deleteBtn.onclick = () => deleteTask(editingTaskId, true);
+    }
+  }
+
   // notes
   const notesEl = document.getElementById('task-notes-input');
   if (notesEl && notesEl.value === '' && newTaskNotes) notesEl.value = newTaskNotes;
@@ -6054,14 +6088,26 @@ function buildAddTaskModal() {
   // subtasks
   const subList = document.getElementById('task-subtasks-list');
   if (subList) {
-    subList.innerHTML = newSubtasks.map((s, i) => `
+    subList.innerHTML = newSubtasks.map((s, i) => {
+      const title = typeof s === 'string' ? s : s.title;
+      const done = typeof s === 'object' && s.done;
+      return `
       <div class="task-sub-item">
-        <span class="task-sub-bullet"></span>
-        <span class="task-sub-title">${escapeHTML(typeof s === 'string' ? s : s.title)}</span>
-        <button data-remove-sub="${i}" type="button">REMOVER</button>
-      </div>`).join('');
+        <span class="task-sub-bullet ${done ? 'done' : ''}" data-toggle-sub="${i}"></span>
+        <span class="task-sub-title ${done ? 'done' : ''}">${escapeHTML(title)}</span>
+        <button data-remove-sub="${i}" type="button">×</button>
+      </div>`;
+    }).join('');
     subList.querySelectorAll('[data-remove-sub]').forEach(btn => {
       btn.onclick = () => { newSubtasks.splice(parseInt(btn.dataset.removeSub), 1); buildAddTaskModal(); };
+    });
+    subList.querySelectorAll('[data-toggle-sub]').forEach(bullet => {
+      bullet.onclick = () => {
+        const i = parseInt(bullet.dataset.toggleSub);
+        if (typeof newSubtasks[i] === 'string') newSubtasks[i] = { title: newSubtasks[i], done: true };
+        else newSubtasks[i].done = !newSubtasks[i].done;
+        buildAddTaskModal();
+      };
     });
   }
   const subInput = document.getElementById('task-subtask-input');
