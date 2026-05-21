@@ -1899,7 +1899,7 @@
   }
   .side-panel-avatar {
     width: 46px; height: 46px; border-radius: 50%;
-    background: var(--primary); color: var(--bg);
+    background: var(--accent); color: var(--bg);
     display: flex; align-items: center; justify-content: center;
     font-size: var(--text-xl); font-weight: 700; flex-shrink: 0;
   }
@@ -1935,7 +1935,7 @@
     background: var(--surface); border-radius: var(--radius-lg);
     border: 1px solid var(--rule); cursor: pointer;
   }
-  .cycle-widget:hover { border-color: var(--primary); }
+  .cycle-widget:hover { border-color: var(--accent); }
   .cycle-phase-badge {
     display: inline-block; padding: 3px 10px;
     border-radius: 20px; font-size: var(--text-xs); font-weight: 600; margin-bottom: 10px;
@@ -1952,12 +1952,12 @@
   .cycle-open-hint { font-size: 10px; color: var(--ink-faint); margin-top: 10px; text-transform: uppercase; letter-spacing: .06em; }
   .cycle-btn {
     width: 100%; padding: 9px 14px; margin-top: 10px;
-    border-radius: var(--radius); border: 1.5px solid var(--primary);
+    border-radius: var(--radius); border: 1.5px solid var(--accent);
     background: transparent; cursor: pointer;
-    font-size: var(--text-xs); font-weight: 700; color: var(--primary);
+    font-size: var(--text-xs); font-weight: 700; color: var(--accent);
     letter-spacing: .05em; text-transform: uppercase; font-family: inherit;
   }
-  .cycle-btn:hover { background: var(--primary); color: var(--bg); }
+  .cycle-btn:hover { background: var(--accent); color: var(--bg); }
   .cycle-config { display: flex; gap: 10px; margin-top: 10px; }
   .cycle-config label {
     display: flex; flex-direction: column; gap: 4px; flex: 1;
@@ -2108,11 +2108,11 @@
     transform: translateX(-50%);
     width: 5px; height: 5px;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--accent);
     box-shadow: none;
   }
-  .diary-day-cell.today { color: var(--primary); font-weight: 700; }
-  .diary-day-cell.selected { background: var(--primary); color: var(--bg); font-weight: 700; }
+  .diary-day-cell.today { color: var(--accent); font-weight: 700; }
+  .diary-day-cell.selected { background: var(--accent); color: var(--bg); font-weight: 700; }
   .diary-day-cell.selected.has-entry::after { background: rgba(255,255,255,.8); }
   .diary-entry-area { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
   .diary-entry-hero {
@@ -2120,7 +2120,7 @@
   }
   .diary-entry-weekday { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-faint); margin-bottom: 2px; }
   .diary-entry-daynum { font-size: 32px; font-weight: 700; line-height: 1; color: var(--ink); font-family: var(--serif); }
-  .diary-entry-daynum.today-txt { color: var(--primary); }
+  .diary-entry-daynum.today-txt { color: var(--accent); }
   .diary-entry-monthyear { font-size: var(--text-xs); color: var(--ink-soft); margin-top: 2px; }
   .diary-entry-bar {
     display: flex; align-items: center; justify-content: flex-end;
