@@ -4651,7 +4651,6 @@ function buildNav() {
 }
 
 function switchNav(nav) {
-  window._sectionChanged = true;
   currentNav = nav;
   currentView = (nav === 'hoje') ? 'dia' : 'semana';
   buildNav();
@@ -5266,17 +5265,6 @@ function renderDayList() {
   wireSectionInlineInputs();
   wireNotebookAddTap();
   attachTaskEvents();
-
-  // Stagger entrance when switching sections
-  if (window._sectionChanged) {
-    window._sectionChanged = false;
-    document.querySelectorAll('#task-list-pending .task-swipe-wrap').forEach((wrap, i) => {
-      wrap.style.animationDelay = `${Math.min(i * 32, 128)}ms`;
-      wrap.classList.add('task-entering');
-      const delay = 300 + Math.min(i * 32, 128);
-      setTimeout(() => { wrap.style.animationDelay = ''; wrap.classList.remove('task-entering'); }, delay);
-    });
-  }
 
 }
 
