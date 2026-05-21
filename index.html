@@ -6398,10 +6398,9 @@ function applyTheme() {
   let bg, surface, ink, inkMid, inkFaint, inkGhost, rule, deep, accent, accentText, tabbar, tabbarText, daySel, daySelText;
   let priorityColors;
 
-  const DARK_BASE = { bg:'#111110', surface:'#1C1814', tab:'#090807', ink:'#D2C8BA', rule:'#2A2520' };
+  const DARK_BASE = { bg:'#111110', surface:'#1C1814', tab:'#090807', ink:'#D2C8BA', rule:'#2A2520', accent:'#A86840', alta:'#D9624A', media:'#D8B964', baixa:'#9BB888' };
 
   if (darkTheme) {
-    const d = selectedPreset.dark || { accent:'#A86840', alta:'#D9624A', media:'#D8B964', baixa:'#9BB888' };
     bg         = DARK_BASE.bg;
     surface    = DARK_BASE.surface;
     ink        = DARK_BASE.ink;
@@ -6410,13 +6409,13 @@ function applyTheme() {
     inkGhost   = `color-mix(in srgb, ${ink} 24%, ${bg})`;
     rule       = DARK_BASE.rule;
     deep       = `color-mix(in srgb, ${surface} 78%, ${ink} 14%)`;
-    accent     = d.accent;
-    accentText = getAccentTextColor(d.accent);
+    accent     = DARK_BASE.accent;
+    accentText = getAccentTextColor(DARK_BASE.accent);
     tabbar     = DARK_BASE.tab;
     tabbarText = `color-mix(in srgb, ${ink} 88%, transparent)`;
-    daySel     = d.accent;
-    daySelText = getAccentTextColor(d.accent);
-    priorityColors = { alta: d.alta, media: d.media, baixa: d.baixa };
+    daySel     = DARK_BASE.accent;
+    daySelText = getAccentTextColor(DARK_BASE.accent);
+    priorityColors = { alta: DARK_BASE.alta, media: DARK_BASE.media, baixa: DARK_BASE.baixa };
   } else {
     const presetInk = selectedPreset.colors.primary;
     bg         = light;
