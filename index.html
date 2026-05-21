@@ -3204,21 +3204,83 @@
       var(--surface);
   }
   /* ── Highlight sidebar strip ── */
-  .hl-sidebar {
+  /* ── Highlight notebook tab ── */
+  .hl-tab-wrap {
     position: fixed;
-    right: 10px;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
     z-index: 200;
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    touch-action: manipulation;
+  }
+  .hl-panel {
+    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+    padding-left: 0;
+    padding-right: 0;
     background: var(--surface);
-    border-radius: 22px;
-    padding: 9px 7px;
-    box-shadow: 0 2px 16px rgba(0,0,0,.13);
-    touch-action: manipulation;
+    border-radius: 14px 0 0 14px;
+    box-shadow: -3px 2px 16px rgba(0,0,0,.12);
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    transition:
+      max-width 0.24s cubic-bezier(.4,0,.2,1),
+      padding-left 0.24s cubic-bezier(.4,0,.2,1),
+      padding-right 0.24s cubic-bezier(.4,0,.2,1),
+      opacity 0.18s;
+  }
+  .hl-tab-wrap.open .hl-panel {
+    max-width: 50px;
+    padding-left: 9px;
+    padding-right: 9px;
+    opacity: 1;
+  }
+  .hl-tab {
+    width: 18px;
+    min-height: 60px;
+    background: var(--surface);
+    border-radius: 10px 0 0 10px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: -2px 2px 10px rgba(0,0,0,.11);
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .hl-tab-wrap.open .hl-tab {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .hl-tab-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    pointer-events: none;
+  }
+  .hl-tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ink) 25%, transparent);
+    flex-shrink: 0;
+    transition: background .2s, transform .2s;
+  }
+  .hl-tab-dot.colored {
+    width: 9px;
+    height: 9px;
+    background: var(--hl-tab-color, var(--ink));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hl-tab-color, var(--ink)) 25%, transparent);
   }
   .hl-sidebar-swatch {
     width: 26px;
@@ -3228,12 +3290,6 @@
     cursor: pointer;
     flex-shrink: 0;
     transition: transform .15s, border-color .15s, box-shadow .15s;
-    position: relative;
-  }
-  .hl-sidebar-swatch::after {
-    content: '';
-    position: absolute;
-    inset: -7px;
   }
   .hl-sidebar-swatch:active { transform: scale(0.88); }
   .hl-sidebar-swatch.active {
@@ -3249,10 +3305,6 @@
   }
   .hl-sidebar-swatch.clear-btn.active {
     border-color: var(--ink);
-  }
-  /* pulse ring when a color is active */
-  .hl-sidebar[data-active="1"] {
-    box-shadow: 0 2px 16px rgba(0,0,0,.13), 0 0 0 2px var(--ink-faint, color-mix(in srgb, var(--ink) 18%, transparent));
   }
   .subtask-row {
     display: flex;
@@ -4054,26 +4106,31 @@ const HIGHLIGHT_COLOR_MIGRATIONS = {
 };
 function renderHighlightSidebar() {
   const existing = document.getElementById('hl-sidebar');
-  if (existing) existing.remove();
+  if (existing) {
+    if (existing._outsideClose) document.removeEventListener('click', existing._outsideClose);
+    existing.remove();
+  }
   if (currentNav !== 'hoje') return;
 
-  const bar = document.createElement('div');
-  bar.className = 'hl-sidebar';
-  bar.id = 'hl-sidebar';
-  if (activeHighlightColor) bar.dataset.active = '1';
+  const wrap = document.createElement('div');
+  wrap.className = 'hl-tab-wrap' + (hlPanelOpen ? ' open' : '');
+  wrap.id = 'hl-sidebar';
+
+  // Panel
+  const panel = document.createElement('div');
+  panel.className = 'hl-panel';
 
   HIGHLIGHT_COLORS.forEach(color => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'hl-sidebar-swatch' + (activeHighlightColor === color ? ' active' : '');
     btn.style.background = `color-mix(in srgb, ${color} 76%, var(--bg))`;
-    btn.dataset.color = color;
     btn.addEventListener('click', e => {
       e.stopPropagation();
       activeHighlightColor = (activeHighlightColor === color) ? null : color;
       renderHighlightSidebar();
     });
-    bar.appendChild(btn);
+    panel.appendChild(btn);
   });
 
   const clr = document.createElement('button');
@@ -4085,9 +4142,53 @@ function renderHighlightSidebar() {
     activeHighlightColor = (activeHighlightColor === 'clear') ? null : 'clear';
     renderHighlightSidebar();
   });
-  bar.appendChild(clr);
+  panel.appendChild(clr);
 
-  document.body.appendChild(bar);
+  // Tab trigger
+  const tab = document.createElement('button');
+  tab.type = 'button';
+  tab.className = 'hl-tab';
+
+  const indicator = document.createElement('span');
+  indicator.className = 'hl-tab-indicator';
+  const hasColor = activeHighlightColor && activeHighlightColor !== 'clear';
+  if (hasColor) {
+    const dot = document.createElement('span');
+    dot.className = 'hl-tab-dot colored';
+    dot.style.setProperty('--hl-tab-color', activeHighlightColor);
+    indicator.appendChild(dot);
+  } else {
+    [0,1,2].forEach(() => {
+      const dot = document.createElement('span');
+      dot.className = 'hl-tab-dot';
+      indicator.appendChild(dot);
+    });
+  }
+  tab.appendChild(indicator);
+
+  tab.addEventListener('click', e => {
+    e.stopPropagation();
+    hlPanelOpen = !hlPanelOpen;
+    wrap.classList.toggle('open', hlPanelOpen);
+    if (hlPanelOpen) {
+      const closeOnOutside = ev => {
+        if (!wrap.contains(ev.target)) {
+          hlPanelOpen = false;
+          wrap.classList.remove('open');
+          document.removeEventListener('click', closeOnOutside);
+          wrap._outsideClose = null;
+        }
+      };
+      setTimeout(() => {
+        document.addEventListener('click', closeOnOutside);
+        wrap._outsideClose = closeOnOutside;
+      }, 0);
+    }
+  });
+
+  wrap.appendChild(panel);
+  wrap.appendChild(tab);
+  document.body.appendChild(wrap);
 }
 
 const REPEAT_OPTIONS = [
@@ -4282,6 +4383,7 @@ let bodyFont = localStorage.getItem('fd-body-font') || '';
 let selectedTaskId  = null;
 let selectedHabitId = null;
 let activeHighlightColor = null;
+let hlPanelOpen = false;
 let hdView = 'semana';
 let calendarSwipeActive = false;
 let commandOpen = false;
@@ -4651,6 +4753,7 @@ function buildNav() {
 
 function switchNav(nav) {
   activeHighlightColor = null;
+  hlPanelOpen = false;
   currentNav = nav;
   currentView = (nav === 'hoje') ? 'dia' : 'semana';
   buildNav();
