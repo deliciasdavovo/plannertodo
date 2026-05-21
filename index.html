@@ -1855,35 +1855,43 @@
     font-size: var(--text-xs); font-weight: 700; text-transform: uppercase;
     letter-spacing: .07em; color: var(--ink-faint);
   }
-  .gender-picker { display: flex; gap: 8px; padding: 8px 20px 16px; }
-  .gender-btn {
-    flex: 1; padding: 10px 0;
-    border-radius: var(--radius); border: 1.5px solid var(--rule);
-    background: transparent; cursor: pointer;
-    font-size: var(--text-sm); color: var(--ink-soft);
-    transition: all 0.16s; display: flex; align-items: center;
-    justify-content: center; gap: 6px; font-family: inherit;
+  .gender-picker { padding: 6px 20px 16px; }
+  .gender-toggle {
+    display: flex; border: 1.5px solid var(--rule);
+    border-radius: var(--radius-lg); overflow: hidden;
+    background: var(--surface);
   }
-  .gender-btn.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
-  /* cycle widget */
+  .gender-toggle-btn {
+    flex: 1; padding: 12px 0; border: none; background: transparent;
+    cursor: pointer; font-size: var(--text-sm); font-family: inherit;
+    color: var(--ink-soft); transition: all 0.2s; display: flex;
+    align-items: center; justify-content: center; gap: 7px;
+    font-weight: 500;
+  }
+  .gender-toggle-btn.active { background: var(--primary); color: var(--bg); font-weight: 700; }
+  .gender-toggle-btn svg { width: 16px; height: 16px; }
+
+  /* cycle widget compact */
   .cycle-widget {
     margin: 0 20px 16px; padding: 14px 16px;
     background: var(--surface); border-radius: var(--radius-lg);
-    border: 1px solid var(--rule);
+    border: 1px solid var(--rule); cursor: pointer;
   }
+  .cycle-widget:hover { border-color: var(--primary); }
   .cycle-phase-badge {
     display: inline-block; padding: 3px 10px;
     border-radius: 20px; font-size: var(--text-xs); font-weight: 600; margin-bottom: 10px;
   }
-  .cycle-phase-badge.menstruacao { background: #fde8e8; color: #c0392b; }
-  .cycle-phase-badge.folicular   { background: #e8f5f0; color: #2e7d5e; }
-  .cycle-phase-badge.ovulacao    { background: #fff8e0; color: #b07d2a; }
-  .cycle-phase-badge.lutea       { background: #ece8f5; color: #5a4a8a; }
+  .cycle-phase-badge.menstruacao { background: rgba(192,57,43,.12); color: #c0392b; }
+  .cycle-phase-badge.folicular   { background: rgba(46,125,94,.12); color: #2e7d5e; }
+  .cycle-phase-badge.ovulacao    { background: rgba(176,125,42,.12); color: #b07d2a; }
+  .cycle-phase-badge.lutea       { background: rgba(90,74,138,.12); color: #5a4a8a; }
   .cycle-info-row {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;
   }
   .cycle-info-label { font-size: var(--text-xs); color: var(--ink-soft); }
   .cycle-info-val { font-size: var(--text-sm); font-weight: 600; color: var(--ink); }
+  .cycle-open-hint { font-size: 10px; color: var(--ink-faint); margin-top: 10px; text-transform: uppercase; letter-spacing: .06em; }
   .cycle-btn {
     width: 100%; padding: 9px 14px; margin-top: 10px;
     border-radius: var(--radius); border: 1.5px solid var(--primary);
@@ -1902,6 +1910,97 @@
     border: 1.5px solid var(--rule); background: transparent;
     color: var(--ink); font-size: var(--text-sm); width: 100%; font-family: inherit;
   }
+
+  /* CYCLE CALENDAR OVERLAY */
+  .cycle-cal-overlay {
+    position: fixed; inset: 0; z-index: 210;
+    background: var(--bg); overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  .cycle-cal-overlay.open { transform: translateY(0); }
+  .cycle-cal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 12px; border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; background: var(--bg); z-index: 2;
+  }
+  .cycle-cal-title { font-size: var(--text-base); font-weight: 700; color: var(--ink); }
+  .cycle-cal-close {
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: var(--surface); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--ink);
+  }
+  .cycle-summary-strip {
+    display: flex; padding: 14px 20px; gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cycle-stat-col {
+    flex: 1; text-align: center; padding: 0 8px;
+    border-right: 1px solid var(--rule);
+  }
+  .cycle-stat-col:last-child { border-right: none; }
+  .cycle-stat-num { font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .cycle-stat-lbl { font-size: 10px; color: var(--ink-soft); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+  .cycle-month-block { padding: 20px 12px 4px; }
+  .cycle-month-title {
+    font-size: var(--text-xs); font-weight: 700; color: var(--ink-soft);
+    text-align: center; margin-bottom: 10px;
+    letter-spacing: .07em; text-transform: uppercase;
+  }
+  .cycle-month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; }
+  .cycle-dow-hdr { font-size: 10px; color: var(--ink-faint); text-align: center; padding: 3px 0; font-weight: 600; letter-spacing: .05em; }
+  .cycle-day-cell {
+    position: relative; aspect-ratio: 1; display: flex;
+    align-items: center; justify-content: center; cursor: pointer;
+    font-size: 13px; color: var(--ink); user-select: none;
+    -webkit-tap-highlight-color: transparent; transition: opacity .1s;
+  }
+  .cycle-day-cell.empty { pointer-events: none; }
+  .cycle-day-cell.future { color: var(--ink-faint); }
+  /* period pill spans (red) */
+  .cycle-day-cell.period { background: #c0392b; color: #fff; border-radius: 0; }
+  .cycle-day-cell.period.ps { border-radius: 50% 0 0 50%; }
+  .cycle-day-cell.period.pe { border-radius: 0 50% 50% 0; }
+  .cycle-day-cell.period.pse { border-radius: 50%; }
+  /* predicted period (soft red) */
+  .cycle-day-cell.pred-period { background: rgba(192,57,43,.18); color: #c0392b; border-radius: 0; }
+  .cycle-day-cell.pred-period.ps { border-radius: 50% 0 0 50%; }
+  .cycle-day-cell.pred-period.pe { border-radius: 0 50% 50% 0; }
+  .cycle-day-cell.pred-period.pse { border-radius: 50%; }
+  /* fertile window (teal) */
+  .cycle-day-cell.fertile { background: rgba(44,130,136,.18); color: #2c8288; border-radius: 0; }
+  .cycle-day-cell.fertile.fs { border-radius: 50% 0 0 50%; }
+  .cycle-day-cell.fertile.fe { border-radius: 0 50% 50% 0; }
+  .cycle-day-cell.fertile.fse { border-radius: 50%; }
+  /* ovulation */
+  .cycle-day-cell.ovulation {
+    background: rgba(44,130,136,.28); color: #2c8288;
+    border-radius: 50%; font-weight: 700;
+    box-shadow: 0 0 0 2px #2c8288 inset;
+  }
+  /* today dot */
+  .cycle-day-cell.today-cell::after {
+    content:''; position:absolute; bottom:3px; left:50%;
+    transform:translateX(-50%); width:4px; height:4px;
+    border-radius:50%; background: currentColor;
+  }
+  .cycle-log-bar {
+    display: flex; gap: 8px; padding: 12px 16px 0; flex-wrap: wrap;
+  }
+  .cycle-log-btn {
+    padding: 9px 18px; border-radius: 20px;
+    font-size: var(--text-xs); font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; font-family: inherit; cursor: pointer;
+    transition: all .16s;
+  }
+  .cycle-log-btn.red { background: #c0392b; color: #fff; border: 1.5px solid #c0392b; }
+  .cycle-log-btn.outline { background: transparent; border: 1.5px solid var(--rule); color: var(--ink); }
+  .cycle-log-btn.outline:hover { background: var(--surface); }
+  .cycle-legend { display: flex; gap: 14px; padding: 14px 16px 20px; flex-wrap: wrap; }
+  .cycle-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-soft); }
+  .cycle-legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
   /* profile items in side panel */
   .side-profile-item {
     display: flex; align-items: center; justify-content: space-between;
@@ -1916,37 +2015,57 @@
     padding: 16px 20px;
   }
 
-  /* ── DIARY ── */
-  .diary-view {
-    display: flex; flex-direction: column; height: 100%;
-  }
-  .diary-nav {
+  /* ── DIARY (redesigned) ── */
+  .diary-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  .diary-cal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px 6px; gap: 8px;
+    padding: 10px 16px 6px; flex-shrink: 0;
   }
-  .diary-nav-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: none; background: transparent; cursor: pointer;
-    color: var(--ink); display: flex; align-items: center; justify-content: center;
+  .diary-cal-month-label { font-size: var(--text-sm); font-weight: 700; color: var(--ink); }
+  .diary-cal-nav {
+    background: none; border: none; cursor: pointer; color: var(--ink);
+    padding: 5px 8px; border-radius: var(--radius); font-size: 15px;
+    display: flex; align-items: center;
   }
-  .diary-nav-btn:hover { background: var(--surface); }
-  .diary-nav-btn:disabled { color: var(--ink-faint); cursor: default; background: transparent; }
-  .diary-date-label {
-    font-size: var(--text-sm); font-weight: 600; color: var(--ink);
-    flex: 1; text-align: center;
+  .diary-cal-nav:hover { background: var(--surface); }
+  .diary-cal-grid {
+    display: grid; grid-template-columns: repeat(7,1fr); gap: 1px;
+    padding: 0 10px 10px; flex-shrink: 0;
+    border-bottom: 1px solid var(--rule);
   }
-  .diary-date-label.today { color: var(--primary); }
+  .diary-dow-label { font-size: 10px; font-weight: 600; color: var(--ink-faint); text-align: center; padding: 3px 0; letter-spacing: .04em; }
+  .diary-day-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 50%; font-size: 13px; color: var(--ink);
+    position: relative; user-select: none; -webkit-tap-highlight-color: transparent;
+    transition: background .12s; font-weight: 400;
+  }
+  .diary-day-cell:hover { background: var(--surface); }
+  .diary-day-cell.empty { pointer-events: none; }
+  .diary-day-cell.future { color: var(--ink-faint); pointer-events: none; }
+  .diary-day-cell.has-entry::after {
+    content: ''; position: absolute; bottom: 3px; left: 50%;
+    transform: translateX(-50%); width: 4px; height: 4px;
+    border-radius: 50%; background: var(--primary);
+  }
+  .diary-day-cell.today { color: var(--primary); font-weight: 700; }
+  .diary-day-cell.selected { background: var(--primary); color: var(--bg); font-weight: 700; }
+  .diary-day-cell.selected::after { background: rgba(255,255,255,.6); }
+  .diary-entry-area { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .diary-entry-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px 2px; flex-shrink: 0;
+  }
+  .diary-entry-date-txt { font-size: var(--text-sm); font-weight: 600; color: var(--ink); }
+  .diary-entry-date-txt.today-txt { color: var(--primary); }
+  .diary-save-hint { font-size: var(--text-xs); color: var(--ink-faint); }
   .diary-textarea {
-    flex: 1; min-height: 0; border: none; outline: none;
+    flex: 1; border: none; outline: none;
     background: transparent; color: var(--ink);
-    font-family: var(--serif); font-size: var(--text-base); line-height: 1.8;
-    resize: none; padding: 10px 20px;
+    font-family: var(--serif); font-size: var(--text-base); line-height: 1.85;
+    resize: none; padding: 8px 20px 32px; min-height: 0;
   }
   .diary-textarea::placeholder { color: var(--ink-faint); }
-  .diary-save-hint {
-    padding: 4px 20px 12px; font-size: var(--text-xs); color: var(--ink-faint);
-    text-align: right; min-height: 22px;
-  }
 
   .command-overlay {
     position: absolute;
@@ -3458,20 +3577,43 @@
     <!-- DIARY -->
     <div class="screen" id="screen-diario">
       <div class="diary-view">
-        <div class="diary-nav">
-          <button class="diary-nav-btn" id="diary-prev" aria-label="Dia anterior">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <div class="diary-cal-header">
+          <button class="diary-cal-nav" id="diary-cal-prev" aria-label="Mês anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <span class="diary-date-label" id="diary-date-label"></span>
-          <button class="diary-nav-btn" id="diary-next" aria-label="Próximo dia">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="diary-cal-month-label" id="diary-cal-month-label"></span>
+          <button class="diary-cal-nav" id="diary-cal-next" aria-label="Próximo mês">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="18" height="18"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
-        <textarea class="diary-textarea" id="diary-textarea" placeholder="Escreva o que quiser… pensamentos, gratidão, memórias."></textarea>
-        <div class="diary-save-hint" id="diary-save-hint"></div>
+        <div class="diary-cal-grid" id="diary-cal-grid"></div>
+        <div class="diary-entry-area">
+          <div class="diary-entry-bar">
+            <span class="diary-entry-date-txt" id="diary-entry-date-txt"></span>
+            <span class="diary-save-hint" id="diary-save-hint"></span>
+          </div>
+          <textarea class="diary-textarea" id="diary-textarea" placeholder="Escreva o que quiser… pensamentos, gratidão, memórias do dia."></textarea>
+        </div>
       </div>
     </div>
 
+  </div>
+
+  <!-- CYCLE CALENDAR OVERLAY -->
+  <div class="cycle-cal-overlay" id="cycle-cal-overlay">
+    <div class="cycle-cal-head">
+      <span class="cycle-cal-title">Calendário do ciclo</span>
+      <button class="cycle-cal-close" id="cycle-cal-close">✕</button>
+    </div>
+    <div class="cycle-summary-strip" id="cycle-summary-strip"></div>
+    <div class="cycle-log-bar" id="cycle-log-bar"></div>
+    <div id="cycle-cal-months"></div>
+    <div class="cycle-legend">
+      <div class="cycle-legend-item"><div class="cycle-legend-dot" style="background:#c0392b"></div>Menstruação</div>
+      <div class="cycle-legend-item"><div class="cycle-legend-dot" style="background:rgba(192,57,43,.3)"></div>Previsto</div>
+      <div class="cycle-legend-item"><div class="cycle-legend-dot" style="background:rgba(44,130,136,.4)"></div>Janela fértil</div>
+      <div class="cycle-legend-item"><div class="cycle-legend-dot" style="background:rgba(44,130,136,.7); box-shadow:0 0 0 2px #2c8288 inset"></div>Ovulação</div>
+    </div>
   </div>
 
   <!-- SIDE PANEL (PROFILE) -->
@@ -4098,6 +4240,7 @@ let periodDuration = parseInt(localStorage.getItem('fd-period-duration')|| '5', 
 let diaryEntries   = {};
 let diaryDate      = TODAY;
 let diaryDebounce  = null;
+let diaryCalOffset = 0;
 
 function clampDay(day) {
   return Math.max(0, Math.min(WEEK_DATES.length - 1, day));
@@ -6338,13 +6481,9 @@ function getCyclePhase(dayInCycle, cl, pd) {
 function cycleWidgetHTML() {
   if (!cycleLastStart) {
     return `
-      <div class="cycle-widget">
-        <div class="cycle-info-label" style="margin-bottom:10px">Nenhuma menstruação registrada ainda.</div>
-        <button class="cycle-btn" id="cycle-register-btn">Registrar menstruação hoje</button>
-        <div class="cycle-config">
-          <label>Ciclo (dias)<input type="number" id="cycle-length-input" min="21" max="45" value="${cycleLength}"></label>
-          <label>Duração (dias)<input type="number" id="cycle-period-input" min="1" max="10" value="${periodDuration}"></label>
-        </div>
+      <div class="cycle-widget" id="cycle-widget-open">
+        <div class="cycle-info-label" style="margin-bottom:6px">Nenhuma menstruação registrada.</div>
+        <div class="cycle-open-hint">Toque para abrir o calendário →</div>
       </div>`;
   }
   const elapsed = cycleDaysSince(cycleLastStart);
@@ -6352,21 +6491,17 @@ function cycleWidgetHTML() {
   const daysUntilNext = cycleLength - dayInCycle;
   const phase = getCyclePhase(dayInCycle, cycleLength, periodDuration);
   return `
-    <div class="cycle-widget">
+    <div class="cycle-widget" id="cycle-widget-open">
       <span class="cycle-phase-badge ${phase.cls}">${phase.label}</span>
       <div class="cycle-info-row">
         <span class="cycle-info-label">Dia do ciclo</span>
-        <span class="cycle-info-val">${dayInCycle} de ${cycleLength}</span>
+        <span class="cycle-info-val">${dayInCycle} / ${cycleLength}</span>
       </div>
       <div class="cycle-info-row">
         <span class="cycle-info-label">Próxima menstruação</span>
         <span class="cycle-info-val">${daysUntilNext === 0 ? 'hoje' : daysUntilNext === 1 ? 'amanhã' : `em ${daysUntilNext} dias`}</span>
       </div>
-      <button class="cycle-btn" id="cycle-register-btn">Registrar nova menstruação</button>
-      <div class="cycle-config">
-        <label>Ciclo (dias)<input type="number" id="cycle-length-input" min="21" max="45" value="${cycleLength}"></label>
-        <label>Duração (dias)<input type="number" id="cycle-period-input" min="1" max="10" value="${periodDuration}"></label>
-      </div>
+      <div class="cycle-open-hint">Toque para abrir o calendário →</div>
     </div>`;
 }
 
@@ -6391,8 +6526,16 @@ function renderProfilePanel() {
 
     <div class="side-panel-section">Gênero</div>
     <div class="gender-picker">
-      <button class="gender-btn ${userGender === 'male' ? 'active' : ''}" data-gender="male">♂ Homem</button>
-      <button class="gender-btn ${userGender === 'female' ? 'active' : ''}" data-gender="female">♀ Mulher</button>
+      <div class="gender-toggle">
+        <button class="gender-toggle-btn ${userGender === 'male' ? 'active' : ''}" data-gender="male">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="14" r="6"/><path d="M19 5l-5 5M15 5h4v4"/></svg>
+          Homem
+        </button>
+        <button class="gender-toggle-btn ${userGender === 'female' ? 'active' : ''}" data-gender="female">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="9" r="6"/><path d="M12 15v6M9 18h6"/></svg>
+          Mulher
+        </button>
+      </div>
     </div>
 
     ${userGender === 'female' ? `<div class="side-panel-section">Ciclo menstrual</div>${cycleWidgetHTML()}` : ''}
@@ -6422,7 +6565,7 @@ function renderProfilePanel() {
 
   panel.querySelector('#side-panel-close-btn').addEventListener('click', closeProfilePanel);
 
-  panel.querySelectorAll('.gender-btn').forEach(btn => {
+  panel.querySelectorAll('.gender-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       userGender = btn.dataset.gender;
       localStorage.setItem('fd-user-gender', userGender);
@@ -6430,37 +6573,11 @@ function renderProfilePanel() {
     });
   });
 
-  const cycleRegBtn = panel.querySelector('#cycle-register-btn');
-  if (cycleRegBtn) {
-    cycleRegBtn.addEventListener('click', () => {
-      cycleLastStart = TODAY;
-      localStorage.setItem('fd-cycle-start', cycleLastStart);
-      renderProfilePanel();
-      showDayToast('Menstruação registrada!');
-    });
-  }
-
-  const cycleLenInput = panel.querySelector('#cycle-length-input');
-  if (cycleLenInput) {
-    cycleLenInput.addEventListener('change', () => {
-      const v = parseInt(cycleLenInput.value, 10);
-      if (v >= 21 && v <= 45) {
-        cycleLength = v;
-        localStorage.setItem('fd-cycle-length', cycleLength);
-        renderProfilePanel();
-      }
-    });
-  }
-
-  const cyclePeriodInput = panel.querySelector('#cycle-period-input');
-  if (cyclePeriodInput) {
-    cyclePeriodInput.addEventListener('change', () => {
-      const v = parseInt(cyclePeriodInput.value, 10);
-      if (v >= 1 && v <= 10) {
-        periodDuration = v;
-        localStorage.setItem('fd-period-duration', periodDuration);
-        renderProfilePanel();
-      }
+  const cycleWidgetBtn = panel.querySelector('#cycle-widget-open');
+  if (cycleWidgetBtn) {
+    cycleWidgetBtn.addEventListener('click', () => {
+      closeProfilePanel();
+      openCycleCal();
     });
   }
 
@@ -6469,6 +6586,186 @@ function renderProfilePanel() {
   });
 
   attachAppearanceEvents(panel);
+}
+
+// ─── CYCLE CALENDAR ───────────────────────────────────────────────────────────
+function openCycleCal() {
+  renderCycleCal();
+  document.getElementById('cycle-cal-overlay').classList.add('open');
+}
+function closeCycleCal() {
+  document.getElementById('cycle-cal-overlay').classList.remove('open');
+}
+
+function cycleGetDayFlags(dateStr) {
+  /* returns set of classes for a date: period/pred-period/fertile/ovulation */
+  if (!cycleLastStart) return [];
+  const d = parseDateKey(dateStr);
+  const start = parseDateKey(cycleLastStart);
+  const diffMs = d - start;
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  // figure out which cycle number and day within cycle
+  const cycleNum = Math.floor(diffDays / cycleLength);
+  const dayInCycle = diffDays - cycleNum * cycleLength; // 0-based
+
+  const flags = [];
+  if (dayInCycle >= 0 && dayInCycle < periodDuration) {
+    flags.push(diffDays >= 0 ? 'period' : 'pred-period');
+  } else if (diffDays < 0) {
+    // future cycles backward: handle as predicted if day aligns
+  }
+
+  // predicted future periods (next 3 cycles)
+  for (let c = 1; c <= 3; c++) {
+    const periodStart = c * cycleLength;
+    const periodEnd   = periodStart + periodDuration - 1;
+    if (diffDays >= periodStart && diffDays <= periodEnd) flags.push('pred-period');
+  }
+
+  // fertile window: days 9-15 of cycle (0-based: 8-14)
+  if (dayInCycle >= 8 && dayInCycle <= 14 && cycleNum >= 0) {
+    if (dayInCycle === 11) flags.push('ovulation');
+    else flags.push('fertile');
+  }
+  // predicted fertile for future cycles
+  for (let c = 1; c <= 3; c++) {
+    const fertStart = c * cycleLength + 8;
+    const fertEnd   = c * cycleLength + 14;
+    if (diffDays >= fertStart && diffDays <= fertEnd) {
+      if (diffDays === c * cycleLength + 11) flags.push('ovulation');
+      else flags.push('fertile');
+    }
+  }
+  return flags;
+}
+
+function buildCycleCalMonth(year, month) {
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DOW = ['D','S','T','Q','Q','S','S'];
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDow = firstDay.getDay(); // 0=Sun
+
+  let html = `<div class="cycle-month-block">
+    <div class="cycle-month-title">${MONTHS_PT[month]} ${year}</div>
+    <div class="cycle-month-grid">
+      ${DOW.map(d => `<div class="cycle-dow-hdr">${d}</div>`).join('')}`;
+
+  for (let i = 0; i < startDow; i++) html += `<div class="cycle-day-cell empty"></div>`;
+
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isFuture = dateStr > TODAY;
+    const isToday  = dateStr === TODAY;
+    const flags = isFuture ? [] : cycleGetDayFlags(dateStr);
+
+    // compute pill edge classes
+    const hasPeriod = flags.includes('period');
+    const hasPred   = flags.includes('pred-period');
+    const hasFert   = flags.includes('fertile');
+    const hasOvul   = flags.includes('ovulation');
+
+    const prevStr = day > 1 ? `${year}-${String(month+1).padStart(2,'0')}-${String(day-1).padStart(2,'0')}` : null;
+    const nextStr = day < lastDay.getDate() ? `${year}-${String(month+1).padStart(2,'0')}-${String(day+1).padStart(2,'0')}` : null;
+
+    let cls = '';
+    const pillType = hasPeriod ? 'period' : hasPred ? 'pred-period' : hasFert ? 'fertile' : '';
+    if (pillType) {
+      const prevFlags = prevStr && !isFuture ? cycleGetDayFlags(prevStr) : [];
+      const nextFlags = nextStr && nextStr <= TODAY ? cycleGetDayFlags(nextStr) : [];
+      const prevHas = prevFlags.includes(pillType);
+      const nextHas = nextFlags.includes(pillType);
+      cls = pillType;
+      if (!prevHas && !nextHas) cls += ' pse';
+      else if (!prevHas) cls += ' ps';
+      else if (!nextHas) cls += ' pe';
+    } else if (hasOvul) {
+      cls = 'ovulation';
+    }
+
+    if (isFuture) cls += ' future';
+    if (isToday)  cls += ' today-cell';
+
+    html += `<div class="cycle-day-cell ${cls}" data-cycle-date="${dateStr}">${day}</div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderCycleCal() {
+  const today = parseDateKey(TODAY);
+
+  // summary strip
+  const strip = document.getElementById('cycle-summary-strip');
+  if (cycleLastStart) {
+    const elapsed = cycleDaysSince(cycleLastStart);
+    const dayInCycle = (elapsed % cycleLength) + 1;
+    const daysUntilNext = cycleLength - dayInCycle;
+    const phase = getCyclePhase(dayInCycle, cycleLength, periodDuration);
+    strip.innerHTML = `
+      <div class="cycle-stat-col"><div class="cycle-stat-num">${dayInCycle}</div><div class="cycle-stat-lbl">Dia do ciclo</div></div>
+      <div class="cycle-stat-col"><div class="cycle-stat-num">${daysUntilNext}</div><div class="cycle-stat-lbl">Dias p/ próximo</div></div>
+      <div class="cycle-stat-col"><div class="cycle-stat-num">${cycleLength}</div><div class="cycle-stat-lbl">Duração ciclo</div></div>`;
+  } else {
+    strip.innerHTML = `<div style="padding:4px 0;color:var(--ink-soft);font-size:var(--text-xs)">Registre sua primeira menstruação abaixo</div>`;
+  }
+
+  // log bar
+  const logBar = document.getElementById('cycle-log-bar');
+  logBar.innerHTML = `
+    <button class="cycle-log-btn red" id="cycle-cal-reg-btn">+ Registrar menstruação hoje</button>
+    <div class="cycle-config" style="margin:10px 16px 0;padding:0">
+      <label>Ciclo (dias)<input type="number" id="cycle-cal-len" min="21" max="45" value="${cycleLength}" style="margin-top:4px;padding:6px 8px;border-radius:var(--radius);border:1.5px solid var(--rule);background:transparent;color:var(--ink);font-size:var(--text-sm);width:100%;font-family:inherit"></label>
+      <label>Duração (dias)<input type="number" id="cycle-cal-dur" min="1" max="10" value="${periodDuration}" style="margin-top:4px;padding:6px 8px;border-radius:var(--radius);border:1.5px solid var(--rule);background:transparent;color:var(--ink);font-size:var(--text-sm);width:100%;font-family:inherit"></label>
+    </div>`;
+
+  // months: 2 past + current + 2 future
+  const monthsEl = document.getElementById('cycle-cal-months');
+  let html = '';
+  for (let off = -2; off <= 2; off++) {
+    const d = new Date(today.getFullYear(), today.getMonth() + off, 1);
+    html += buildCycleCalMonth(d.getFullYear(), d.getMonth());
+  }
+  monthsEl.innerHTML = html;
+
+  // scroll to current month (3rd block, index 2)
+  requestAnimationFrame(() => {
+    const blocks = monthsEl.querySelectorAll('.cycle-month-block');
+    if (blocks[2]) blocks[2].scrollIntoView({ block: 'start' });
+  });
+
+  // wire events
+  document.getElementById('cycle-cal-close').onclick = () => {
+    closeCycleCal();
+    openProfilePanel();
+  };
+  document.getElementById('cycle-cal-reg-btn').addEventListener('click', () => {
+    cycleLastStart = TODAY;
+    localStorage.setItem('fd-cycle-start', cycleLastStart);
+    renderCycleCal();
+    showDayToast('Menstruação registrada!');
+  });
+  document.getElementById('cycle-cal-len').addEventListener('change', e => {
+    const v = parseInt(e.target.value, 10);
+    if (v >= 21 && v <= 45) { cycleLength = v; localStorage.setItem('fd-cycle-length', cycleLength); renderCycleCal(); }
+  });
+  document.getElementById('cycle-cal-dur').addEventListener('change', e => {
+    const v = parseInt(e.target.value, 10);
+    if (v >= 1 && v <= 10) { periodDuration = v; localStorage.setItem('fd-period-duration', periodDuration); renderCycleCal(); }
+  });
+  monthsEl.querySelectorAll('.cycle-day-cell[data-cycle-date]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const dateStr = cell.dataset.cycleDate;
+      if (!dateStr || dateStr > TODAY) return;
+      if (window.confirm(`Registrar ${dateStr} como início de menstruação?`)) {
+        cycleLastStart = dateStr;
+        localStorage.setItem('fd-cycle-start', cycleLastStart);
+        renderCycleCal();
+        showDayToast('Menstruação registrada!');
+      }
+    });
+  });
 }
 
 // ─── DIARY ────────────────────────────────────────────────────────────────────
@@ -6480,40 +6777,102 @@ function diaryDateLabel(dateStr) {
   return `${dow}, ${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
+function renderDiaryCalendar() {
+  const today = parseDateKey(TODAY);
+  const base = new Date(today.getFullYear(), today.getMonth() + diaryCalOffset, 1);
+  const year = base.getFullYear(), month = base.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const startDow = new Date(year, month, 1).getDay();
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DOW_LBL = ['D','S','T','Q','Q','S','S'];
+
+  document.getElementById('diary-cal-month-label').textContent = `${MONTHS_PT[month]} ${year}`;
+
+  const nextBtn = document.getElementById('diary-cal-next');
+  nextBtn.disabled = (diaryCalOffset >= 0);
+  nextBtn.style.opacity = diaryCalOffset >= 0 ? '0.3' : '1';
+
+  const grid = document.getElementById('diary-cal-grid');
+  let html = DOW_LBL.map(d => `<div class="diary-dow-label">${d}</div>`).join('');
+
+  for (let i = 0; i < startDow; i++) html += `<div class="diary-day-cell empty"></div>`;
+
+  for (let day = 1; day <= lastDay; day++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday   = dateStr === TODAY;
+    const isFuture  = dateStr > TODAY;
+    const isSelected = dateStr === diaryDate;
+    const hasEntry  = !!diaryEntries[dateStr];
+    let cls = 'diary-day-cell';
+    if (isFuture) cls += ' future';
+    if (isToday && !isSelected) cls += ' today';
+    if (isSelected) cls += ' selected';
+    if (hasEntry) cls += ' has-entry';
+    html += `<div class="${cls}" data-diary-date="${dateStr}">${day}</div>`;
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('[data-diary-date]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const d = cell.dataset.diaryDate;
+      if (!d || d > TODAY) return;
+      saveDiaryNow();
+      diaryDate = d;
+      renderDiary();
+    });
+  });
+}
+
 function renderDiary() {
   const textarea = document.getElementById('diary-textarea');
-  const dateLabel = document.getElementById('diary-date-label');
-  const prevBtn   = document.getElementById('diary-prev');
-  const nextBtn   = document.getElementById('diary-next');
-  const hint      = document.getElementById('diary-save-hint');
+  const dateTxt  = document.getElementById('diary-entry-date-txt');
+  const hint     = document.getElementById('diary-save-hint');
   if (!textarea) return;
 
+  // sync calendar offset to diaryDate's month relative to today
+  const today = parseDateKey(TODAY);
+  const dd = parseDateKey(diaryDate);
+  diaryCalOffset = (dd.getFullYear() - today.getFullYear()) * 12 + (dd.getMonth() - today.getMonth());
+  if (diaryCalOffset > 0) diaryCalOffset = 0;
+
+  renderDiaryCalendar();
+
   textarea.value = diaryEntries[diaryDate] || '';
-  dateLabel.textContent = diaryDateLabel(diaryDate);
-  dateLabel.className = 'diary-date-label' + (diaryDate === TODAY ? ' today' : '');
-  nextBtn.disabled = diaryDate >= TODAY;
+  dateTxt.textContent = diaryDateLabel(diaryDate);
+  dateTxt.className = 'diary-entry-date-txt' + (diaryDate === TODAY ? ' today-txt' : '');
   hint.textContent = '';
 
-  prevBtn.onclick = () => {
-    saveDiaryNow();
-    diaryDate = addDays(diaryDate, -1);
-    renderDiary();
-  };
-  nextBtn.onclick = () => {
-    if (diaryDate >= TODAY) return;
-    saveDiaryNow();
-    diaryDate = addDays(diaryDate, 1);
-    renderDiary();
-  };
-
+  clearTimeout(diaryDebounce);
   textarea.oninput = () => {
     clearTimeout(diaryDebounce);
     hint.textContent = '';
     diaryDebounce = setTimeout(() => {
       saveDiaryNow();
-      hint.textContent = 'Salvo';
+      renderDiaryCalendar();
+      hint.textContent = 'Salvo ✓';
       setTimeout(() => { if (hint) hint.textContent = ''; }, 1800);
     }, 600);
+  };
+
+  document.getElementById('diary-cal-prev').onclick = () => {
+    saveDiaryNow();
+    diaryCalOffset--;
+    const today2 = parseDateKey(TODAY);
+    const newBase = new Date(today2.getFullYear(), today2.getMonth() + diaryCalOffset, 1);
+    diaryDate = `${newBase.getFullYear()}-${String(newBase.getMonth()+1).padStart(2,'0')}-01`;
+    if (diaryDate > TODAY) diaryDate = TODAY;
+    renderDiary();
+  };
+  document.getElementById('diary-cal-next').onclick = () => {
+    if (diaryCalOffset >= 0) return;
+    saveDiaryNow();
+    diaryCalOffset++;
+    const today2 = parseDateKey(TODAY);
+    const newBase = new Date(today2.getFullYear(), today2.getMonth() + diaryCalOffset, 1);
+    const lastOfMonth = new Date(newBase.getFullYear(), newBase.getMonth() + 1, 0);
+    const targetStr = formatDateKey(lastOfMonth);
+    diaryDate = targetStr > TODAY ? TODAY : targetStr;
+    renderDiary();
   };
 }
 
