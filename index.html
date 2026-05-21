@@ -3203,6 +3203,57 @@
       linear-gradient(135deg, transparent 46%, var(--red) 47% 53%, transparent 54%),
       var(--surface);
   }
+  /* ── Highlight sidebar strip ── */
+  .hl-sidebar {
+    position: fixed;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface);
+    border-radius: 22px;
+    padding: 9px 7px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.13);
+    touch-action: manipulation;
+  }
+  .hl-sidebar-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+    position: relative;
+  }
+  .hl-sidebar-swatch::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+  }
+  .hl-sidebar-swatch:active { transform: scale(0.88); }
+  .hl-sidebar-swatch.active {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+    transform: scale(1.15);
+  }
+  .hl-sidebar-swatch.clear-btn {
+    background:
+      linear-gradient(135deg, transparent 44%, color-mix(in srgb, var(--red) 80%, transparent) 45% 55%, transparent 56%),
+      color-mix(in srgb, var(--ink) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--ink) 15%, transparent);
+  }
+  .hl-sidebar-swatch.clear-btn.active {
+    border-color: var(--ink);
+  }
+  /* pulse ring when a color is active */
+  .hl-sidebar[data-active="1"] {
+    box-shadow: 0 2px 16px rgba(0,0,0,.13), 0 0 0 2px var(--ink-faint, color-mix(in srgb, var(--ink) 18%, transparent));
+  }
   .subtask-row {
     display: flex;
     align-items: center;
@@ -4001,6 +4052,44 @@ const HIGHLIGHT_COLOR_MIGRATIONS = {
   '#BFE7FF':'#7FA5BD',
   '#E1D0FF':'#A58BBE',
 };
+function renderHighlightSidebar() {
+  const existing = document.getElementById('hl-sidebar');
+  if (existing) existing.remove();
+  if (currentNav !== 'hoje') return;
+
+  const bar = document.createElement('div');
+  bar.className = 'hl-sidebar';
+  bar.id = 'hl-sidebar';
+  if (activeHighlightColor) bar.dataset.active = '1';
+
+  HIGHLIGHT_COLORS.forEach(color => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hl-sidebar-swatch' + (activeHighlightColor === color ? ' active' : '');
+    btn.style.background = `color-mix(in srgb, ${color} 76%, var(--bg))`;
+    btn.dataset.color = color;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      activeHighlightColor = (activeHighlightColor === color) ? null : color;
+      renderHighlightSidebar();
+    });
+    bar.appendChild(btn);
+  });
+
+  const clr = document.createElement('button');
+  clr.type = 'button';
+  clr.className = 'hl-sidebar-swatch clear-btn' + (activeHighlightColor === 'clear' ? ' active' : '');
+  clr.title = 'Remover cor';
+  clr.addEventListener('click', e => {
+    e.stopPropagation();
+    activeHighlightColor = (activeHighlightColor === 'clear') ? null : 'clear';
+    renderHighlightSidebar();
+  });
+  bar.appendChild(clr);
+
+  document.body.appendChild(bar);
+}
+
 const REPEAT_OPTIONS = [
   { id:'nenhuma',  label:'Nunca' },
   { id:'diaria',   label:'Diária' },
@@ -4192,6 +4281,7 @@ let titleFont = localStorage.getItem('fd-title-font') || '';
 let bodyFont = localStorage.getItem('fd-body-font') || '';
 let selectedTaskId  = null;
 let selectedHabitId = null;
+let activeHighlightColor = null;
 let hdView = 'semana';
 let calendarSwipeActive = false;
 let commandOpen = false;
@@ -4560,6 +4650,7 @@ function buildNav() {
 }
 
 function switchNav(nav) {
+  activeHighlightColor = null;
   currentNav = nav;
   currentView = (nav === 'hoje') ? 'dia' : 'semana';
   buildNav();
@@ -5004,6 +5095,7 @@ function renderAll() {
   saveState();
   scheduleNotifications();
   requestAnimationFrame(updateScrollOverflow);
+  renderHighlightSidebar();
 }
 
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
@@ -5256,9 +5348,18 @@ function attachTaskEvents() {
     });
   });
 
-  // task row click (open edit directly)
+  // task row click (open edit directly, or apply highlight color if mode is active)
   document.querySelectorAll('.task-row').forEach(row => {
     row.addEventListener('click', () => {
+      if (activeHighlightColor !== null) {
+        const id = parseInt(row.dataset.id);
+        const t = tasks.find(t => t.id === id);
+        if (t) {
+          t.highlight = activeHighlightColor === 'clear' ? '' : activeHighlightColor;
+          renderAll();
+        }
+        return;
+      }
       selectedTaskId = parseInt(row.dataset.id);
       startEditTask(selectedTaskId);
     });
