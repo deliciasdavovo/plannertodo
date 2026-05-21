@@ -1857,18 +1857,20 @@
   }
   .gender-picker { padding: 6px 20px 16px; }
   .gender-toggle {
-    display: flex; border: 1.5px solid var(--rule);
-    border-radius: var(--radius-lg); overflow: hidden;
-    background: var(--surface);
+    display: flex; border-radius: 11px;
+    background: var(--surface); padding: 3px; gap: 2px;
   }
   .gender-toggle-btn {
-    flex: 1; padding: 12px 0; border: none; background: transparent;
-    cursor: pointer; font-size: var(--text-sm); font-family: inherit;
-    color: var(--ink-soft); transition: all 0.2s; display: flex;
-    align-items: center; justify-content: center; gap: 7px;
-    font-weight: 500;
+    flex: 1; padding: 11px 0; border: none; border-radius: 9px;
+    background: transparent; cursor: pointer;
+    font-size: var(--text-sm); font-family: inherit;
+    color: var(--ink-faint); transition: all 0.2s; display: flex;
+    align-items: center; justify-content: center; gap: 7px; font-weight: 500;
   }
-  .gender-toggle-btn.active { background: var(--primary); color: var(--bg); font-weight: 700; }
+  .gender-toggle-btn.active {
+    background: var(--bg); color: var(--ink); font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.06);
+  }
   .gender-toggle-btn svg { width: 16px; height: 16px; }
 
   /* cycle widget compact */
@@ -2015,57 +2017,67 @@
     padding: 16px 20px;
   }
 
-  /* ── DIARY (redesigned) ── */
+  /* ── DIARY (premium) ── */
   .diary-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
   .diary-cal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px 6px; flex-shrink: 0;
+    padding: 8px 14px 4px; flex-shrink: 0;
   }
-  .diary-cal-month-label { font-size: var(--text-sm); font-weight: 700; color: var(--ink); }
+  .diary-cal-month-label { font-size: var(--text-xs); font-weight: 700; color: var(--ink-soft); letter-spacing: .06em; text-transform: uppercase; }
   .diary-cal-nav {
-    background: none; border: none; cursor: pointer; color: var(--ink);
-    padding: 5px 8px; border-radius: var(--radius); font-size: 15px;
-    display: flex; align-items: center;
+    background: none; border: none; cursor: pointer; color: var(--ink-soft);
+    padding: 4px 6px; border-radius: var(--radius); display: flex; align-items: center;
   }
   .diary-cal-nav:hover { background: var(--surface); }
+  .diary-cal-nav:disabled { opacity: 0.3; pointer-events: none; }
   .diary-cal-grid {
-    display: grid; grid-template-columns: repeat(7,1fr); gap: 1px;
-    padding: 0 10px 10px; flex-shrink: 0;
+    display: grid; grid-template-columns: repeat(7,1fr); gap: 0;
+    padding: 0 8px 8px; flex-shrink: 0;
     border-bottom: 1px solid var(--rule);
   }
-  .diary-dow-label { font-size: 10px; font-weight: 600; color: var(--ink-faint); text-align: center; padding: 3px 0; letter-spacing: .04em; }
+  .diary-dow-label { font-size: 9px; font-weight: 700; color: var(--ink-faint); text-align: center; padding: 2px 0 4px; letter-spacing: .05em; }
   .diary-day-cell {
     aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; border-radius: 50%; font-size: 13px; color: var(--ink);
+    cursor: pointer; border-radius: 50%; font-size: 12px; color: var(--ink);
     position: relative; user-select: none; -webkit-tap-highlight-color: transparent;
     transition: background .12s; font-weight: 400;
   }
-  .diary-day-cell:hover { background: var(--surface); }
+  .diary-day-cell:hover:not(.empty):not(.future) { background: var(--surface); }
   .diary-day-cell.empty { pointer-events: none; }
   .diary-day-cell.future { color: var(--ink-faint); pointer-events: none; }
+  /* 3 small horizontal lines for days with entries */
   .diary-day-cell.has-entry::after {
-    content: ''; position: absolute; bottom: 3px; left: 50%;
-    transform: translateX(-50%); width: 4px; height: 4px;
-    border-radius: 50%; background: var(--primary);
+    content: '';
+    position: absolute; bottom: 2px; left: 50%;
+    transform: translateX(-50%);
+    width: 11px; height: 1.5px;
+    background: var(--primary);
+    border-radius: 1px;
+    box-shadow: 0 -2.5px 0 var(--primary), 0 2.5px 0 var(--primary);
   }
   .diary-day-cell.today { color: var(--primary); font-weight: 700; }
   .diary-day-cell.selected { background: var(--primary); color: var(--bg); font-weight: 700; }
-  .diary-day-cell.selected::after { background: rgba(255,255,255,.6); }
-  .diary-entry-area { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  .diary-entry-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 20px 2px; flex-shrink: 0;
+  .diary-day-cell.selected::after { background: rgba(255,255,255,.55); box-shadow: 0 -2.5px 0 rgba(255,255,255,.55), 0 2.5px 0 rgba(255,255,255,.55); }
+  .diary-entry-area { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .diary-entry-hero {
+    padding: 14px 20px 2px; flex-shrink: 0;
   }
-  .diary-entry-date-txt { font-size: var(--text-sm); font-weight: 600; color: var(--ink); }
-  .diary-entry-date-txt.today-txt { color: var(--primary); }
+  .diary-entry-weekday { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-faint); margin-bottom: 2px; }
+  .diary-entry-daynum { font-size: 32px; font-weight: 700; line-height: 1; color: var(--ink); font-family: var(--serif); }
+  .diary-entry-daynum.today-txt { color: var(--primary); }
+  .diary-entry-monthyear { font-size: var(--text-xs); color: var(--ink-soft); margin-top: 2px; }
+  .diary-entry-bar {
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 20px 4px; flex-shrink: 0;
+  }
   .diary-save-hint { font-size: var(--text-xs); color: var(--ink-faint); }
   .diary-textarea {
     flex: 1; border: none; outline: none;
     background: transparent; color: var(--ink);
-    font-family: var(--serif); font-size: var(--text-base); line-height: 1.85;
-    resize: none; padding: 8px 20px 32px; min-height: 0;
+    font-family: var(--serif); font-size: var(--text-base); line-height: 1.9;
+    resize: none; padding: 4px 20px 40px; min-height: 0;
   }
-  .diary-textarea::placeholder { color: var(--ink-faint); }
+  .diary-textarea::placeholder { color: var(--ink-faint); font-style: italic; }
 
   .command-overlay {
     position: absolute;
@@ -3588,11 +3600,15 @@
         </div>
         <div class="diary-cal-grid" id="diary-cal-grid"></div>
         <div class="diary-entry-area">
+          <div class="diary-entry-hero">
+            <div class="diary-entry-weekday" id="diary-entry-weekday"></div>
+            <div class="diary-entry-daynum" id="diary-entry-daynum"></div>
+            <div class="diary-entry-monthyear" id="diary-entry-monthyear"></div>
+          </div>
           <div class="diary-entry-bar">
-            <span class="diary-entry-date-txt" id="diary-entry-date-txt"></span>
             <span class="diary-save-hint" id="diary-save-hint"></span>
           </div>
-          <textarea class="diary-textarea" id="diary-textarea" placeholder="Escreva o que quiser… pensamentos, gratidão, memórias do dia."></textarea>
+          <textarea class="diary-textarea" id="diary-textarea" placeholder="O que está na sua mente hoje?"></textarea>
         </div>
       </div>
     </div>
@@ -6713,8 +6729,12 @@ function renderCycleCal() {
 
   // log bar
   const logBar = document.getElementById('cycle-log-bar');
+  const clearBtnHTML = cycleLastStart
+    ? `<button class="cycle-log-btn outline" id="cycle-cal-clear-btn" style="border-color:#c0392b;color:#c0392b">✕ Apagar ${cycleLastStart}</button>`
+    : '';
   logBar.innerHTML = `
     <button class="cycle-log-btn red" id="cycle-cal-reg-btn">+ Registrar menstruação hoje</button>
+    ${clearBtnHTML}
     <div class="cycle-config" style="margin:10px 16px 0;padding:0">
       <label>Ciclo (dias)<input type="number" id="cycle-cal-len" min="21" max="45" value="${cycleLength}" style="margin-top:4px;padding:6px 8px;border-radius:var(--radius);border:1.5px solid var(--rule);background:transparent;color:var(--ink);font-size:var(--text-sm);width:100%;font-family:inherit"></label>
       <label>Duração (dias)<input type="number" id="cycle-cal-dur" min="1" max="10" value="${periodDuration}" style="margin-top:4px;padding:6px 8px;border-radius:var(--radius);border:1.5px solid var(--rule);background:transparent;color:var(--ink);font-size:var(--text-sm);width:100%;font-family:inherit"></label>
@@ -6746,6 +6766,15 @@ function renderCycleCal() {
     renderCycleCal();
     showDayToast('Menstruação registrada!');
   });
+  const clearBtn = document.getElementById('cycle-cal-clear-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      cycleLastStart = null;
+      localStorage.removeItem('fd-cycle-start');
+      renderCycleCal();
+      showDayToast('Registro removido');
+    });
+  }
   document.getElementById('cycle-cal-len').addEventListener('change', e => {
     const v = parseInt(e.target.value, 10);
     if (v >= 21 && v <= 45) { cycleLength = v; localStorage.setItem('fd-cycle-length', cycleLength); renderCycleCal(); }
@@ -6758,11 +6787,20 @@ function renderCycleCal() {
     cell.addEventListener('click', () => {
       const dateStr = cell.dataset.cycleDate;
       if (!dateStr || dateStr > TODAY) return;
-      if (window.confirm(`Registrar ${dateStr} como início de menstruação?`)) {
-        cycleLastStart = dateStr;
-        localStorage.setItem('fd-cycle-start', cycleLastStart);
-        renderCycleCal();
-        showDayToast('Menstruação registrada!');
+      if (dateStr === cycleLastStart) {
+        if (window.confirm(`Remover ${dateStr} como início de menstruação?`)) {
+          cycleLastStart = null;
+          localStorage.removeItem('fd-cycle-start');
+          renderCycleCal();
+          showDayToast('Registro removido');
+        }
+      } else {
+        if (window.confirm(`Registrar ${dateStr} como início de menstruação?`)) {
+          cycleLastStart = dateStr;
+          localStorage.setItem('fd-cycle-start', cycleLastStart);
+          renderCycleCal();
+          showDayToast('Menstruação registrada!');
+        }
       }
     });
   });
@@ -6825,21 +6863,19 @@ function renderDiaryCalendar() {
 
 function renderDiary() {
   const textarea = document.getElementById('diary-textarea');
-  const dateTxt  = document.getElementById('diary-entry-date-txt');
   const hint     = document.getElementById('diary-save-hint');
   if (!textarea) return;
 
-  // sync calendar offset to diaryDate's month relative to today
+  // sync calendar offset to diaryDate's month
   const today = parseDateKey(TODAY);
   const dd = parseDateKey(diaryDate);
   diaryCalOffset = (dd.getFullYear() - today.getFullYear()) * 12 + (dd.getMonth() - today.getMonth());
   if (diaryCalOffset > 0) diaryCalOffset = 0;
 
   renderDiaryCalendar();
+  updateDiaryHero();
 
   textarea.value = diaryEntries[diaryDate] || '';
-  dateTxt.textContent = diaryDateLabel(diaryDate);
-  dateTxt.className = 'diary-entry-date-txt' + (diaryDate === TODAY ? ' today-txt' : '');
   hint.textContent = '';
 
   clearTimeout(diaryDebounce);
@@ -6857,23 +6893,38 @@ function renderDiary() {
   document.getElementById('diary-cal-prev').onclick = () => {
     saveDiaryNow();
     diaryCalOffset--;
-    const today2 = parseDateKey(TODAY);
-    const newBase = new Date(today2.getFullYear(), today2.getMonth() + diaryCalOffset, 1);
+    const t = parseDateKey(TODAY);
+    const newBase = new Date(t.getFullYear(), t.getMonth() + diaryCalOffset, 1);
     diaryDate = `${newBase.getFullYear()}-${String(newBase.getMonth()+1).padStart(2,'0')}-01`;
-    if (diaryDate > TODAY) diaryDate = TODAY;
     renderDiary();
   };
   document.getElementById('diary-cal-next').onclick = () => {
     if (diaryCalOffset >= 0) return;
     saveDiaryNow();
     diaryCalOffset++;
-    const today2 = parseDateKey(TODAY);
-    const newBase = new Date(today2.getFullYear(), today2.getMonth() + diaryCalOffset, 1);
-    const lastOfMonth = new Date(newBase.getFullYear(), newBase.getMonth() + 1, 0);
-    const targetStr = formatDateKey(lastOfMonth);
-    diaryDate = targetStr > TODAY ? TODAY : targetStr;
+    const t = parseDateKey(TODAY);
+    const newBase = new Date(t.getFullYear(), t.getMonth() + diaryCalOffset, 1);
+    const last = new Date(newBase.getFullYear(), newBase.getMonth() + 1, 0);
+    diaryDate = formatDateKey(last) > TODAY ? TODAY : formatDateKey(last);
     renderDiary();
   };
+}
+
+function updateDiaryHero() {
+  const d = parseDateKey(diaryDate);
+  const isToday = diaryDate === TODAY;
+  const WEEKDAYS_PT = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const MONTHS_PT   = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+  const weekdayEl   = document.getElementById('diary-entry-weekday');
+  const daynumEl    = document.getElementById('diary-entry-daynum');
+  const monthyrEl   = document.getElementById('diary-entry-monthyear');
+  if (!weekdayEl) return;
+
+  weekdayEl.textContent = isToday ? 'hoje' : WEEKDAYS_PT[d.getDay()];
+  daynumEl.textContent  = d.getDate();
+  daynumEl.className    = 'diary-entry-daynum' + (isToday ? ' today-txt' : '');
+  monthyrEl.textContent = `${MONTHS_PT[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
 function saveDiaryNow() {
