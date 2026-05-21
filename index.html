@@ -1780,6 +1780,22 @@
     box-shadow: 0 -4px 12px rgba(0,0,0,.22);
     border-top-color: color-mix(in srgb, var(--accent) 22%, transparent);
   }
+  body.dark .task-row.highlighted {
+    background: none;
+    border-bottom-color: var(--rule);
+    border-left: 3px solid var(--task-highlight);
+    padding-left: calc(var(--space-2) + 1px);
+    border-radius: 0;
+  }
+  body.dark .task-row.highlighted .task-title {
+    background: none;
+    padding: 0;
+  }
+  body.dark .project-task.highlighted {
+    background: none;
+    border-left: 3px solid var(--task-highlight);
+    padding-left: calc(var(--space-2) + 1px);
+  }
   .nav-btn {
     min-width: 0;
     display: flex;
