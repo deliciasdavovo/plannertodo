@@ -2721,7 +2721,6 @@
     background: none;
     cursor: pointer;
     flex-shrink: 0;
-    margin-top: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2743,7 +2742,7 @@
     color: var(--accent-text);
   }
   .task-sheet-notes {
-    padding: 2px var(--space-5) var(--space-2);
+    padding: 0 var(--space-5) var(--space-2);
     font-family: var(--sans);
     font-size: var(--text-base);
     color: var(--ink-mid);
@@ -2752,11 +2751,30 @@
     outline: none;
     resize: none;
     width: 100%;
-    min-height: 52px;
     box-sizing: border-box;
   }
   .task-sheet-notes::placeholder { color: var(--ink-ghost); }
-  .task-sheet-sub-list { padding: 0 var(--space-5); }
+  .task-sheet-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    min-height: 0;
+  }
+  .task-sheet-sub-list {
+    padding: 0 var(--space-5) 0 calc(var(--space-5) + 16px);
+    position: relative;
+  }
+  .task-sheet-sub-list:not(:empty)::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-5) + 7px);
+    top: 10px;
+    bottom: 18px;
+    width: 1.5px;
+    background: color-mix(in srgb, var(--rule) 70%, transparent);
+    border-radius: 1px;
+  }
   .task-sheet-sub-list .task-sub-item {
     display: flex;
     align-items: center;
@@ -2862,7 +2880,59 @@
     padding: var(--space-3) var(--space-4) var(--space-5);
     border-top: 0.5px solid color-mix(in srgb, var(--rule) 78%, transparent);
     flex-shrink: 0;
+    position: relative;
+    background: var(--surface);
+    z-index: 2;
   }
+  .task-hl-popup {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: var(--space-4);
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 0.5px solid color-mix(in srgb, var(--rule) 70%, transparent);
+    padding: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 300;
+    min-width: 44px;
+    align-items: center;
+  }
+  .task-hl-popup:empty { display: none; }
+  .hl-popup-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid color-mix(in srgb, var(--ink) 10%, transparent);
+    background: color-mix(in srgb, var(--highlight-color) 76%, var(--bg));
+    cursor: pointer;
+    position: relative;
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), border-color var(--dur-fast);
+    flex-shrink: 0;
+  }
+  .hl-popup-swatch::after { content: ''; position: absolute; inset: -6px; }
+  .hl-popup-swatch:active { transform: scale(0.9); }
+  .hl-popup-swatch.active {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+  }
+  .hl-popup-swatch.clear {
+    background:
+      linear-gradient(135deg, transparent 46%, var(--red) 47% 53%, transparent 54%),
+      var(--surface);
+  }
+  .task-proj-dot-badge {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: var(--space-2);
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .task-proj-dot-badge:active { transform: scale(0.85); }
   .task-chips-row {
     display: flex;
     align-items: center;
@@ -3743,23 +3813,26 @@
           </button>
         </div>
       </div>
-      <div class="task-priority-bar" id="task-priority-bar"></div>
-      <div class="task-sheet-body">
-        <div class="task-title-wrap" id="task-title-wrap">
-          <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
+      <div class="task-sheet-scroll">
+        <div class="task-priority-bar" id="task-priority-bar"></div>
+        <div class="task-sheet-body">
+          <div class="task-title-wrap" id="task-title-wrap">
+            <textarea class="task-sheet-title" id="new-task-title" placeholder="Anote a tarefa..." rows="2"></textarea>
+          </div>
+          <button class="task-sheet-check-btn" id="task-sheet-check-btn" type="button"></button>
         </div>
-        <button class="task-sheet-check-btn" id="task-sheet-check-btn" type="button"></button>
-      </div>
-      <textarea class="task-sheet-notes" id="task-notes-input" placeholder="Adicionar notas..."></textarea>
-      <div class="task-sheet-sub-list" id="task-subtasks-list"></div>
-      <div class="task-sheet-sub-row">
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;color:var(--ink-ghost)"><circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 5v5M5 7.5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-        <input class="task-sheet-sub-input" id="task-subtask-input" placeholder="+ Adicionar subtarefa" autocomplete="off" enterkeyhint="done"/>
-        <button class="task-sheet-sub-add" id="task-subtask-add" type="button" aria-label="Adicionar subtarefa">+</button>
+        <textarea class="task-sheet-notes" id="task-notes-input" placeholder="Adicionar notas..." rows="3"></textarea>
+        <div class="task-sheet-sub-list" id="task-subtasks-list"></div>
+        <div class="task-sheet-sub-row">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;color:var(--ink-ghost)"><circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 5v5M5 7.5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input class="task-sheet-sub-input" id="task-subtask-input" placeholder="+ Adicionar subtarefa" autocomplete="off" enterkeyhint="done"/>
+          <button class="task-sheet-sub-add" id="task-subtask-add" type="button" aria-label="Adicionar subtarefa">+</button>
+        </div>
       </div>
       <div class="task-sheet-subpanel" id="task-sheet-subpanel"></div>
       <div class="task-sheet-toolbar">
         <div class="task-chips-row" id="task-chips-row"></div>
+        <div class="task-hl-popup" id="task-hl-popup"></div>
       </div>
       <button class="task-sheet-submit" id="submit-task" style="display:none" aria-hidden="true"></button>
     </div>
@@ -7424,8 +7497,14 @@ function buildAddTaskModal() {
     const pc = PRIORITY[newPriority] || PRIORITY.baixa;
     const level = priorityLevel(newPriority);
     const pips = [1,2,3].map(i => `<span class="${i <= level ? 'on' : ''}"></span>`).join('');
-    priorityBar.innerHTML = `<button class="task-priority-btn" id="priority-badge-btn" type="button" style="--pc:${pc.color}"><span class="task-priority-pips">${pips}</span>${pc.label}</button>`;
+    const projForBadge = PROJECTS.find(p => p.id === newProjectId);
+    const projDotHtml = projForBadge
+      ? `<span class="task-proj-dot-badge" id="priority-proj-dot" style="background:${projForBadge.dot}" title="${escapeHTML(projForBadge.name)}"></span>`
+      : '';
+    priorityBar.innerHTML = `<button class="task-priority-btn" id="priority-badge-btn" type="button" style="--pc:${pc.color}"><span class="task-priority-pips">${pips}</span>${pc.label}</button>${projDotHtml}`;
     document.getElementById('priority-badge-btn').addEventListener('click', () => { activeSubpanel = null; cyclePriority(); });
+    const projDotEl = document.getElementById('priority-proj-dot');
+    if (projDotEl) projDotEl.addEventListener('click', () => { activeSubpanel = activeSubpanel === 'project' ? null : 'project'; buildAddTaskModal(); });
   }
 
   // chips row
@@ -7455,7 +7534,7 @@ function buildAddTaskModal() {
     if (proj) {
       projChip = `<button class="task-chip set" id="chip-project" type="button"><span class="chip-dot" style="background:${proj.dot}"></span>${escapeHTML(proj.name)}</button>`;
     } else {
-      projChip = `<button class="task-chip ghost" id="chip-project" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+      projChip = `<button class="task-chip ghost" id="chip-project" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8a2 2 0 0 1 2-2h3.17a2 2 0 0 1 1.41.59l.83.83A2 2 0 0 0 11.83 8H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>`;
     }
 
     // highlight chip
@@ -7496,8 +7575,34 @@ function buildAddTaskModal() {
 
 function buildSubpanel() {
   const panel = document.getElementById('task-sheet-subpanel');
+  const hlPopup = document.getElementById('task-hl-popup');
   if (!panel) return;
+
+  if (hlPopup) hlPopup.innerHTML = '';
+
   if (!activeSubpanel) { panel.innerHTML = ''; return; }
+
+  if (activeSubpanel === 'highlight') {
+    panel.innerHTML = '';
+    if (hlPopup) {
+      hlPopup.innerHTML = HIGHLIGHT_COLORS.map(color => `
+        <button class="hl-popup-swatch ${normalizeHighlightColor(newTaskHighlight) === color ? 'active' : ''}"
+                type="button" data-tsp-highlight="${color}"
+                style="--highlight-color:${color}"
+                aria-label="${color}"></button>`).join('') +
+        `<button class="hl-popup-swatch clear ${!newTaskHighlight ? 'active' : ''}"
+                type="button" data-tsp-highlight="" aria-label="Remover grifo"></button>`;
+      hlPopup.querySelectorAll('[data-tsp-highlight]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const color = btn.dataset.tspHighlight;
+          newTaskHighlight = isHighlightColor(color) ? normalizeHighlightColor(color) : '';
+          activeSubpanel = null;
+          buildAddTaskModal();
+        });
+      });
+    }
+    return;
+  }
 
   if (activeSubpanel === 'datetime') {
     const todayDate = parseDateKey(TODAY);
@@ -7609,27 +7714,6 @@ function buildSubpanel() {
       });
     });
   }
-  else if (activeSubpanel === 'highlight') {
-    panel.innerHTML = `<div class="highlight-picker" style="padding:4px 0 8px">
-      ${HIGHLIGHT_COLORS.map(color => `
-        <button class="highlight-swatch ${normalizeHighlightColor(newTaskHighlight) === color ? 'active' : ''}"
-                type="button"
-                data-tsp-highlight="${color}"
-                style="--highlight-color:${color}"
-                aria-label="Grifar com ${color}"></button>`).join('')}
-      <button class="highlight-swatch clear ${!newTaskHighlight ? 'active' : ''}"
-              type="button"
-              data-tsp-highlight=""
-              style="--highlight-color:transparent"
-              aria-label="Remover grifo"></button>
-    </div>`;
-    panel.querySelectorAll('[data-tsp-highlight]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const color = btn.dataset.tspHighlight;
-        newTaskHighlight = isHighlightColor(color) ? normalizeHighlightColor(color) : '';
-        buildAddTaskModal();
-      });
-    });
   }
 }
 
