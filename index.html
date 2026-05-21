@@ -1698,7 +1698,7 @@
   }
 
   /* ── THEME OVERRIDES ── */
-  #app[data-theme="brejo"] {
+  body:not(.dark) #app[data-theme="brejo"] {
     --ink-mid: #66645E;
     --ink-faint: #8F8A82;
     --ink-ghost: #C7C3BA;
@@ -1706,22 +1706,22 @@
   }
 
   #app[data-theme="nevoa"] .day-btn.active .day-num { color: #7B9EC0; }
-  #app[data-theme="nevoa"] {
+  body:not(.dark) #app[data-theme="nevoa"] {
     --ink-mid: #5C6F88;
     --ink-faint: #5C6F88;
     --ink-ghost: #AEB8C8;
     --rule: #C5CCD9;
   }
 
-  #app[data-theme="sol"] {
+  body:not(.dark) #app[data-theme="sol"] {
     --ink-mid: #6F5D24;
     --ink-faint: #6F5D24;
     --ink-ghost: #BDB17E;
     --rule: #D8CF9C;
   }
 
-  #app[data-theme="terra"] #bottom-nav { border-top-color: color-mix(in srgb, #C4593A 22%, transparent); }
-  #app[data-theme="terra"] {
+  body:not(.dark) #app[data-theme="terra"] #bottom-nav { border-top-color: color-mix(in srgb, #C4593A 22%, transparent); }
+  body:not(.dark) #app[data-theme="terra"] {
     --ink-mid: #7F5945;
     --ink-faint: #7F5945;
     --ink-ghost: #BDAA9C;
@@ -1735,8 +1735,8 @@
   #app[data-theme="terra"] .task-title,
   #app[data-theme="terra"] .habit-name,
   #app[data-theme="terra"] .project-name { font-style: italic; font-weight: 400; }
-  #app[data-theme="terra"] .day-btn { border-radius: var(--radius-xs); border: 1px solid #E8DDD0; }
-  #app[data-theme="terra"] .day-btn.active { border-color: #C4593A; }
+  body:not(.dark) #app[data-theme="terra"] .day-btn { border-radius: var(--radius-xs); border: 1px solid #E8DDD0; }
+  body:not(.dark) #app[data-theme="terra"] .day-btn.active { border-color: #C4593A; }
 
   /* ── FAB ── */
   #fab {
@@ -4113,6 +4113,7 @@ const PROFILE_TIPS = [
   'No Perfil, tocar em um tema aplica uma previsualizacao imediata.',
   'Na aba Hoje, deslize a lista para trocar de dia, semana ou mes.'
 ];
+const DARK_BASE = { bg:'#111110', surface:'#1C1814', tab:'#090807', ink:'#D2C8BA', rule:'#2A2520', accent:'#A86840', alta:'#D9624A', media:'#D8B964', baixa:'#9BB888' };
 const APPEARANCE_PRESETS = [
   { id:'brejo', name:'Brejo', title:"'Work Sans', sans-serif", body:"'Work Sans', sans-serif",
     colors:{ bg:'#F1EFE8', primary:'#1A1A1A', secondary:'#9B9690', divider:'#DAD7CE', day:'#1A1A1A', tab:'#1A1A1A', alta:'#C0392B', media:'#C8A84B', baixa:'#2E7D5E' },
@@ -6232,7 +6233,7 @@ function appearancePanelHTML() {
             <input type="color" id="appearance-light-color" value="${lightValue}" title="Cor de fundo">
             <span>Fundo</span>
           </div>
-          <div class="appearance-preview" style="background:${lightValue};color:${darkValue};border:1.5px solid ${darkValue}22">
+          <div class="appearance-preview" style="background:${darkTheme ? DARK_BASE.surface : lightValue};color:${darkTheme ? DARK_BASE.ink : darkValue};border:1.5px solid ${darkTheme ? DARK_BASE.rule : darkValue + '22'}">
             <strong style="font-family:${escapeAttr(selectedTitleFont)}">Aa Título</strong>
             <span style="font-family:${escapeAttr(selectedBodyFont)}">Texto do corpo</span>
           </div>
@@ -6397,8 +6398,6 @@ function applyTheme() {
 
   let bg, surface, ink, inkMid, inkFaint, inkGhost, rule, deep, accent, accentText, tabbar, tabbarText, daySel, daySelText;
   let priorityColors;
-
-  const DARK_BASE = { bg:'#111110', surface:'#1C1814', tab:'#090807', ink:'#D2C8BA', rule:'#2A2520', accent:'#A86840', alta:'#D9624A', media:'#D8B964', baixa:'#9BB888' };
 
   if (darkTheme) {
     bg         = DARK_BASE.bg;
