@@ -405,7 +405,7 @@
     height: 100%;
     background: var(--accent);
     border-radius: 1px;
-    transition: width var(--dur-slow) var(--ease-out);
+    transition: width 420ms var(--ease-spring);
   }
 
   /* ── VIEW TOGGLE ── */
@@ -802,6 +802,66 @@
     100% { transform: translateX(0); }
   }
 
+  /* ── MICRO-INTERACTIONS ── */
+  @keyframes taskEnter {
+    0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
+    58%  { opacity: 1; transform: translateY(-3px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .task-swipe-wrap.task-entering {
+    animation: taskEnter 300ms var(--ease-spring) both;
+  }
+
+  @keyframes tickBounce {
+    0%   { transform: scale(0.62); }
+    54%  { transform: scale(1.28); }
+    78%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+  .tick-btn.just-checked {
+    animation: tickBounce 260ms var(--ease-spring);
+    border-color: var(--check-color, var(--accent));
+    background: var(--check-color, var(--accent));
+  }
+
+  @keyframes habitBounce {
+    0%   { transform: scale(1); }
+    22%  { transform: scale(0.74); }
+    60%  { transform: scale(1.22); }
+    82%  { transform: scale(0.93); }
+    100% { transform: scale(1); }
+  }
+  .habit-check.just-checked {
+    animation: habitBounce 300ms var(--ease-spring);
+  }
+  @keyframes habitUnbounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.16); }
+    100% { transform: scale(1); }
+  }
+  .habit-check.just-unchecked {
+    animation: habitUnbounce 200ms var(--ease-out);
+  }
+
+  @keyframes progressPulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+    65%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
+    100% { box-shadow: none; }
+  }
+  .progress-fill.complete-pulse {
+    animation: progressPulse 700ms var(--ease-out) forwards;
+  }
+
+  @keyframes inputHint {
+    0%, 100% { box-shadow: none; }
+    50%       { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); }
+  }
+  .inline-task-input.hint-pulse {
+    animation: inputHint 1.6s ease-in-out 900ms 2;
+    border-radius: var(--radius-xs);
+  }
+  .inline-task-input.hint-pulse:focus { animation: none; }
+
   .day-shift-toast {
     position: absolute;
     left: 50%;
@@ -845,7 +905,7 @@
     position: absolute;
     inset: -12px;
   }
-  .tick-btn:active { transform: scale(0.94); }
+  .tick-btn:active { transform: scale(0.88); }
   .tick-btn.checked {
     border-color: var(--check-color, var(--accent));
     background: var(--check-color, var(--accent));
@@ -1058,7 +1118,7 @@
     position: absolute;
     inset: -9px;
   }
-  .habit-check:active { transform: scale(0.94); }
+  .habit-check:active { transform: scale(0.86); }
   .habit-check.done {
     border-color: var(--habit-color);
     background: var(--habit-color);
@@ -1706,6 +1766,12 @@
   }
   #fab:active { transform: scale(0.94); }
   #fab.hidden { display: none; }
+  #fab svg {
+    transition: transform 220ms var(--ease-spring);
+  }
+  #fab.sheet-open svg {
+    transform: rotate(45deg);
+  }
 
   /* ── BOTTOM NAV ── */
   #bottom-nav {
@@ -4435,6 +4501,7 @@ function buildNav() {
 }
 
 function switchNav(nav) {
+  window._sectionChanged = true;
   currentNav = nav;
   currentView = (nav === 'hoje') ? 'dia' : 'semana';
   buildNav();
@@ -4884,14 +4951,24 @@ function renderAll() {
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
 function updateProgress() {
   const fill = document.getElementById('main-progress-fill');
+  const prevPct = parseFloat(fill.dataset.pct || '0');
+  let pct = 0;
   if (currentNav === 'hoje') {
     const dayTasks = tasks.filter(t => t.date === WEEK_DATES[activeDay]);
-    const pct = dayTasks.length ? (dayTasks.filter(t=>t.done).length / dayTasks.length)*100 : 0;
-    fill.style.width = pct + '%';
+    pct = dayTasks.length ? (dayTasks.filter(t=>t.done).length / dayTasks.length)*100 : 0;
   } else if (currentNav === 'habitos') {
     const done = habits.filter(h=>h.week[TODAY_IDX]===true).length;
-    const pct = habits.length ? (done/habits.length)*100 : 0;
-    fill.style.width = pct + '%';
+    pct = habits.length ? (done/habits.length)*100 : 0;
+  }
+  fill.style.width = pct + '%';
+  fill.dataset.pct = pct;
+  if (pct >= 100 && prevPct < 100 && prevPct > 0) {
+    fill.classList.remove('complete-pulse');
+    requestAnimationFrame(() => {
+      fill.classList.add('complete-pulse');
+      showDayToast('Dia concluído! 🎉');
+      setTimeout(() => fill.classList.remove('complete-pulse'), 750);
+    });
   }
 }
 
@@ -4921,10 +4998,16 @@ function wireSectionInlineInputs() {
     const submit = () => {
       const title = input.value.trim();
       if (!title) return;
-      tasks.push({ id: Date.now(), title, done: false, priority: 'média', highlight: '',
+      const newId = Date.now();
+      tasks.push({ id: newId, title, done: false, priority: 'média', highlight: '',
                    projectId: null, time: '', date: date || null, position: nextTaskPosition(date || null), subtasks: [] });
       lastFocusedInputDate = date;
       renderAll();
+      const newWrap = document.querySelector(`.task-swipe-wrap[data-swipe-id="${newId}"]`);
+      if (newWrap) {
+        newWrap.classList.add('task-entering');
+        setTimeout(() => newWrap.classList.remove('task-entering'), 350);
+      }
       const sel = date
         ? `.inline-task-row.inline[data-input-date="${date}"] .inline-task-input`
         : `.inline-task-row.inline[data-input-date=""] .inline-task-input`;
@@ -5033,6 +5116,27 @@ function renderDayList() {
   wireSectionInlineInputs();
   wireNotebookAddTap();
   attachTaskEvents();
+
+  // Stagger entrance when switching sections
+  if (window._sectionChanged) {
+    window._sectionChanged = false;
+    document.querySelectorAll('#task-list-pending .task-swipe-wrap').forEach((wrap, i) => {
+      wrap.style.animationDelay = `${Math.min(i * 32, 128)}ms`;
+      wrap.classList.add('task-entering');
+      const delay = 300 + Math.min(i * 32, 128);
+      setTimeout(() => { wrap.style.animationDelay = ''; wrap.classList.remove('task-entering'); }, delay);
+    });
+  }
+
+  // Pulse empty input when no pending tasks for the day
+  const pendingCount = tasks.filter(t => t.date === WEEK_DATES[activeDay] && !t.done).length;
+  if (pendingCount === 0) {
+    const firstInput = document.querySelector('#task-list-pending .inline-task-input');
+    if (firstInput) {
+      firstInput.classList.add('hint-pulse');
+      firstInput.addEventListener('animationend', () => firstInput.classList.remove('hint-pulse'), { once: true });
+    }
+  }
 }
 
 function renderTaskList() {
@@ -5130,7 +5234,9 @@ function attachTaskEvents() {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.tick);
-      toggleTask(id);
+      btn.classList.add('just-checked');
+      vibrateSoft([7]);
+      setTimeout(() => toggleTask(id), 175);
     });
   });
 
@@ -5575,7 +5681,11 @@ function renderHabitsWeek() {
   list.querySelectorAll('[data-habit-check]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      checkHabit(parseInt(btn.dataset.habitCheck));
+      const id = parseInt(btn.dataset.habitCheck);
+      const wasDone = btn.classList.contains('done');
+      btn.classList.add(wasDone ? 'just-unchecked' : 'just-checked');
+      vibrateSoft([8]);
+      setTimeout(() => checkHabit(id), 185);
     });
   });
   list.querySelectorAll('[data-habit-open]').forEach(card => {
@@ -7347,9 +7457,11 @@ function deleteHabit(id, ask = true) {
 function openModal(id) {
   const overlay = document.getElementById(id);
   overlay.classList.add('open');
+  if (id === 'modal-add-task') document.getElementById('fab')?.classList.add('sheet-open');
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+  if (id === 'modal-add-task') document.getElementById('fab')?.classList.remove('sheet-open');
 }
 
 function vibrateSoft(pattern = [8]) {
