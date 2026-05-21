@@ -635,107 +635,6 @@
     font-style: normal;
   }
 
-  .task-swipe-wrap {
-    position: relative;
-    overflow: hidden;
-    border-bottom: none;
-  }
-  .task-delete-bg {
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: 112px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--red) 9%, var(--bg));
-    opacity: 0;
-    transition: opacity var(--dur-base) ease;
-    pointer-events: none;
-  }
-  .task-swipe-wrap.swiping .task-delete-bg,
-  .task-swipe-wrap.delete-ready .task-delete-bg,
-  .task-swipe-wrap.deleting .task-delete-bg {
-    opacity: 1;
-  }
-  .trash-can {
-    width: 32px;
-    height: 34px;
-    color: color-mix(in srgb, var(--ink) 82%, var(--red));
-    position: relative;
-    transform: scale(0.92);
-    transition: transform var(--dur-fast) ease, color var(--dur-fast) ease;
-  }
-  .trash-can svg {
-    width: 32px;
-    height: 34px;
-    overflow: visible;
-  }
-  .trash-lid {
-    transform-origin: 16px 8px;
-    transition: transform var(--dur-fast) ease;
-  }
-  .trash-face {
-    opacity: 0.72;
-  }
-  .task-swipe-wrap.delete-mid .trash-lid {
-    transform: translateY(-2px) rotate(-10deg);
-  }
-  .task-swipe-wrap.delete-ready .trash-can,
-  .task-swipe-wrap.deleting .trash-can {
-    transform: scale(1);
-    color: var(--red);
-  }
-  .task-swipe-wrap.delete-ready .trash-lid,
-  .task-swipe-wrap.deleting .trash-lid {
-    transform: translateY(-6px) rotate(-22deg);
-  }
-  .task-swipe-wrap.trash-capture .trash-lid {
-    animation: trashClose var(--dur-slow) ease forwards;
-  }
-  @keyframes trashClose {
-    0% { transform: translateY(-6px) rotate(-22deg); }
-    100% { transform: translateY(0) rotate(0); }
-  }
-  .task-snooze-bg {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 112px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    background: color-mix(in srgb, var(--green) 10%, var(--bg));
-    opacity: 0;
-    transition: opacity var(--dur-base) ease;
-    pointer-events: none;
-  }
-  .task-swipe-wrap.snooze-swiping .task-snooze-bg,
-  .task-swipe-wrap.snooze-ready .task-snooze-bg {
-    opacity: 1;
-  }
-  .snooze-icon {
-    width: 26px;
-    height: 26px;
-    color: color-mix(in srgb, var(--ink) 80%, var(--green));
-    transition: color var(--dur-fast) ease, transform var(--dur-fast) ease;
-    transform: scale(0.9);
-  }
-  .task-swipe-wrap.snooze-ready .snooze-icon {
-    color: var(--green);
-    transform: scale(1);
-  }
-  .snooze-icon svg { width: 26px; height: 26px; }
-  .snooze-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--ink) 80%, var(--green));
-    transition: color var(--dur-fast) ease;
-  }
-  .task-swipe-wrap.snooze-ready .snooze-label { color: var(--green); }
-
   .task-row {
     display: flex;
     align-items: flex-start;
@@ -751,64 +650,13 @@
     border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 42%, transparent);
   }
   .task-row.done { opacity: 0.38; }
-  .task-row.dragging {
-    transition: none;
-    z-index: 2;
-    border-radius: var(--radius-md);
-    background: var(--bg);
-    box-shadow: var(--shadow-sm);
-    border-bottom: none;
-  }
-  .task-row.deleting {
-    transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) ease;
-    transform: translateX(-92px) scale(0.86) !important;
-    opacity: 0;
-    border-bottom-color: transparent;
-  }
-  .task-row.drag-ready {
-    transform: scale(0.985);
-    opacity: 0.9;
-    background: color-mix(in srgb, var(--deep) 58%, transparent);
-  }
-
-  .drag-hint {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: var(--text-micro);
-    font-weight: 700;
-    color: #fff;
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--dur-fast);
-    white-space: nowrap;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    z-index: 0;
-  }
-  .drag-hint.left { right: 0; background: var(--red); }
-  .drag-hint.right { left: 0; background: var(--green); }
-  .task-row.gesture-demo .drag-hint.right { opacity: 1; }
-  .task-row.gesture-demo {
-    animation: taskGestureDemo 0.88s var(--ease-out);
-    z-index: 2;
-  }
-  @keyframes taskGestureDemo {
-    0% { transform: translateX(0); }
-    34% { transform: translateX(18px); }
-    58% { transform: translateX(8px); }
-    100% { transform: translateX(0); }
-  }
-
   /* ── MICRO-INTERACTIONS ── */
   @keyframes taskEnter {
     0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
     58%  { opacity: 1; transform: translateY(-3px) scale(1.01); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .task-swipe-wrap.task-entering {
+  .task-row.task-entering {
     animation: taskEnter 300ms var(--ease-spring) both;
   }
 
@@ -963,33 +811,6 @@
     margin-top: 2px;
   }
   .priority-dot { width: 4px; height: 4px; border-radius: 50%; }
-
-  /* ── REORDER LIFT ── */
-  .task-swipe-wrap.lifted {
-    z-index: 60;
-    overflow: visible;
-  }
-  .task-swipe-wrap.lifted .task-row {
-    background: var(--surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    transform: scale(1.02);
-    border-bottom-color: transparent;
-    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast);
-  }
-  .task-swipe-wrap.lifted .task-delete-bg { display: none; }
-  .task-swipe-wrap.reorder-slot {
-    transition: transform var(--dur-base) var(--ease-out);
-    will-change: transform;
-  }
-  .reorder-placeholder {
-    height: var(--placeholder-h, 52px);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    border: 1.5px dashed color-mix(in srgb, var(--accent) 40%, transparent);
-    margin: 0;
-    transition: opacity var(--dur-fast);
-  }
 
   /* ── MONTH CALENDAR ── */
   .month-view { padding: 0 var(--space-4); }
@@ -4372,7 +4193,6 @@ let bodyFont = localStorage.getItem('fd-body-font') || '';
 let selectedTaskId  = null;
 let selectedHabitId = null;
 let hdView = 'semana';
-let taskDragActive = false;
 let calendarSwipeActive = false;
 let commandOpen = false;
 let habitWeekOffset = 0;
@@ -5241,10 +5061,10 @@ function wireSectionInlineInputs() {
                    projectId: null, time: '', date: date || null, position: nextTaskPosition(date || null), subtasks: [] });
       lastFocusedInputDate = date;
       renderAll();
-      const newWrap = document.querySelector(`.task-swipe-wrap[data-swipe-id="${newId}"]`);
-      if (newWrap) {
-        newWrap.classList.add('task-entering');
-        setTimeout(() => newWrap.classList.remove('task-entering'), 350);
+      const newRow = document.querySelector(`.task-row[data-id="${newId}"]`);
+      if (newRow) {
+        newRow.classList.add('task-entering');
+        setTimeout(() => newRow.classList.remove('task-entering'), 350);
       }
       const sel = date
         ? `.inline-task-row.inline[data-input-date="${date}"] .inline-task-input`
@@ -5277,8 +5097,8 @@ function wireNotebookAddTap() {
   };
 
   list.addEventListener('click', e => {
-    if (taskDragActive || calendarSwipeActive) return;
-    if (e.target.closest('.task-row,.task-swipe-wrap')) return;
+    if (calendarSwipeActive) return;
+    if (e.target.closest('.task-row')) return;
     if (e.target.closest('button,textarea,select')) return;
     if (e.target.tagName === 'INPUT') return;
 
@@ -5405,44 +5225,22 @@ function taskRowHTML(task) {
   ].filter(Boolean).join(';');
   const checkStyle = proj ? `style="--check-color:${proj.dot}"` : '';
   return `
-    <div class="task-swipe-wrap" data-swipe-id="${task.id}">
-      <div class="task-snooze-bg" aria-hidden="true">
-        <div class="snooze-icon">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="snooze-label">Adiar</span>
-      </div>
-      <div class="task-delete-bg" aria-hidden="true">
-        <div class="trash-can">
-          <svg viewBox="0 0 32 34" fill="none">
-            <g class="trash-lid">
-              <path d="M10 8.5h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <path d="M13 5.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <path d="M9.5 12h13l-1 16.5a2.2 2.2 0 0 1-2.2 2H12.7a2.2 2.2 0 0 1-2.2-2L9.5 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            <path class="trash-face" d="M14 18.5v6M18 18.5v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-          </svg>
+    <div class="task-row ${task.done?'done':''} ${highlight?'highlighted':''}" data-id="${task.id}" ${taskStyle ? `style="${taskStyle}"` : ''}>
+      <button class="tick-btn ${task.done?'checked':''}" data-tick="${task.id}" ${checkStyle}>
+        ${CHECK_SVG}
+      </button>
+      <div class="task-body">
+        <div class="task-title">${escapeHTML(task.title)}</div>
+        <div class="task-meta">
+          ${proj ? `<span class="meta-proj"><span class="proj-dot" style="background:${proj.dot}"></span>${escapeHTML(proj.name)}</span>` : ''}
+          ${task.time ? `<span class="meta-time">${escapeHTML(task.time)}</span>` : ''}
+          ${task.repeat && task.repeat !== 'nenhuma' ? `<span class="meta-sub">recorrente: ${escapeHTML(task.repeat)}</span>` : ''}
+          ${task.subtasks?.length ? `<span class="meta-sub">${task.subtasks.length} subtarefas</span>` : ''}
         </div>
       </div>
-      <div class="task-row ${task.done?'done':''} ${highlight?'highlighted':''}" data-id="${task.id}" ${taskStyle ? `style="${taskStyle}"` : ''}>
-        <button class="tick-btn ${task.done?'checked':''}" data-tick="${task.id}" ${checkStyle}>
-          ${CHECK_SVG}
-        </button>
-        <div class="task-body">
-          <div class="task-title">${escapeHTML(task.title)}</div>
-          <div class="task-meta">
-            ${proj ? `<span class="meta-proj"><span class="proj-dot" style="background:${proj.dot}"></span>${escapeHTML(proj.name)}</span>` : ''}
-            ${task.time ? `<span class="meta-time">${escapeHTML(task.time)}</span>` : ''}
-            ${task.repeat && task.repeat !== 'nenhuma' ? `<span class="meta-sub">recorrente: ${escapeHTML(task.repeat)}</span>` : ''}
-            ${task.subtasks?.length ? `<span class="meta-sub">${task.subtasks.length} subtarefas</span>` : ''}
-          </div>
-        </div>
-        <span class="priority-badge" style="color:${pc.color}">
-          <span class="priority-dot" style="background:${pc.color}"></span>${pc.label}
-        </span>
-      </div>
+      <span class="priority-badge" style="color:${pc.color}">
+        <span class="priority-dot" style="background:${pc.color}"></span>${pc.label}
+      </span>
     </div>`;
 }
 
@@ -5461,308 +5259,9 @@ function attachTaskEvents() {
   // task row click (open edit directly)
   document.querySelectorAll('.task-row').forEach(row => {
     row.addEventListener('click', () => {
-      if (row.dataset.suppressClick === 'true') {
-        row.dataset.suppressClick = 'false';
-        return;
-      }
       selectedTaskId = parseInt(row.dataset.id);
       startEditTask(selectedTaskId);
     });
-    // drag to reschedule
-    setupDrag(row);
-  });
-
-  runTaskGestureDemo();
-}
-
-function runTaskGestureDemo() {
-  // Intentionally empty: swipe hints were removed to keep task rows feeling like a notebook.
-}
-
-function setupDrag(row) {
-  // MODES: 'idle' | 'swipe' | 'reorder'
-  let mode = 'idle';
-  let startX = 0, startY = 0, offset = 0;
-  let pressed = false, moved = false;
-  let holdTimer = null;
-  const id = row.dataset.id;
-  const wrap = row.closest('.task-swipe-wrap');
-  const DELETE_LIMIT = 68;
-  const NEXT_DAY_LIMIT = 62;
-  const MAX_PULL = 104;
-  const MAX_RIGHT_PULL = 92;
-  const SWIPE_START = 10;
-  const HOLD_MS = 320;
-
-  // Reorder state
-  let rowHeight = 0;
-  let others = [];          // [{wrap, midY}] visible siblings (not self) at their ORIGINAL positions
-  let initialOthersIdx = 0; // insertion index in others array that represents self's original slot
-  let currentInsertIdx = 0; // current insertion idx in others (0..others.length)
-  let placeholder = null;
-  let pointerOffsetY = 0;
-
-  const setTrashProgress = (progress) => {
-    if (!wrap) return;
-    wrap.classList.toggle('swiping', progress > 0.02);
-    wrap.classList.toggle('delete-mid', progress >= 0.35 && progress < 0.7);
-    wrap.classList.toggle('delete-ready', progress >= 0.7);
-  };
-
-  const setSnoozeProgress = (progress) => {
-    if (!wrap) return;
-    wrap.classList.toggle('snooze-swiping', progress > 0.05);
-    wrap.classList.toggle('snooze-ready', progress >= 1.0);
-  };
-
-  const clearSwipeClasses = () => {
-    if (!wrap) return;
-    wrap.classList.remove('swiping', 'delete-mid', 'delete-ready', 'deleting', 'trash-capture', 'snooze-swiping', 'snooze-ready');
-  };
-
-  const cleanupReorderVisuals = () => {
-    if (placeholder && placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
-    placeholder = null;
-    others.forEach(o => {
-      o.wrap.classList.remove('reorder-slot');
-      o.wrap.style.transform = '';
-    });
-    others = [];
-    if (wrap) {
-      wrap.classList.remove('lifted');
-      wrap.style.transition = '';
-      wrap.style.transform = '';
-      wrap.style.position = '';
-      wrap.style.left = '';
-      wrap.style.top = '';
-      wrap.style.width = '';
-      wrap.style.pointerEvents = '';
-    }
-    row.style.transform = '';
-  };
-
-  const resetAll = () => {
-    clearTimeout(holdTimer);
-    pressed = false;
-    moved = false;
-    taskDragActive = false;
-    row.classList.remove('dragging', 'drag-ready');
-    row.style.transform = '';
-    clearSwipeClasses();
-    cleanupReorderVisuals();
-    mode = 'idle';
-    offset = 0;
-  };
-
-  const animateDelete = () => {
-    clearTimeout(holdTimer);
-    pressed = false;
-    taskDragActive = false;
-    row.dataset.suppressClick = 'true';
-    row.classList.remove('drag-ready','dragging');
-    row.classList.add('deleting');
-    if (wrap) {
-      wrap.classList.add('deleting', 'delete-ready');
-      window.setTimeout(() => wrap.classList.add('trash-capture'), 120);
-    }
-    window.setTimeout(() => deleteTask(parseInt(id), false), 280);
-  };
-
-  const enterReorderMode = (clientY) => {
-    if (!wrap || !wrap.parentNode) return;
-    mode = 'reorder';
-    taskDragActive = true;
-    moved = true;
-    row.dataset.suppressClick = 'true';
-
-    const rect = wrap.getBoundingClientRect();
-    rowHeight = rect.height;
-    pointerOffsetY = clientY - rect.top;
-
-    // Walk section: stop at section-label boundaries
-    others = [];
-    let initialIdx = 0;
-    let node = wrap.previousElementSibling;
-    while (node && !node.classList.contains('section-label')) {
-      if (node.classList.contains('task-swipe-wrap')) {
-        const r = node.getBoundingClientRect();
-        others.unshift({ wrap: node, midY: r.top + r.height / 2 });
-        initialIdx++;
-      }
-      node = node.previousElementSibling;
-    }
-    node = wrap.nextElementSibling;
-    while (node && !node.classList.contains('section-label')) {
-      if (node.classList.contains('task-swipe-wrap')) {
-        const r = node.getBoundingClientRect();
-        others.push({ wrap: node, midY: r.top + r.height / 2 });
-      } else if (node.classList.contains('inline-task-row')) {
-        break;
-      }
-      node = node.nextElementSibling;
-    }
-    initialOthersIdx = initialIdx;
-    currentInsertIdx = initialIdx;
-    others.forEach(o => o.wrap.classList.add('reorder-slot'));
-
-    // Placeholder where self used to live
-    placeholder = document.createElement('div');
-    placeholder.className = 'reorder-placeholder';
-    placeholder.style.setProperty('--placeholder-h', `${rowHeight}px`);
-    wrap.parentNode.insertBefore(placeholder, wrap);
-
-    // Lift wrap into fixed overlay
-    wrap.classList.add('lifted');
-    wrap.style.position = 'fixed';
-    wrap.style.left = `${rect.left}px`;
-    wrap.style.top = `${rect.top}px`;
-    wrap.style.width = `${rect.width}px`;
-    wrap.style.pointerEvents = 'none';
-  };
-
-  const updateReorderPosition = (clientY) => {
-    if (!wrap || mode !== 'reorder') return;
-    wrap.style.top = `${clientY - pointerOffsetY}px`;
-
-    // Find insertion index in others: first others[i].midY > clientY
-    let insertIdx = others.length;
-    for (let i = 0; i < others.length; i++) {
-      if (clientY < others[i].midY) { insertIdx = i; break; }
-    }
-    if (insertIdx === currentInsertIdx) return;
-    currentInsertIdx = insertIdx;
-
-    // Shift siblings to create gap at insertIdx
-    others.forEach((o, i) => {
-      // Original positions: others[0..initialOthersIdx-1] are ABOVE self's slot,
-      // others[initialOthersIdx..] are BELOW self's slot.
-      let dy = 0;
-      if (i < initialOthersIdx && i >= insertIdx) dy = rowHeight;       // pushed down
-      else if (i >= initialOthersIdx && i < insertIdx) dy = -rowHeight; // pulled up
-      o.wrap.style.transform = dy ? `translateY(${dy}px)` : '';
-    });
-  };
-
-  const commitReorder = () => {
-    if (mode !== 'reorder') { resetAll(); return; }
-    const insertIdx = currentInsertIdx;
-
-    if (insertIdx !== initialOthersIdx) {
-      const orderedIds = others.map(o => parseInt(o.wrap.dataset.swipeId));
-      const selfId = parseInt(id);
-      orderedIds.splice(insertIdx, 0, selfId);
-      let base = 1000;
-      orderedIds.forEach(tid => {
-        const t = tasks.find(x => x.id === tid);
-        if (t) { t.position = base; base += 1000; }
-      });
-      // Snap lifted wrap to its final slot before re-render to avoid a jump
-      if (placeholder) {
-        const targetTop = insertIdx < initialOthersIdx
-          ? others[insertIdx].midY - rowHeight / 2
-          : insertIdx >= others.length
-            ? (others.length ? others[others.length - 1].midY + rowHeight / 2 : placeholder.getBoundingClientRect().top)
-            : others[insertIdx].midY - rowHeight / 2;
-        wrap.style.transition = 'top var(--dur-fast) var(--ease-out)';
-        wrap.style.top = `${targetTop}px`;
-      }
-      window.setTimeout(() => { renderAll(); }, 90);
-    } else {
-      cleanupReorderVisuals();
-    }
-    pressed = false;
-    moved = false;
-    taskDragActive = false;
-    mode = 'idle';
-    clearSwipeClasses();
-  };
-
-  row.addEventListener('pointerdown', e => {
-    if (e.target.closest('button')) return;
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    startX = e.clientX;
-    startY = e.clientY;
-    offset = 0;
-    moved = false;
-    pressed = true;
-    mode = 'idle';
-    clearTimeout(holdTimer);
-    row.classList.add('drag-ready');
-    holdTimer = window.setTimeout(() => {
-      if (!pressed || mode !== 'idle' || moved) return;
-      row.classList.remove('drag-ready');
-      try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
-      enterReorderMode(startY);
-      updateReorderPosition(startY);
-    }, HOLD_MS);
-  });
-
-  row.addEventListener('pointermove', e => {
-    if (!pressed) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    if (mode === 'reorder') {
-      e.preventDefault();
-      updateReorderPosition(e.clientY);
-      return;
-    }
-
-    if (mode === 'idle' && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-      clearTimeout(holdTimer);
-      row.classList.remove('drag-ready');
-    }
-
-    if (mode === 'idle' && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
-      pressed = false;
-      return;
-    }
-
-    if (mode === 'idle' && Math.abs(dx) >= SWIPE_START && Math.abs(dx) > Math.abs(dy) * 1.25) {
-      mode = 'swipe';
-      taskDragActive = true;
-      moved = true;
-      try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
-      row.classList.add('dragging');
-    }
-
-    if (mode === 'swipe') {
-      e.preventDefault();
-      offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
-      row.style.transform = `translateX(${offset}px)`;
-      setTrashProgress(Math.min(1, Math.abs(Math.min(0, offset)) / MAX_PULL));
-      setSnoozeProgress(Math.min(1, Math.max(0, offset) / NEXT_DAY_LIMIT));
-    }
-  });
-
-  row.addEventListener('pointerup', () => {
-    clearTimeout(holdTimer);
-    if (mode === 'reorder') {
-      commitReorder();
-      return;
-    }
-    if (mode === 'swipe' && offset < -DELETE_LIMIT) {
-      row.dataset.suppressClick = 'true';
-      animateDelete();
-      return;
-    }
-    if (mode === 'swipe' && offset > NEXT_DAY_LIMIT) {
-      row.dataset.suppressClick = 'true';
-      resetAll();
-      moveTaskByDays(parseInt(id), 1);
-      return;
-    }
-    if (moved || mode === 'swipe') row.dataset.suppressClick = 'true';
-    resetAll();
-  });
-
-  row.addEventListener('pointercancel', () => {
-    if (mode === 'reorder') {
-      cleanupReorderVisuals();
-    }
-    resetAll();
   });
 }
 
@@ -5782,35 +5281,6 @@ function deleteTask(id, ask = true) {
   closeModal('modal-add-task');
   renderAll();
   showDayToast('Tarefa excluída');
-}
-
-function rescheduleTask(id, date) {
-  const t = tasks.find(t => t.id === id);
-  if (t) t.date = date;
-  renderAll();
-  showDayToast(date ? `Movida para ${getDateLabel(date)}` : 'Movida para Sem data');
-}
-
-function moveTaskByDays(id, direction) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  const currentIdx = t.date ? WEEK_DATES.indexOf(t.date) : activeDay;
-  const baseIdx = currentIdx >= 0 ? currentIdx : activeDay;
-  const targetDate = baseIdx + direction < 0
-    ? addDays(WEEK_DATES[0], -1)
-    : baseIdx + direction >= WEEK_DATES.length
-      ? addDays(WEEK_DATES[WEEK_DATES.length - 1], 1)
-      : WEEK_DATES[baseIdx + direction];
-  const targetIdx = ensureDateInWeek(targetDate);
-  t.date = WEEK_DATES[targetIdx];
-  const label = getDateLabel(WEEK_DATES[targetIdx]);
-  if (targetIdx !== activeDay) {
-    buildWeekStrip();
-    setActiveDay(targetIdx, { toast: `Movida para ${label}` });
-  } else {
-    renderAll();
-    showDayToast(`Movida para ${label}`);
-  }
 }
 
 // ─── MONTH VIEW ───────────────────────────────────────────────────────────────
