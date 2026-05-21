@@ -852,16 +852,6 @@
     animation: progressPulse 700ms var(--ease-out) forwards;
   }
 
-  @keyframes inputHint {
-    0%, 100% { box-shadow: none; }
-    50%       { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); }
-  }
-  .inline-task-input.hint-pulse {
-    animation: inputHint 1.6s ease-in-out 900ms 2;
-    border-radius: var(--radius-xs);
-  }
-  .inline-task-input.hint-pulse:focus { animation: none; }
-
   .day-shift-toast {
     position: absolute;
     left: 50%;
@@ -5128,15 +5118,6 @@ function renderDayList() {
     });
   }
 
-  // Pulse empty input when no pending tasks for the day
-  const pendingCount = tasks.filter(t => t.date === WEEK_DATES[activeDay] && !t.done).length;
-  if (pendingCount === 0) {
-    const firstInput = document.querySelector('#task-list-pending .inline-task-input');
-    if (firstInput) {
-      firstInput.classList.add('hint-pulse');
-      firstInput.addEventListener('animationend', () => firstInput.classList.remove('hint-pulse'), { once: true });
-    }
-  }
 }
 
 function renderTaskList() {
