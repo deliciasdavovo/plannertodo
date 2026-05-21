@@ -2104,16 +2104,16 @@
   /* 3 small horizontal lines for days with entries */
   .diary-day-cell.has-entry::after {
     content: '';
-    position: absolute; bottom: 2px; left: 50%;
+    position: absolute; bottom: 4px; left: 50%;
     transform: translateX(-50%);
-    width: 11px; height: 1.5px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
     background: var(--primary);
-    border-radius: 1px;
-    box-shadow: 0 -2.5px 0 var(--primary), 0 2.5px 0 var(--primary);
+    box-shadow: none;
   }
   .diary-day-cell.today { color: var(--primary); font-weight: 700; }
   .diary-day-cell.selected { background: var(--primary); color: var(--bg); font-weight: 700; }
-  .diary-day-cell.selected::after { background: rgba(255,255,255,.55); box-shadow: 0 -2.5px 0 rgba(255,255,255,.55), 0 2.5px 0 rgba(255,255,255,.55); }
+  .diary-day-cell.selected.has-entry::after { background: rgba(255,255,255,.8); }
   .diary-entry-area { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
   .diary-entry-hero {
     padding: 14px 20px 2px; flex-shrink: 0;
