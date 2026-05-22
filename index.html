@@ -1100,14 +1100,14 @@
   .project-block {
     padding: var(--space-4);
     margin-bottom: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--rule) 48%, transparent);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-lg);
     background: var(--surface);
     box-shadow: var(--shadow-xs);
     transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base), border-color var(--dur-base);
   }
   .project-block:active { transform: scale(0.99); box-shadow: var(--shadow-sm); }
-  .project-block:last-child { border-bottom: 1px solid color-mix(in srgb, var(--rule) 48%, transparent); }
+  .project-block:last-child { border-bottom: 1px solid var(--rule); }
   .project-header {
     display: flex;
     justify-content: space-between;
@@ -1166,7 +1166,7 @@
   .project-task-check {
     width: 22px;
     height: 22px;
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-sm);
     border: 1.5px solid var(--project-color, var(--ink-ghost));
     background: transparent;
     cursor: pointer;
@@ -1543,7 +1543,7 @@
     z-index: 10;
   }
   body.dark #bottom-nav {
-    box-shadow: 0 -4px 12px rgba(0,0,0,.22);
+    box-shadow: 0 -4px 12px rgba(0,0,0,.10);
     border-top-color: color-mix(in srgb, var(--accent) 22%, transparent);
   }
   body.dark .task-row.highlighted {
