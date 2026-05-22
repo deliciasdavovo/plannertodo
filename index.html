@@ -177,64 +177,25 @@
     transform: scale(1.012);
   }
   .loading-badge-card {
-    width: 88px;
-    height: 78px;
-    border-radius: var(--radius-xl);
-    background: transparent;
-    border: none;
-    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .loading-logo {
-    position: relative;
-    width: 74px;
-    height: 68px;
+    width: 140px;
+    height: 140px;
     animation: logo-breathe 2.1s ease-in-out forwards;
   }
   .loading-stone {
-    position: absolute;
-    height: 12.5px;
-    border-radius: 4.5px 5.5px 4px 5px;
-    background: #111110;
-    box-shadow: 0 4px 8px rgba(17,17,16,.10), 0 1px 2px rgba(17,17,16,.10);
     opacity: 0;
+    transform-box: fill-box;
     transform-origin: center;
-    z-index: 1;
     animation: stone-place 0.55s cubic-bezier(.2, .8, .2, 1) forwards;
   }
-  .loading-stone:nth-child(1) {
-    width: 41px;
-    right: 1.5px;
-    top: 0;
-    border-radius: 4.5px 5px 4px 4.5px;
-    animation-delay: 0.15s;
-  }
-  .loading-stone:nth-child(2) {
-    width: 60px;
-    right: 16px;
-    top: 19px;
-    height: 14px;
-    border-radius: 5px 5.5px 4.5px 5px;
-    animation-delay: 0.35s;
-  }
-  .loading-stone:nth-child(3) {
-    width: 56px;
-    left: 8.5px;
-    top: 36px;
-    height: 13.5px;
-    border-radius: 5px 4.5px 4.5px 5px;
-    animation-delay: 0.55s;
-  }
-  .loading-stone:nth-child(4) {
-    width: 74px;
-    left: 0;
-    top: 53px;
-    height: 14.5px;
-    border-radius: 5px 4.5px 5px 5.5px;
-    animation-delay: 0.75s;
-  }
+  .loading-stone:nth-child(1) { animation-delay: 0.15s; }
+  .loading-stone:nth-child(2) { animation-delay: 0.35s; }
+  .loading-stone:nth-child(3) { animation-delay: 0.55s; }
+  .loading-stone:nth-child(4) { animation-delay: 0.75s; }
   @keyframes stone-place {
     0% {
       opacity: 0;
@@ -256,10 +217,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .loading-stone {
-      animation: none;
-      opacity: 1;
-    }
+    .loading-stone { animation: none; opacity: 1; }
+    .loading-logo { animation: none; }
   }
 
   /* ── HEADER ── */
@@ -3566,12 +3525,12 @@
 <div id="app">
   <div class="loading-badge" id="loading-badge" aria-label="Carregando" role="status">
     <div class="loading-badge-card" aria-hidden="true">
-      <div class="loading-logo">
-        <span class="loading-stone"></span>
-        <span class="loading-stone"></span>
-        <span class="loading-stone"></span>
-        <span class="loading-stone"></span>
-      </div>
+      <svg class="loading-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path class="loading-stone" fill="#111110" d="M122 314 Q121 303 137 301 Q198 296 260 300 L319 303 Q331 304 332 318 L334 364 Q333 378 317 379 L137 379 Q122 377 121 363 Z"/>
+        <path class="loading-stone" fill="#111110" d="M174 238 Q173 229 187 227 Q229 223 272 225 L313 227 Q326 228 326 241 L327 273 Q326 286 312 286 L187 284 Q174 283 173 271 Z"/>
+        <path class="loading-stone" fill="#111110" d="M232 173 Q231 164 244 163 Q285 160 322 162 L351 164 Q364 165 364 178 L365 203 Q364 216 350 216 L244 213 Q231 212 231 200 Z"/>
+        <path class="loading-stone" fill="#111110" d="M294 124 Q293 116 306 115 Q345 112 385 114 L393 115 Q405 116 405 128 L406 148 Q405 160 391 160 L306 158 Q293 157 293 145 Z"/>
+      </svg>
     </div>
   </div>
 
