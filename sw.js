@@ -1,4 +1,4 @@
-const CACHE = 'flowdo-v1';
+const CACHE = 'flowdo-v11';
 const LOCAL = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -13,6 +13,10 @@ self.addEventListener('activate', e => {
     )
   );
   self.clients.claim();
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', e => {
@@ -31,10 +35,28 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first para assets locais
+  // Network-first para arquivos locais, para o botao "Atualizar app" pegar a versao nova.
   e.respondWith(
-    caches.match(e.request).then(cached =>
-      cached || fetch(e.request).catch(() => caches.match('./index.html'))
-    )
+    fetch(e.request)
+      .then(res => {
+        if (e.request.method === 'GET' && res.ok) {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        }
+        return res;
+      })
+      .catch(() =>
+        caches.match(e.request).then(cached => cached || caches.match('./index.html'))
+      )
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      const openClient = clientList.find(client => client.url.includes('index.html') || client.url.endsWith('/'));
+      if (openClient) return openClient.focus();
+      return clients.openWindow('./index.html');
+    })
   );
 });

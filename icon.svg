@@ -1,4 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="110" fill="#111110"/>
-  <path d="M140 265 L220 345 L375 175" stroke="#F5F4F0" stroke-width="44" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect width="512" height="512" fill="#ECE3D2"/>
+
+  <g fill="#111110">
+    <!-- pedra 1: maior, embaixo -->
+    <path d="M122 314
+      Q121 303 137 301
+      Q198 296 260 300
+      L319 303
+      Q331 304 332 318
+      L334 364
+      Q333 378 317 379
+      L137 379
+      Q122 377 121 363
+      Z"/>
+
+    <!-- pedra 2 -->
+    <path d="M174 238
+      Q173 229 187 227
+      Q229 223 272 225
+      L313 227
+      Q326 228 326 241
+      L327 273
+      Q326 286 312 286
+      L187 284
+      Q174 283 173 271
+      Z"/>
+
+    <!-- pedra 3 -->
+    <path d="M232 173
+      Q231 164 244 163
+      Q285 160 322 162
+      L351 164
+      Q364 165 364 178
+      L365 203
+      Q364 216 350 216
+      L244 213
+      Q231 212 231 200
+      Z"/>
+
+    <!-- pedra 4: última, separada e mais à direita -->
+    <path d="M294 124
+      Q293 116 306 115
+      Q345 112 385 114
+      L393 115
+      Q405 116 405 128
+      L406 148
+      Q405 160 391 160
+      L306 158
+      Q293 157 293 145
+      Z"/>
+  </g>
 </svg>
+
