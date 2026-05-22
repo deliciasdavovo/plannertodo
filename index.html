@@ -4380,6 +4380,14 @@ function compareTasks(a, b) {
   return (a.time || '99:99').localeCompare(b.time || '99:99');
 }
 
+const PRIORITY_ORDER = { alta: 0, média: 1, baixa: 2 };
+function compareUndatedTasks(a, b) {
+  const pa = PRIORITY_ORDER[a.priority] ?? 1;
+  const pb = PRIORITY_ORDER[b.priority] ?? 1;
+  if (pa !== pb) return pa - pb;
+  return compareTasks(a, b);
+}
+
 function makeHeatmap(pct) {
   return Array.from({length:35},(_,i)=>i<32?Math.random()<pct:null);
 }
@@ -5445,16 +5453,10 @@ function inlineRowHTML(dateKey) {
 function renderDayList() {
   const dayKey = WEEK_DATES[activeDay];
   const dayTasks = tasks.filter(t => t.date === dayKey).sort(compareTasks);
-  const undatedTasks = tasks.filter(t => !t.date).sort(compareTasks);
+  const undatedTasks = tasks.filter(t => !t.date).sort(compareUndatedTasks);
   const isToday = dayKey === TODAY;
 
   let html = '';
-
-  if (undatedTasks.length) {
-    html += `<div class="section-label nodate" data-section-date="">Sem data</div>`;
-    html += undatedTasks.map(t => taskRowHTML(t)).join('');
-    html += inlineRowHTML('', 'Nova tarefa');
-  }
 
   const label = getDateLabel(dayKey);
   html += `<div class="section-label${isToday ? ' today' : ''}" data-section-date="${dayKey}">${isToday ? 'Hoje' : label}</div>`;
@@ -5464,6 +5466,13 @@ function renderDayList() {
   }
 
   html += inlineRowHTML(dayKey, 'Nova tarefa');
+
+  if (undatedTasks.length) {
+    html += `<div class="section-label nodate" data-section-date="">Sem data</div>`;
+    html += undatedTasks.map(t => taskRowHTML(t)).join('');
+    html += inlineRowHTML('', 'Nova tarefa');
+  }
+
   html += `<div style="height:100px"></div>`;
 
   document.getElementById('task-list-pending').innerHTML = html;
@@ -5481,7 +5490,7 @@ function renderTaskList() {
     acc[dateKey] = tasks.filter(t => t.date === dateKey).sort(compareTasks);
     return acc;
   }, {});
-  const undatedTasks = tasks.filter(t => !t.date).sort(compareTasks);
+  const undatedTasks = tasks.filter(t => !t.date).sort(compareUndatedTasks);
 
   let html = '';
 
@@ -5576,7 +5585,47 @@ function attachTaskEvents() {
 
 function toggleTask(id) {
   const t = tasks.find(t => t.id === id);
-  if (t) t.done = !t.done;
+  if (!t) return;
+  t.done = !t.done;
+
+  if (t.done && t.repeat && t.repeat !== 'nenhuma' && t.date) {
+    let nextDate = t.date;
+    if (t.repeat === 'diaria') {
+      nextDate = addDays(t.date, 1);
+    } else if (t.repeat === 'semanal') {
+      nextDate = addDays(t.date, 7);
+    } else if (t.repeat === 'mensal') {
+      const d = parseDateKey(t.date);
+      d.setMonth(d.getMonth() + 1);
+      nextDate = formatDateKey(d);
+    } else if (t.repeat === 'anual') {
+      const d = parseDateKey(t.date);
+      d.setFullYear(d.getFullYear() + 1);
+      nextDate = formatDateKey(d);
+    } else if (t.repeat === 'custom') {
+      nextDate = addDays(t.date, t.repeatCustomDays || 15);
+    }
+    const alreadyExists = tasks.some(task => task.title === t.title && task.date === nextDate && !task.done);
+    if (!alreadyExists) {
+      tasks.push({
+        id: Date.now(),
+        title: t.title,
+        notes: t.notes || '',
+        done: false,
+        priority: t.priority,
+        projectId: t.projectId,
+        time: t.time,
+        date: nextDate,
+        position: nextTaskPosition(nextDate),
+        repeat: t.repeat,
+        repeatCustomDays: t.repeatCustomDays,
+        subtasks: (t.subtasks || []).map(s => typeof s === 'string' ? s : { ...s, done: false }),
+        attachments: [],
+        highlight: t.highlight,
+      });
+    }
+  }
+
   renderAll();
 }
 
@@ -7541,6 +7590,7 @@ function saveAndCloseTaskSheet() {
         t.time = newTaskTime;
         t.date = newTaskDate;
         t.repeat = newRepeat;
+        t.repeatCustomDays = newRepeat === 'custom' ? newRepeatCustomDays : undefined;
         t.subtasks = newSubtasks;
         t.highlight = newTaskHighlight;
         if (newTaskDate) ensureDateInWeek(newTaskDate);
@@ -7560,6 +7610,7 @@ function saveAndCloseTaskSheet() {
       date: newTaskDate,
       position: nextTaskPosition(newTaskDate),
       repeat: newRepeat,
+      repeatCustomDays: newRepeat === 'custom' ? newRepeatCustomDays : undefined,
       subtasks: newSubtasks,
       attachments: [],
       highlight: newTaskHighlight,
@@ -7591,8 +7642,10 @@ function startEditTask(id) {
   newPriority = t.priority;
   newProjectId = t.projectId ?? null;
   newTaskDate = t.date;
+  newHasDate = !!t.date;
   newTaskTime = t.time || '';
   newRepeat = t.repeat || 'nenhuma';
+  newRepeatCustomDays = t.repeatCustomDays || 15;
   newSubtasks = (t.subtasks || []).map(s => typeof s === 'string' ? { title: s, done: false } : { ...s });
   newTaskNotes = t.notes || '';
   newTaskHighlight = isHighlightColor(t.highlight) ? normalizeHighlightColor(t.highlight) : '';
@@ -7780,8 +7833,8 @@ function openNewTaskSheet() {
     updateHeader();
     renderAll();
   }
-  newPriority = 'média'; newProjectId = null; newHasDate = false;
-  newTaskDate = null;
+  newPriority = 'média'; newProjectId = null; newHasDate = true;
+  newTaskDate = WEEK_DATES[activeDay];
   newTaskTime = '';
   newRepeat = 'nenhuma';
   newRepeatCustomDays = 15;
