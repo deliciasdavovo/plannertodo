@@ -4371,10 +4371,10 @@ function nextTaskPosition(dateKey) {
   return max + 1000;
 }
 
-const PRIORITY_ORDER = { alta: 0, média: 1, baixa: 2 };
+const PRIORITY_SORT = { alta: 0, média: 1, baixa: 2 };
 function compareTasks(a, b) {
-  const pa = PRIORITY_ORDER[a.priority] ?? 1;
-  const pb = PRIORITY_ORDER[b.priority] ?? 1;
+  const pa = PRIORITY_SORT[a.priority] ?? 1;
+  const pb = PRIORITY_SORT[b.priority] ?? 1;
   if (pa !== pb) return pa - pb;
   return (a.time || '99:99').localeCompare(b.time || '99:99');
 }
