@@ -4371,20 +4371,15 @@ function nextTaskPosition(dateKey) {
   return max + 1000;
 }
 
-function compareTasks(a, b) {
-  const pa = typeof a.position === 'number' ? a.position : null;
-  const pb = typeof b.position === 'number' ? b.position : null;
-  if (pa !== null && pb !== null && pa !== pb) return pa - pb;
-  if (pa !== null && pb === null) return -1;
-  if (pa === null && pb !== null) return 1;
-  return (a.time || '99:99').localeCompare(b.time || '99:99');
-}
-
 const PRIORITY_ORDER = { alta: 0, média: 1, baixa: 2 };
-function compareUndatedTasks(a, b) {
+function compareTasks(a, b) {
   const pa = PRIORITY_ORDER[a.priority] ?? 1;
   const pb = PRIORITY_ORDER[b.priority] ?? 1;
   if (pa !== pb) return pa - pb;
+  return (a.time || '99:99').localeCompare(b.time || '99:99');
+}
+
+function compareUndatedTasks(a, b) {
   return compareTasks(a, b);
 }
 
