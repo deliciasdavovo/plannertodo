@@ -1877,7 +1877,15 @@
   }
   .diary-entry-card-preview { font-size: 13px; line-height: 1.5; color: var(--ink-soft); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .diary-entry-card-preview.empty { color: var(--ink-faint); font-style: italic; }
-  .diary-today-card { outline: 1.5px solid var(--accent); outline-offset: -1px; }
+  .diary-today-card {
+    padding: 20px 18px 18px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+  }
+  .diary-today-card .diary-entry-card-header { align-items: flex-end; margin-bottom: 10px; }
+  .diary-today-card .diary-entry-card-daynum { font-size: 48px; line-height: 1; }
+  .diary-today-card .diary-entry-card-dow { font-size: 13px; margin-bottom: 4px; }
+  .diary-today-card .diary-entry-card-preview { font-size: 14px; -webkit-line-clamp: 3; }
   .diary-empty-state {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 70px 30px 40px; gap: 10px; color: var(--ink-faint); text-align: center;
