@@ -226,6 +226,13 @@
     padding: var(--space-4) var(--space-5) var(--space-2);
     flex-shrink: 0;
     position: relative;
+    transition: background var(--dur-base) ease, box-shadow var(--dur-base) ease;
+  }
+  #header.scrolled {
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 0.5px 0 color-mix(in srgb, var(--rule) 60%, transparent);
   }
   #header-top {
     display: flex;
@@ -588,13 +595,15 @@
     min-height: var(--tap-comfortable);
     padding: var(--space-3) 0;
     cursor: pointer;
-    transition: opacity var(--dur-base), transform var(--dur-slow) var(--ease-out), background var(--dur-base);
+    transition: opacity var(--dur-base), transform var(--dur-fast) var(--ease-out), background var(--dur-fast);
     position: relative;
     touch-action: pan-y;
     user-select: none;
     background: transparent;
     border-bottom: 0.5px solid color-mix(in srgb, var(--rule) 42%, transparent);
+    border-radius: var(--radius-xs);
   }
+  .task-row:active { transform: scale(0.988); background: var(--deep); }
   .task-row.done { opacity: 0.38; }
   /* ── MICRO-INTERACTIONS ── */
   @keyframes taskEnter {
@@ -605,11 +614,16 @@
   .task-row.task-entering {
     animation: taskEnter 300ms var(--ease-spring) both;
   }
+  .list-entering {
+    animation: taskEnter 280ms var(--ease-spring) both;
+    animation-delay: var(--stagger-delay, 0ms);
+  }
 
   @keyframes tickBounce {
-    0%   { transform: scale(0.62); }
-    54%  { transform: scale(1.28); }
-    78%  { transform: scale(0.92); }
+    0%   { transform: scale(0.5); }
+    42%  { transform: scale(1.32); }
+    68%  { transform: scale(0.9); }
+    86%  { transform: scale(1.06); }
     100% { transform: scale(1); }
   }
   .tick-btn.just-checked {
@@ -1508,10 +1522,15 @@
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-fab);
-    transition: transform var(--dur-base) var(--ease-spring), box-shadow var(--dur-base), opacity var(--dur-base);
+    transition: transform var(--dur-base) var(--ease-spring), box-shadow var(--dur-base), opacity var(--dur-fast);
+    will-change: transform, opacity;
   }
   #fab:active { transform: scale(0.94); }
-  #fab.hidden { display: none; }
+  #fab.hidden {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+  }
   #fab svg {
     transition: transform 220ms var(--ease-spring);
   }
@@ -1524,7 +1543,9 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-1);
-    background: var(--tabbar);
+    background: color-mix(in srgb, var(--tabbar) 88%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-top: 0.5px solid color-mix(in srgb, var(--tabbar-text) 14%, transparent);
     padding: var(--space-2) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
     flex-shrink: 0;
@@ -1570,12 +1591,23 @@
   }
   .nav-btn:active { transform: scale(0.985); }
   .nav-btn.active {
-    background: color-mix(in srgb, var(--tabbar-text) 13%, transparent);
     color: var(--tabbar-text);
   }
   body.dark .nav-btn.active {
-    background: color-mix(in srgb, var(--accent) 24%, transparent);
     color: var(--accent);
+  }
+  #nav-pill {
+    position: absolute;
+    height: calc(100% - 8px);
+    top: 4px;
+    background: color-mix(in srgb, var(--tabbar-text) 12%, transparent);
+    border-radius: var(--radius-md);
+    pointer-events: none;
+    transition: transform 300ms var(--ease-spring), width 200ms var(--ease-out);
+    will-change: transform, width;
+  }
+  body.dark #nav-pill {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
   }
   body.dark #fab {
     background: var(--accent);
@@ -2138,12 +2170,36 @@
     box-shadow: var(--shadow-sheet);
     transition: transform var(--dur-slow) var(--ease-out);
   }
-  .modal-overlay.open .modal-sheet { transform: translateY(0); }
+  .modal-overlay.open .modal-sheet {
+    transform: translateY(0);
+    transition: transform 400ms cubic-bezier(.22,1,.36,1);
+  }
   .modal-handle {
     width: 36px; height: 4px;
     background: color-mix(in srgb, var(--ink-ghost) 68%, transparent);
     border-radius: var(--radius-full);
     margin: 0 auto var(--space-6);
+    cursor: grab;
+    touch-action: none;
+    flex-shrink: 0;
+  }
+  .diary-handle {
+    width: 36px; height: 4px;
+    background: color-mix(in srgb, var(--ink-ghost) 60%, transparent);
+    border-radius: var(--radius-full);
+    margin: 10px auto 2px;
+    flex-shrink: 0;
+    cursor: grab;
+    touch-action: none;
+  }
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: color-mix(in srgb, var(--ink-ghost) 60%, transparent);
+    border-radius: var(--radius-full);
+    margin: 10px auto 0;
+    flex-shrink: 0;
+    cursor: grab;
+    touch-action: none;
   }
   .modal-label {
     font-size: var(--text-xs);
@@ -3789,6 +3845,7 @@
   <!-- DIARY ENTRY SHEET -->
   <div class="diary-sheet-backdrop" id="diary-sheet-backdrop"></div>
   <div class="diary-sheet" id="diary-sheet">
+    <div class="diary-handle" id="diary-handle"></div>
     <div class="diary-sheet-top">
       <button class="diary-sheet-back" id="diary-sheet-back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><path d="M15 18l-6-6 6-6"/></svg>
@@ -3872,6 +3929,7 @@
 
   <div class="modal-overlay" id="modal-add-task">
     <div class="task-sheet" id="modal-add-task-sheet">
+      <div class="sheet-handle" id="task-sheet-handle"></div>
       <div class="task-sheet-head">
         <div class="task-sheet-date-label" id="task-sheet-date-label">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -4976,18 +5034,53 @@ const NAV_ICONS = {
   diario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
 };
 
+let _navPillReady = false;
+
 function buildNav() {
   const nav = document.getElementById('bottom-nav');
-  nav.innerHTML = NAV_ITEMS.map(n => `
+
+  // Save old active button offset for pill animation
+  const oldActiveBtn = nav.querySelector('.nav-btn.active');
+  const fromLeft  = oldActiveBtn ? oldActiveBtn.offsetLeft  : null;
+  const fromWidth = oldActiveBtn ? oldActiveBtn.offsetWidth : null;
+
+  nav.innerHTML = `<div id="nav-pill"></div>` + NAV_ITEMS.map(n => `
     <button class="nav-btn ${n.id === currentNav ? 'active':''}" data-nav="${n.id}">
       <span class="nav-icon">${NAV_ICONS[n.id]}</span>
       <span class="nav-label">${n.label}</span>
-      <div class="nav-indicator"></div>
     </button>
   `).join('');
+
   nav.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => switchNav(btn.dataset.nav));
   });
+
+  positionNavPill(_navPillReady ? fromLeft : null, _navPillReady ? fromWidth : null);
+  _navPillReady = true;
+}
+
+function positionNavPill(fromLeft, fromWidth) {
+  const pill      = document.getElementById('nav-pill');
+  const activeBtn = document.querySelector('#bottom-nav .nav-btn.active');
+  if (!pill || !activeBtn) return;
+
+  const toLeft  = activeBtn.offsetLeft;
+  const toWidth = activeBtn.offsetWidth;
+
+  if (fromLeft !== null && fromLeft !== undefined) {
+    pill.style.transition = 'none';
+    pill.style.transform  = `translateX(${fromLeft}px)`;
+    pill.style.width      = `${fromWidth}px`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      pill.style.transition = '';
+      pill.style.transform  = `translateX(${toLeft}px)`;
+      pill.style.width      = `${toWidth}px`;
+    }));
+  } else {
+    pill.style.transition = 'none';
+    pill.style.transform  = `translateX(${toLeft}px)`;
+    pill.style.width      = `${toWidth}px`;
+  }
 }
 
 function switchNav(nav) {
@@ -4995,6 +5088,7 @@ function switchNav(nav) {
   hlPanelOpen = false;
   currentNav = nav;
   currentView = (nav === 'hoje') ? 'dia' : 'semana';
+  vibrateSoft([5]);
   buildNav();
   buildViewToggle();
   updateHeader();
@@ -5400,6 +5494,8 @@ function buildViewToggle() {
 }
 
 // ─── SCREEN MANAGER ──────────────────────────────────────────────────────────
+let _screenSwitched = false;
+
 function showScreen(id) {
   let previousActive = false;
   document.querySelectorAll('.screen').forEach(s => {
@@ -5409,15 +5505,30 @@ function showScreen(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.add('active');
+  _screenSwitched = previousActive;
   if (previousActive && !calendarSwipeActive) {
     void el.offsetWidth;
     el.classList.add('entering');
   }
 }
 
+function staggerScreenItems(screen) {
+  const items = screen.querySelectorAll('.task-row, .habit-card, .project-block, .diary-entry-card');
+  items.forEach((el, i) => {
+    const delay = Math.min(i * 25, 280);
+    el.style.setProperty('--stagger-delay', `${delay}ms`);
+    el.classList.add('list-entering');
+    el.addEventListener('animationend', () => {
+      el.classList.remove('list-entering');
+      el.style.removeProperty('--stagger-delay');
+    }, { once: true });
+  });
+}
+
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function renderAll() {
   const nav = currentNav, view = currentView;
+  const prevScreen = document.querySelector('.screen.active')?.id;
 
   if (nav === 'hoje' && view === 'dia') {
     showScreen('screen-hoje-semana');
@@ -5440,6 +5551,11 @@ function renderAll() {
   } else if (nav === 'diario') {
     showScreen('screen-diario');
     renderDiary();
+  }
+
+  const currScreen = document.querySelector('.screen.active');
+  if (_screenSwitched && currScreen && currScreen.id !== prevScreen) {
+    requestAnimationFrame(() => staggerScreenItems(currScreen));
   }
 
   syncWeekStripMode();
@@ -5871,7 +5987,7 @@ function renderHabitsWeek() {
       const id = parseInt(btn.dataset.habitCheck);
       const wasDone = btn.classList.contains('done');
       btn.classList.add(wasDone ? 'just-unchecked' : 'just-checked');
-      vibrateSoft([8]);
+      vibrateSoft(wasDone ? [6] : [6, 22, 8]);
       setTimeout(() => checkHabit(id), 185);
     });
   });
@@ -8101,6 +8217,117 @@ function finishLoadingBadge() {
     window.setTimeout(() => badge.remove(), 320);
   }, 980);
 }
+
+// ─── DRAG-TO-DISMISS ─────────────────────────────────────────────────────────
+function setupSheetDragToDismiss(handleEl, sheetEl, backdropEl, onDismiss) {
+  let startY = 0, dy = 0, dragging = false, vel = 0, lastY = 0, lastT = 0;
+
+  function onDown(e) {
+    if (sheetEl.scrollTop > 4) return;
+    startY = e.clientY; dy = 0; dragging = true; vel = 0;
+    lastY = e.clientY; lastT = Date.now();
+    handleEl.setPointerCapture(e.pointerId);
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    dy = e.clientY - startY;
+    const clamped = dy < 0 ? dy * 0.12 : dy;
+    sheetEl.style.transition = 'none';
+    sheetEl.style.transform = `translateY(${clamped}px)`;
+    if (backdropEl) {
+      const progress = Math.max(0, dy) / (sheetEl.offsetHeight || 500);
+      backdropEl.style.opacity = String(Math.max(0, 1 - progress * 0.85));
+    }
+    const now = Date.now(), dt = now - lastT;
+    if (dt > 0) vel = (e.clientY - lastY) / dt * 1000;
+    lastY = e.clientY; lastT = now;
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    const sheetH = sheetEl.offsetHeight || 500;
+    if (dy > 100 || vel > 450) {
+      const dur = Math.max(180, Math.min(320, (sheetH - dy) / Math.max(1, vel) * 1000));
+      sheetEl.style.transition = `transform ${dur}ms var(--ease-out)`;
+      sheetEl.style.transform = 'translateY(100%)';
+      if (backdropEl) { backdropEl.style.transition = `opacity ${dur}ms ease`; backdropEl.style.opacity = '0'; }
+      vibrateSoft([6]);
+      setTimeout(() => {
+        sheetEl.style.transition = ''; sheetEl.style.transform = '';
+        if (backdropEl) { backdropEl.style.transition = ''; backdropEl.style.opacity = ''; }
+        onDismiss();
+      }, dur + 16);
+    } else {
+      sheetEl.style.transition = 'transform 380ms cubic-bezier(.34,1.56,.64,1)';
+      sheetEl.style.transform = 'translateY(0)';
+      if (backdropEl) { backdropEl.style.transition = 'opacity 240ms ease'; backdropEl.style.opacity = '1'; }
+      setTimeout(() => {
+        sheetEl.style.transition = '';
+        if (backdropEl) { backdropEl.style.transition = ''; backdropEl.style.opacity = ''; }
+      }, 400);
+    }
+  }
+  function onCancel() {
+    if (!dragging) return;
+    dragging = false;
+    sheetEl.style.transition = 'transform 380ms cubic-bezier(.34,1.56,.64,1)';
+    sheetEl.style.transform = 'translateY(0)';
+    if (backdropEl) { backdropEl.style.transition = 'opacity 240ms ease'; backdropEl.style.opacity = ''; }
+    setTimeout(() => { sheetEl.style.transition = ''; if (backdropEl) backdropEl.style.transition = ''; }, 400);
+  }
+
+  handleEl.style.touchAction = 'none';
+  handleEl.addEventListener('pointerdown', onDown);
+  handleEl.addEventListener('pointermove', onMove);
+  handleEl.addEventListener('pointerup', onUp);
+  handleEl.addEventListener('pointercancel', onCancel);
+}
+
+// Wire drag-to-dismiss for standard modal sheets
+['modal-add-habit', 'modal-task-detail', 'modal-habit-detail', 'modal-add-project', 'modal-confirm', 'modal-cycle-settings'].forEach(id => {
+  const overlay = document.getElementById(id);
+  if (!overlay) return;
+  const sheet  = overlay.querySelector('.modal-sheet');
+  const handle = sheet?.querySelector('.modal-handle');
+  if (handle && sheet) {
+    setupSheetDragToDismiss(handle, sheet, overlay, () => closeModal(id));
+  }
+});
+
+// Wire drag-to-dismiss for diary sheet
+(function() {
+  const handle  = document.getElementById('diary-handle');
+  const sheet   = document.getElementById('diary-sheet');
+  const backdrop = document.getElementById('diary-sheet-backdrop');
+  if (handle && sheet) {
+    setupSheetDragToDismiss(handle, sheet, backdrop, () => {
+      saveDiaryNow();
+      clearTimeout(diaryDebounce);
+      sheet.classList.remove('open');
+      backdrop.classList.remove('open');
+      renderDiaryList();
+    });
+  }
+})();
+
+// Wire drag-to-dismiss for add-task sheet
+(function() {
+  const handle = document.getElementById('task-sheet-handle');
+  const sheet  = document.getElementById('modal-add-task-sheet');
+  if (handle && sheet) {
+    setupSheetDragToDismiss(handle, sheet, null, () => saveAndCloseTaskSheet());
+  }
+})();
+
+// ─── HEADER SCROLL BLUR ───────────────────────────────────────────────────────
+(function() {
+  const content = document.getElementById('content');
+  const header  = document.getElementById('header');
+  if (!content || !header) return;
+  content.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', content.scrollTop > 12);
+  }, { passive: true });
+})();
 
 // close on overlay click
 ['modal-add-task','modal-add-habit','modal-task-detail','modal-habit-detail','modal-add-project'].forEach(id => {
