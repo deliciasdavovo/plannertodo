@@ -588,6 +588,36 @@
     font-style: normal;
   }
 
+  .overdue-label {
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--red);
+    margin: var(--space-4) 0 0;
+    min-height: var(--tap-comfortable);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--red) 20%, var(--rule));
+    cursor: pointer;
+    user-select: none;
+  }
+  .overdue-chevron {
+    font-size: 10px;
+    transition: transform var(--dur-fast) var(--ease-out);
+    flex-shrink: 0;
+  }
+  .overdue-label.expanded .overdue-chevron {
+    transform: rotate(90deg);
+  }
+  .overdue-tasks-container {
+    display: none;
+  }
+  .overdue-tasks-container.expanded {
+    display: block;
+  }
+
   .task-row {
     display: flex;
     align-items: flex-start;
@@ -4665,6 +4695,7 @@ let hlPanelOpen = false;
 let hlTabTop = parseFloat(localStorage.getItem('fd-hl-tab-top')) || null;
 let hdView = 'semana';
 let calendarSwipeActive = false;
+let overdueExpanded = false;
 let commandOpen = false;
 let habitWeekOffset = 0;
 let habitMonthOffset = 0;
@@ -5695,6 +5726,25 @@ function wireNotebookAddTap() {
 }
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
+function getOverdueTasks() {
+  return tasks.filter(t => !t.done && t.date && t.date < TODAY).sort(compareTasks);
+}
+
+function overdueHTML() {
+  const overdueTasks = getOverdueTasks();
+  if (!overdueTasks.length) return '';
+  const expClass = overdueExpanded ? 'expanded' : '';
+  const n = overdueTasks.length;
+  return `
+    <div class="overdue-label ${expClass}" id="overdue-label">
+      <span class="overdue-chevron">▶</span>
+      ${n} tarefa${n !== 1 ? 's' : ''} atrasada${n !== 1 ? 's' : ''}
+    </div>
+    <div class="overdue-tasks-container ${expClass}" id="overdue-tasks-container">
+      ${overdueTasks.map(t => taskRowHTML(t)).join('')}
+    </div>`;
+}
+
 function inlineRowHTML(dateKey) {
   return `
     <div class="inline-task-row inline" data-input-date="${dateKey}">
@@ -5711,6 +5761,7 @@ function renderDayList() {
   const isToday = dayKey === TODAY;
 
   let html = '';
+  html += overdueHTML();
 
   const label = getDateLabel(dayKey);
   html += `<div class="section-label${isToday ? ' today' : ''}" data-section-date="${dayKey}">${isToday ? 'Hoje' : label}</div>`;
@@ -5747,6 +5798,7 @@ function renderTaskList() {
   const undatedTasks = tasks.filter(t => !t.date).sort(compareUndatedTasks);
 
   let html = '';
+  html += overdueHTML();
 
   WEEK_DATES.forEach(dateKey => {
     const group = tasksByDate[dateKey];
@@ -5807,6 +5859,17 @@ function taskRowHTML(task) {
 }
 
 function attachTaskEvents() {
+  // overdue section toggle
+  const overdueLabel = document.getElementById('overdue-label');
+  if (overdueLabel) {
+    overdueLabel.addEventListener('click', e => {
+      e.stopPropagation();
+      overdueExpanded = !overdueExpanded;
+      document.getElementById('overdue-label')?.classList.toggle('expanded', overdueExpanded);
+      document.getElementById('overdue-tasks-container')?.classList.toggle('expanded', overdueExpanded);
+    });
+  }
+
   // tick buttons
   document.querySelectorAll('[data-tick]').forEach(btn => {
     btn.addEventListener('click', e => {
