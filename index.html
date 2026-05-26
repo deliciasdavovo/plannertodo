@@ -741,9 +741,6 @@
   .task-row.dragging {
     transition: none;
     z-index: 2;
-    border-radius: var(--radius-md);
-    background: var(--bg);
-    box-shadow: var(--shadow-sm);
     border-bottom: none;
   }
   .task-row.deleting {
@@ -751,11 +748,6 @@
     transform: translateX(-92px) scale(0.86) !important;
     opacity: 0;
     border-bottom-color: transparent;
-  }
-  .task-row.drag-ready {
-    transform: scale(0.985);
-    opacity: 0.9;
-    background: color-mix(in srgb, var(--deep) 58%, transparent);
   }
   /* ── MICRO-INTERACTIONS ── */
   @keyframes taskEnter {
@@ -923,33 +915,6 @@
     margin-top: 2px;
   }
   .priority-dot { width: 4px; height: 4px; border-radius: 50%; }
-
-  /* ── REORDER LIFT ── */
-  .task-swipe-wrap.lifted {
-    z-index: 60;
-    overflow: visible;
-  }
-  .task-swipe-wrap.lifted .task-row {
-    background: var(--surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    transform: scale(1.02);
-    border-bottom-color: transparent;
-    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast);
-  }
-  .task-swipe-wrap.lifted .task-delete-bg { display: none; }
-  .task-swipe-wrap.reorder-slot {
-    transition: transform var(--dur-base) var(--ease-out);
-    will-change: transform;
-  }
-  .reorder-placeholder {
-    height: var(--placeholder-h, 52px);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    border: 1.5px dashed color-mix(in srgb, var(--accent) 40%, transparent);
-    margin: 0;
-    transition: opacity var(--dur-fast);
-  }
 
   /* ── MONTH CALENDAR ── */
   .month-view { padding: 0 var(--space-4); }
@@ -6078,10 +6043,9 @@ function attachTaskEvents() {
 }
 
 function setupDrag(row) {
-  let mode = 'idle';
+  let swiping = false;
   let startX = 0, startY = 0, offset = 0;
   let pressed = false, moved = false;
-  let holdTimer = null;
   const id = row.dataset.id;
   const wrap = row.closest('.task-swipe-wrap');
   const DELETE_LIMIT = 68;
@@ -6089,14 +6053,6 @@ function setupDrag(row) {
   const MAX_PULL = 104;
   const MAX_RIGHT_PULL = 92;
   const SWIPE_START = 10;
-  const HOLD_MS = 320;
-
-  let rowHeight = 0;
-  let others = [];
-  let initialOthersIdx = 0;
-  let currentInsertIdx = 0;
-  let placeholder = null;
-  let pointerOffsetY = 0;
 
   const setTrashProgress = (progress) => {
     if (!wrap) return;
@@ -6116,155 +6072,28 @@ function setupDrag(row) {
     wrap.classList.remove('swiping', 'delete-mid', 'delete-ready', 'deleting', 'trash-capture', 'snooze-swiping', 'snooze-ready');
   };
 
-  const cleanupReorderVisuals = () => {
-    if (placeholder && placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
-    placeholder = null;
-    others.forEach(o => {
-      o.wrap.classList.remove('reorder-slot');
-      o.wrap.style.transform = '';
-    });
-    others = [];
-    if (wrap) {
-      wrap.classList.remove('lifted');
-      wrap.style.transition = '';
-      wrap.style.transform = '';
-      wrap.style.position = '';
-      wrap.style.left = '';
-      wrap.style.top = '';
-      wrap.style.width = '';
-      wrap.style.pointerEvents = '';
-    }
-    row.style.transform = '';
-  };
-
   const resetAll = () => {
-    clearTimeout(holdTimer);
     pressed = false;
     moved = false;
+    swiping = false;
     taskDragActive = false;
-    row.classList.remove('dragging', 'drag-ready');
+    row.classList.remove('dragging');
     row.style.transform = '';
     clearSwipeClasses();
-    cleanupReorderVisuals();
-    mode = 'idle';
     offset = 0;
   };
 
   const animateDelete = () => {
-    clearTimeout(holdTimer);
     pressed = false;
     taskDragActive = false;
     row.dataset.suppressClick = 'true';
-    row.classList.remove('drag-ready', 'dragging');
+    row.classList.remove('dragging');
     row.classList.add('deleting');
     if (wrap) {
       wrap.classList.add('deleting', 'delete-ready');
       window.setTimeout(() => wrap.classList.add('trash-capture'), 120);
     }
     window.setTimeout(() => deleteTask(parseInt(id), false), 280);
-  };
-
-  const enterReorderMode = (clientY) => {
-    if (!wrap || !wrap.parentNode) return;
-    mode = 'reorder';
-    taskDragActive = true;
-    moved = true;
-    row.dataset.suppressClick = 'true';
-
-    const rect = wrap.getBoundingClientRect();
-    rowHeight = rect.height;
-    pointerOffsetY = clientY - rect.top;
-
-    others = [];
-    let initialIdx = 0;
-    let node = wrap.previousElementSibling;
-    while (node && !node.classList.contains('section-label')) {
-      if (node.classList.contains('task-swipe-wrap')) {
-        const r = node.getBoundingClientRect();
-        others.unshift({ wrap: node, midY: r.top + r.height / 2 });
-        initialIdx++;
-      }
-      node = node.previousElementSibling;
-    }
-    node = wrap.nextElementSibling;
-    while (node && !node.classList.contains('section-label')) {
-      if (node.classList.contains('task-swipe-wrap')) {
-        const r = node.getBoundingClientRect();
-        others.push({ wrap: node, midY: r.top + r.height / 2 });
-      } else if (node.classList.contains('inline-task-row')) {
-        break;
-      }
-      node = node.nextElementSibling;
-    }
-    initialOthersIdx = initialIdx;
-    currentInsertIdx = initialIdx;
-    others.forEach(o => o.wrap.classList.add('reorder-slot'));
-
-    placeholder = document.createElement('div');
-    placeholder.className = 'reorder-placeholder';
-    placeholder.style.setProperty('--placeholder-h', `${rowHeight}px`);
-    wrap.parentNode.insertBefore(placeholder, wrap);
-
-    wrap.classList.add('lifted');
-    wrap.style.position = 'fixed';
-    wrap.style.left = `${rect.left}px`;
-    wrap.style.top = `${rect.top}px`;
-    wrap.style.width = `${rect.width}px`;
-    wrap.style.pointerEvents = 'none';
-  };
-
-  const updateReorderPosition = (clientY) => {
-    if (!wrap || mode !== 'reorder') return;
-    wrap.style.top = `${clientY - pointerOffsetY}px`;
-
-    let insertIdx = others.length;
-    for (let i = 0; i < others.length; i++) {
-      if (clientY < others[i].midY) { insertIdx = i; break; }
-    }
-    if (insertIdx === currentInsertIdx) return;
-    currentInsertIdx = insertIdx;
-
-    others.forEach((o, i) => {
-      let dy = 0;
-      if (i < initialOthersIdx && i >= insertIdx) dy = rowHeight;
-      else if (i >= initialOthersIdx && i < insertIdx) dy = -rowHeight;
-      o.wrap.style.transform = dy ? `translateY(${dy}px)` : '';
-    });
-  };
-
-  const commitReorder = () => {
-    if (mode !== 'reorder') { resetAll(); return; }
-    const insertIdx = currentInsertIdx;
-
-    if (insertIdx !== initialOthersIdx) {
-      const orderedIds = others.map(o => parseInt(o.wrap.dataset.swipeId));
-      const selfId = parseInt(id);
-      orderedIds.splice(insertIdx, 0, selfId);
-      let base = 1000;
-      orderedIds.forEach(tid => {
-        const t = tasks.find(x => x.id === tid);
-        if (t) { t.position = base; base += 1000; }
-      });
-      if (placeholder) {
-        const targetTop = insertIdx < initialOthersIdx
-          ? others[insertIdx].midY - rowHeight / 2
-          : insertIdx >= others.length
-            ? (others.length ? others[others.length - 1].midY + rowHeight / 2 : placeholder.getBoundingClientRect().top)
-            : others[insertIdx].midY - rowHeight / 2;
-        wrap.style.transition = 'top var(--dur-fast) var(--ease-out)';
-        wrap.style.top = `${targetTop}px`;
-      }
-      window.setTimeout(() => { renderAll(); }, 90);
-    } else {
-      cleanupReorderVisuals();
-    }
-    pressed = false;
-    moved = false;
-    taskDragActive = false;
-    mode = 'idle';
-    clearSwipeClasses();
   };
 
   row.addEventListener('pointerdown', e => {
@@ -6275,16 +6104,7 @@ function setupDrag(row) {
     offset = 0;
     moved = false;
     pressed = true;
-    mode = 'idle';
-    clearTimeout(holdTimer);
-    row.classList.add('drag-ready');
-    holdTimer = window.setTimeout(() => {
-      if (!pressed || mode !== 'idle' || moved) return;
-      row.classList.remove('drag-ready');
-      try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
-      enterReorderMode(startY);
-      updateReorderPosition(startY);
-    }, HOLD_MS);
+    swiping = false;
   });
 
   row.addEventListener('pointermove', e => {
@@ -6292,31 +6112,20 @@ function setupDrag(row) {
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
 
-    if (mode === 'reorder') {
-      e.preventDefault();
-      updateReorderPosition(e.clientY);
-      return;
-    }
-
-    if (mode === 'idle' && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-      clearTimeout(holdTimer);
-      row.classList.remove('drag-ready');
-    }
-
-    if (mode === 'idle' && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+    if (!swiping && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
       pressed = false;
       return;
     }
 
-    if (mode === 'idle' && Math.abs(dx) >= SWIPE_START && Math.abs(dx) > Math.abs(dy) * 1.25) {
-      mode = 'swipe';
+    if (!swiping && Math.abs(dx) >= SWIPE_START && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      swiping = true;
       taskDragActive = true;
       moved = true;
       try { if (row.setPointerCapture) row.setPointerCapture(e.pointerId); } catch (_) {}
       row.classList.add('dragging');
     }
 
-    if (mode === 'swipe') {
+    if (swiping) {
       e.preventDefault();
       offset = Math.max(-MAX_PULL, Math.min(MAX_RIGHT_PULL, dx));
       row.style.transform = `translateX(${offset}px)`;
@@ -6326,32 +6135,21 @@ function setupDrag(row) {
   });
 
   row.addEventListener('pointerup', () => {
-    clearTimeout(holdTimer);
-    if (mode === 'reorder') {
-      commitReorder();
-      return;
-    }
-    if (mode === 'swipe' && offset < -DELETE_LIMIT) {
-      row.dataset.suppressClick = 'true';
+    if (swiping && offset < -DELETE_LIMIT) {
       animateDelete();
       return;
     }
-    if (mode === 'swipe' && offset > NEXT_DAY_LIMIT) {
+    if (swiping && offset > NEXT_DAY_LIMIT) {
       row.dataset.suppressClick = 'true';
       resetAll();
       moveTaskByDays(parseInt(id), 1);
       return;
     }
-    if (moved || mode === 'swipe') row.dataset.suppressClick = 'true';
+    if (moved || swiping) row.dataset.suppressClick = 'true';
     resetAll();
   });
 
-  row.addEventListener('pointercancel', () => {
-    if (mode === 'reorder') {
-      cleanupReorderVisuals();
-    }
-    resetAll();
-  });
+  row.addEventListener('pointercancel', resetAll);
 }
 
 function toggleTask(id) {
