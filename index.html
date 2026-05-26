@@ -604,10 +604,12 @@
     user-select: none;
   }
   .overdue-chevron {
-    font-size: 10px;
+    display: flex;
+    align-items: center;
     transition: transform var(--dur-fast) var(--ease-out);
     flex-shrink: 0;
   }
+  .overdue-chevron svg { display: block; }
   .overdue-label.expanded .overdue-chevron {
     transform: rotate(90deg);
   }
@@ -5737,7 +5739,7 @@ function overdueHTML() {
   const n = overdueTasks.length;
   return `
     <div class="overdue-label ${expClass}" id="overdue-label">
-      <span class="overdue-chevron">▶</span>
+      <span class="overdue-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       ${n} tarefa${n !== 1 ? 's' : ''} atrasada${n !== 1 ? 's' : ''}
     </div>
     <div class="overdue-tasks-container ${expClass}" id="overdue-tasks-container">
