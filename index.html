@@ -4948,6 +4948,9 @@ function attachmentKind(attachment) {
 }
 
 function attachmentHref(attachment) {
+  if (typeof attachment === 'object' && attachment?.kind === 'file' && attachment?.data) {
+    return attachment.data;
+  }
   const name = attachmentName(attachment).trim();
   if (!/^https?:\/\//i.test(name)) return '';
   return name;
@@ -7767,7 +7770,9 @@ function openTaskDetail() {
       return `
       <div class="attachment-row">
         ${href
-          ? `<a href="${escapeAttr(href)}" target="_blank" rel="noopener noreferrer">${escapeHTML(name)}</a>`
+          ? (kind === 'file'
+              ? `<a href="${escapeAttr(href)}" download="${escapeAttr(name)}">${escapeHTML(name)}</a>`
+              : `<a href="${escapeAttr(href)}" target="_blank" rel="noopener noreferrer">${escapeHTML(name)}</a>`)
           : `<span>${escapeHTML(name)}</span>`}
         ${kind === 'file' ? '<small>arquivo</small>' : ''}
         <button data-remove-attachment="${i}" type="button">REMOVER</button>
@@ -7814,6 +7819,7 @@ function openTaskDetail() {
     const title = input.value.trim();
     if (!title) return;
     task.subtasks.push({ title, done:false });
+    saveState();
     openTaskDetail();
     renderAll();
   };
@@ -7822,6 +7828,7 @@ function openTaskDetail() {
     const name = input.value.trim();
     if (!name) return;
     task.attachments.push({ name, kind: attachmentHref(name) ? 'link' : 'manual' });
+    saveState();
     openTaskDetail();
     renderAll();
   };
@@ -7840,11 +7847,26 @@ function openTaskDetail() {
   document.getElementById('attachment-file-input').onchange = e => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    const MAX_SIZE = 10 * 1024 * 1024;
+    let pending = 0;
     files.forEach(file => {
-      task.attachments.push({ name: file.name, kind: 'file', size: file.size, type: file.type });
+      if (file.size > MAX_SIZE) {
+        alert(`"${file.name}" é grande demais (máx 10 MB).`);
+        return;
+      }
+      pending++;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        task.attachments.push({ name: file.name, kind: 'file', size: file.size, type: file.type, data: ev.target.result });
+        pending--;
+        if (pending === 0) {
+          saveState();
+          openTaskDetail();
+          renderAll();
+        }
+      };
+      reader.readAsDataURL(file);
     });
-    openTaskDetail();
-    renderAll();
   };
   subs.querySelectorAll('[data-remove-attachment]').forEach(btn => {
     btn.onclick = () => {
